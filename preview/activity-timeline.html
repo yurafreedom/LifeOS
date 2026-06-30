@@ -1,0 +1,68 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="activity-timeline" subtitle="Sprint 3A · global activityLog rows + empty state" viewport="900x620" -->
+<html><head><meta charset="utf-8"><title>components · activity-timeline</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@500;700&family=Work+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="_base.css">
+<style>
+  .frame { padding: 24px; display: flex; flex-direction: column; gap: 22px; }
+  .label { font: 500 10px 'Work Sans', monospace; color: #8E8E93; }
+  .card {
+    background: #14181F; border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px; padding: 14px;
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .row {
+    display: flex; gap: 12px; align-items: baseline;
+    font: 500 11px 'Work Sans', monospace;
+    padding: 3px 0;
+  }
+  .when { color: #8E8E93; min-width: 96px; flex: none; }
+  .what { color: #C7C7CC; text-transform: lowercase; }
+  .detail {
+    flex: 1; color: #8E8E93; font-size: 11px;
+    text-transform: none; letter-spacing: 0;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .empty {
+    font-size: 11px; color: #5C5C63;
+    padding: 8px 0;
+  }
+</style></head>
+<body><div class="frame">
+
+  <div>
+    <div class="label" style="margin-bottom: 10px">activity-timeline · task entity scope</div>
+    <div class="card">
+      <div class="row"><span class="when">21 мая · 09:12</span><span class="what">создано</span></div>
+      <div class="row"><span class="when">21 мая · 11:48</span><span class="what">отредактировано</span></div>
+      <div class="row"><span class="when">22 мая · 14:22</span><span class="what">выполнено</span></div>
+    </div>
+  </div>
+
+  <div>
+    <div class="label" style="margin-bottom: 10px">activity-timeline · med_dose scope · bupropion</div>
+    <div class="card">
+      <div class="row"><span class="when">23 мая · 08:14</span><span class="what">доза принята</span><span class="detail">150 мг · scheduled</span></div>
+      <div class="row"><span class="when">23 мая · 13:42</span><span class="what">доза принята</span><span class="detail">75 мг · позже обычного на 1ч 30м</span></div>
+      <div class="row"><span class="when">22 мая · 08:09</span><span class="what">доза принята</span><span class="detail">150 мг</span></div>
+      <div class="row"><span class="when">22 мая · 13:18</span><span class="what">доза принята</span><span class="detail">75 мг</span></div>
+      <div class="row"><span class="when">21 мая · 08:22</span><span class="what">доза принята</span><span class="detail">150 мг</span></div>
+      <div class="row"><span class="when">21 мая · 12:51</span><span class="what">доза пропущена</span></div>
+    </div>
+  </div>
+
+  <div>
+    <div class="label" style="margin-bottom: 10px">activity-timeline · mode_style + med_config scope</div>
+    <div class="card">
+      <div class="row"><span class="when">20 мая · 18:30</span><span class="what">стратегия изменена</span><span class="detail">up · target 300mg</span></div>
+      <div class="row"><span class="when">19 мая · 21:14</span><span class="what">инвентарь обновлён</span><span class="detail">count: 30 → 56</span></div>
+      <div class="row"><span class="when">15 мая · 10:02</span><span class="what">отредактировано</span><span class="detail">schedule, doses_per_day</span></div>
+    </div>
+  </div>
+
+  <div>
+    <div class="label" style="margin-bottom: 10px">activity-timeline · empty state</div>
+    <div class="card"><div class="empty">история пуста</div></div>
+  </div>
+
+</div></body></html>

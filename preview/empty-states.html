@@ -1,0 +1,43 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Empty states" subtitle="Inbox / goals / money / habits" viewport="700x360" -->
+<html><head><meta charset="utf-8"><title>empty states · every panel</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@700&family=Work+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="_base.css">
+<style>
+  .frame { padding: 18px 22px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 8px; }
+  .panel { background: rgba(255,255,255,0.035); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 14px 16px; }
+  .ph { display: flex; justify-content: space-between; margin-bottom: 10px; }
+  .pt { font-family: 'Onest'; font-weight: 700; font-size: 14px; color: #F5F5F7; letter-spacing: -0.015em; }
+  .pm { font-family: 'Work Sans'; font-size: 10px; color: #8E8E93; }
+  .pm.stakes { color: #FFC066; }
+  .empty {
+    padding: 22px 12px;
+    text-align: center;
+    font-family: 'Work Sans'; font-size: 12px;
+    color: #8E8E93; line-height: 1.45;
+    border: 1px dashed rgba(255,255,255,0.08);
+    border-radius: 8px;
+  }
+</style></head>
+<body><div class="frame">
+  <div class="eyebrow">empty states · every panel</div>
+  <div class="grid">
+    <div class="panel">
+      <div class="ph"><span class="pt">входящие</span><span class="pm">0 открыто · 0 всего</span></div>
+      <div class="empty">сегодня задач нет. добавь одну или выдохни.</div>
+    </div>
+    <div class="panel">
+      <div class="ph"><span class="pt">цели</span><span class="pm stakes">0 открыто · важное</span></div>
+      <div class="empty">целей пока нет. поставь одну — в этом весь смысл.</div>
+    </div>
+    <div class="panel">
+      <div class="ph"><span class="pt">финансы</span><span class="pm">май · USD</span></div>
+      <div class="empty">в этом месяце расходов нет. либо здорово, либо моно не синхронизируется.</div>
+    </div>
+    <div class="panel">
+      <div class="ph"><span class="pt">привычки</span><span class="pm">0/0 на этой неделе</span></div>
+      <div class="empty">привычек ещё нет — начни с малого.<br/><br/><span style="font-family:'Work Sans'; font-size: 10px; padding: 6px 12px; border-radius: 8px; background: rgba(34,158,217,0.12); color: #5BB8E8; border: 1px solid rgba(34,158,217,0.25);">+ добавить привычку</span></div>
+    </div>
+  </div>
+</div></body></html>

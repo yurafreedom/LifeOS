@@ -1,0 +1,123 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Profile · 5-card layout" subtitle="Identity · body · measurements · sizes · food preferences · inline editable" viewport="1120x680" -->
+<html><head><meta charset="utf-8"><title>components · profile</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@700;800&family=Work+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="_base.css">
+<style>
+  .frame { padding: 22px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .card { background: rgba(255,255,255,0.035); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 14px; box-shadow: 0 1px 0 rgba(255,255,255,0.04) inset; }
+  .wide { grid-column: 1 / -1; }
+  .head { display: flex; justify-content: space-between; align-items: baseline; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 10px; }
+  .ttl { font: 700 14px 'Onest', sans-serif; letter-spacing: -0.01em; }
+  .sub { font-family: 'Work Sans', monospace; font-size: 8.5px; color: #5C5C63; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 14px; }
+  .row { display: flex; flex-direction: column; gap: 2px; }
+  .lab { font-family: 'Work Sans', monospace; font-size: 8.5px; color: #5C5C63; padding-left: 8px; }
+  .val { padding: 5px 8px; border-radius: 5px; font-size: 12px; color: #F5F5F7; }
+  .val.mono { font-family: 'Work Sans', monospace; }
+  .val.muted { color: #5C5C63; font-weight: 400; }
+
+  .sizes { display: flex; flex-direction: column; }
+  .sizes .h, .sizes .r { display: grid; grid-template-columns: 1.3fr 1fr 1fr 1fr; gap: 10px; padding: 6px 4px; border-bottom: 1px solid rgba(255,255,255,0.08); align-items: center; }
+  .sizes .h { font-family: 'Work Sans', monospace; font-size: 8.5px; color: #5C5C63; }
+  .sizes .r:last-child { border-bottom: none; }
+  .sizes .ty { font-size: 12px; color: #F5F5F7; padding-left: 4px; }
+  .sizes .eu { font-family: 'Work Sans', monospace; font-size: 12px; color: #F5F5F7; padding: 5px 8px; border-radius: 5px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); display: inline-block; width: 50px; text-align: center; }
+  .sizes .d { font-family: 'Work Sans', monospace; font-size: 12px; color: #C7C7CC; }
+
+  .spark { display: flex; gap: 12px; align-items: center; padding: 4px 8px; }
+  .spark .lbls { display: flex; flex-direction: column; gap: 1px; font-family: 'Work Sans', monospace; font-size: 10px; color: #8E8E93; }
+  .spark .lbls .last { color: #5BB8E8; }
+
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; padding: 6px 8px; border-radius: 6px; background: rgba(255,255,255,0.05); border: 1px dashed rgba(255,255,255,0.08); min-height: 32px; align-items: center; }
+  .tag { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; padding: 3px 6px 3px 9px; border-radius: 999px; border: 1px solid; }
+  .tag.danger { background: rgba(229,72,77,0.14); color: #FF7479; border-color: rgba(229,72,77,0.25); }
+  .tag.ok { background: rgba(29,158,117,0.14); color: #4FCAA0; border-color: rgba(29,158,117,0.25); }
+  .tag.muted { background: rgba(255,255,255,0.05); color: #C7C7CC; border-color: rgba(255,255,255,0.08); }
+  .tag .x { opacity: 0.55; }
+</style></head>
+<body><div class="frame">
+  <div class="grid">
+    <div class="card">
+      <div class="head"><span class="ttl">личное</span></div>
+      <div class="row2">
+        <div class="row"><span class="lab">имя</span><span class="val">Артём К.</span></div>
+        <div class="row"><span class="lab">возраст</span><span class="val mono">29</span></div>
+        <div class="row"><span class="lab">город</span><span class="val">Київ</span></div>
+        <div class="row"><span class="lab">о себе</span><span class="val muted">одной-двумя строками…</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="head"><span class="ttl">тело</span></div>
+      <div class="row2">
+        <div class="row"><span class="lab">рост</span><span class="val mono">178 см</span></div>
+        <div class="row"><span class="lab">вес</span><span class="val mono">72.4 кг</span></div>
+        <div class="row" style="grid-column: 1 / -1;">
+          <span class="lab">последние замеры</span>
+          <div class="spark">
+            <svg width="160" height="32" viewBox="0 0 160 32">
+              <polyline points="4,8 80,16 156,24" fill="none" stroke="#229ED9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="4" cy="8" r="2" fill="#229ED9"/>
+              <circle cx="80" cy="16" r="2" fill="#229ED9"/>
+              <circle cx="156" cy="24" r="3" fill="#5BB8E8"/>
+            </svg>
+            <div class="lbls">
+              <span>01.05 · 73.4кг</span>
+              <span>08.05 · 72.9кг</span>
+              <span class="last">15.05 · 72.4кг</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card wide">
+      <div class="head"><span class="ttl">мерки</span><span class="sub">все в см</span></div>
+      <div class="row2">
+        <div class="row"><span class="lab">грудь</span><span class="val mono">96 см</span></div>
+        <div class="row"><span class="lab">талия</span><span class="val mono">80 см</span></div>
+        <div class="row"><span class="lab">бёдра</span><span class="val mono">96 см</span></div>
+        <div class="row"><span class="lab">шея</span><span class="val mono">38 см</span></div>
+        <div class="row"><span class="lab">плечи</span><span class="val mono">45 см</span></div>
+        <div class="row"><span class="lab">длина рукава</span><span class="val mono">64 см</span></div>
+      </div>
+    </div>
+
+    <div class="card wide">
+      <div class="head"><span class="ttl">размеры</span><span class="sub">EU → US → UA/UK</span></div>
+      <div class="sizes">
+        <div class="h"><span>тип</span><span>EU</span><span>US</span><span>UA/UK</span></div>
+        <div class="r"><span class="ty">рубашка</span><span class="eu">48</span><span class="d">38</span><span class="d">48 (M)</span></div>
+        <div class="r"><span class="ty">брюки</span><span class="eu">81</span><span class="d">W32</span><span class="d">81</span></div>
+        <div class="r"><span class="ty">обувь</span><span class="eu">42</span><span class="d">9</span><span class="d">8.5</span></div>
+      </div>
+    </div>
+
+    <div class="card wide">
+      <div class="head"><span class="ttl">еда</span></div>
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <div class="row"><span class="lab">аллергии · ограничения</span>
+          <div class="tags">
+            <span class="tag danger">арахис<span class="x">×</span></span>
+            <span class="tag danger">лактоза<span class="x">×</span></span>
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="row"><span class="lab">нравится</span>
+            <div class="tags">
+              <span class="tag ok">грибы<span class="x">×</span></span>
+              <span class="tag ok">кимчи<span class="x">×</span></span>
+            </div>
+          </div>
+          <div class="row"><span class="lab">не нравится</span>
+            <div class="tags">
+              <span class="tag muted">фенхель<span class="x">×</span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div></body></html>

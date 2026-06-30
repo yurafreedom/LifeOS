@@ -1,0 +1,84 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Quick-add modal" subtitle="⌘K modal · title · toggle · category · schedule · notes" viewport="700x540" -->
+<html><head><meta charset="utf-8"><title>components · quick-add modal</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@500;700;800&family=Work+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="_base.css">
+<style>
+  body { background-image: none; background-color: #0E1117; }
+  .frame { padding: 22px; }
+  .stage {
+    position: relative; border-radius: 14px;
+    background: #0E1117;
+    background-image:
+      radial-gradient(700px 400px at 90% -20%, rgba(34,158,217,0.12), transparent 60%),
+      radial-gradient(500px 320px at -10% 110%, rgba(255,138,30,0.08), transparent 65%);
+    overflow: hidden;
+    min-height: 480px;
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+  .modal {
+    width: 88%; max-width: 540px;
+    margin: 32px auto;
+    background: #14181F;
+    border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 14px;
+    padding: 14px 16px 12px;
+    box-shadow: 0 32px 80px -20px rgba(0,0,0,0.7);
+  }
+  .head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .eb  { font-family: 'Work Sans', monospace; font-size: 10px; color: #8E8E93; }
+  .x   { color: #8E8E93; font-size: 13px; }
+  .title {
+    width: 100%; background: transparent; border: none; outline: none;
+    font-family: 'Onest', sans-serif; font-weight: 500; font-size: 20px;
+    letter-spacing: -0.02em; color: #F5F5F7;
+    padding: 6px 0 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .row { display: flex; gap: 8px; align-items: center; padding: 10px 0; }
+  .toggle { display: inline-flex; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 2px; }
+  .tb { font-family: 'Work Sans', monospace; font-size: 10px; padding: 6px 10px; border-radius: 6px; color: #8E8E93; }
+  .tb.on-rout { background: rgba(34,158,217,0.12); color: #5BB8E8; }
+  .cat-trig { flex: 1; display: flex; align-items: center; gap: 8px; padding: 7px 10px; border-radius: 8px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); color: #C7C7CC; font-family: 'Work Sans', sans-serif; font-size: 13px; }
+  .cat-dot { width: 20px; height: 20px; border-radius: 5px; background: rgba(34,158,217,0.12); color: #5BB8E8; display:flex; align-items:center; justify-content:center; flex: none; }
+  .cat-dot svg { width: 13px; height: 13px; }
+  .expand { padding: 6px 0; border-top: 1px solid rgba(255,255,255,0.08); }
+  .ex-link { font-family: 'Work Sans', monospace; font-size: 11px; color: #8E8E93; display: inline-flex; gap: 6px; padding: 6px 0; align-items: center; }
+  .foot { display: flex; justify-content: space-between; align-items: center; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.08); margin-top: 4px; }
+  .hints { display: flex; gap: 6px; align-items: center; font-family: 'Work Sans', monospace; font-size: 10px; color: #8E8E93; }
+  .kbd { padding: 2px 6px; border-radius: 4px; background: rgba(255,255,255,0.06); color: #C7C7CC; }
+  .actions { display: flex; gap: 8px; }
+  .ghost { padding: 8px 14px; border-radius: 8px; background: transparent; border: 1px solid rgba(255,255,255,0.08); color: #8E8E93; font-size: 13px; font-family: 'Work Sans', sans-serif; }
+  .save  { padding: 8px 14px; border-radius: 8px; background: #229ED9; color: #fff; font-size: 13px; font-weight: 600; font-family: 'Work Sans', sans-serif; }
+</style></head>
+<body><div class="frame">
+  <div class="eyebrow" style="margin-bottom: 8px;">quick-add · ⌘K · default state (routine)</div>
+  <div class="stage">
+    <div class="modal">
+      <div class="head">
+        <span class="eb">быстрое добавление</span>
+        <span class="x">✕</span>
+      </div>
+      <input class="title" placeholder="что нужно сделать?" />
+      <div class="row">
+        <div class="toggle"><span class="tb on-rout">рутина</span><span class="tb">важное</span></div>
+        <div class="cat-trig">
+          <div class="cat-dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></div>
+          <span style="flex:1; color:#F5F5F7;">продукты</span>
+          <span style="color:#8E8E93;">▾</span>
+        </div>
+      </div>
+      <div class="expand"><span class="ex-link">⏱ запланировать…</span></div>
+      <div class="expand"><span class="ex-link">+ заметки…</span></div>
+      <div class="foot">
+        <div class="hints">
+          <span class="kbd">⌘ ↵</span><span>сохранить</span><span style="color:#5C5C63;">·</span><span class="kbd">ESC</span><span>отмена</span>
+        </div>
+        <div class="actions">
+          <button class="ghost">отмена</button>
+          <button class="save">сохранить</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div></body></html>

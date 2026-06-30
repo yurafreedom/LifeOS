@@ -1,0 +1,42 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Budget states" subtitle="Normal · warning (orange) · overshoot (red)" viewport="700x300" -->
+<html><head><meta charset="utf-8"><title>components · budget warning</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@700&family=Work+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="_base.css">
+<style>
+  .stack { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+  .bar-block { padding: 12px 14px; border-radius: 12px; background: rgba(255,255,255,0.035); border: 1px solid rgba(255,255,255,0.08); }
+  .head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
+  .lab { font-family: 'Work Sans', monospace; font-size: 10px; }
+  .lab.normal { color: #8E8E93; }
+  .lab.warn   { color: #FFC066; }
+  .lab.over   { color: #FF7479; }
+  .val { font-family: 'Work Sans', monospace; font-size: 12px; color: #F5F5F7; font-variant-numeric: tabular-nums; }
+  .track { height: 5px; background: rgba(255,255,255,0.05); border-radius: 999px; overflow: hidden; }
+  .fill { height: 100%; border-radius: 999px; }
+  .fill.normal { background: #1D9E75; }
+  .fill.warn   { background: linear-gradient(90deg,#FFC066,#FF8A1E,#FF6B0A); }
+  .fill.over   { background: #E5484D; }
+  .hint { font-family: 'Work Sans', monospace; font-size: 10px; margin-top: 6px; }
+  .hint.warn { color: #FFC066; }
+  .hint.over { color: #FF7479; }
+</style></head>
+<body><div class="frame">
+  <div class="eyebrow">budget states · normal · warning · overshoot</div>
+  <div class="stack">
+    <div class="bar-block">
+      <div class="head"><span class="lab normal">food · oct · 47%</span><span class="val">$140 / $300</span></div>
+      <div class="track"><div class="fill normal" style="width: 47%;"></div></div>
+    </div>
+    <div class="bar-block">
+      <div class="head"><span class="lab warn">food · oct · 81% · stakes</span><span class="val">$243 / $300</span></div>
+      <div class="track"><div class="fill warn" style="width: 81%;"></div></div>
+      <div class="hint warn">about to overshoot · 19 days left in october</div>
+    </div>
+    <div class="bar-block">
+      <div class="head"><span class="lab over">food · oct · 112%</span><span class="val">$336 / $300</span></div>
+      <div class="track"><div class="fill over" style="width: 100%;"></div></div>
+      <div class="hint over">over by $36.00 · this went wrong</div>
+    </div>
+  </div>
+</div></body></html>

@@ -1,0 +1,78 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Quick Notes" subtitle="Raw-capture surface · empty + populated + promote action" viewport="1120x460" -->
+<html><head><meta charset="utf-8"><title>components · quick notes</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@700;800&family=Work+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="_base.css">
+<style>
+  .frame { padding: 22px; display: flex; gap: 22px; align-items: stretch; }
+  .col { flex: 1; display: flex; flex-direction: column; gap: 10px; }
+  .lab { font-family: 'Work Sans', monospace; font-size: 9.5px; color: #5C5C63; }
+
+  .input {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 14px; border-radius: 12px;
+    background: rgba(255,255,255,0.035);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: #8E8E93; font-size: 14px;
+  }
+  .input.focus {
+    border-color: rgba(34,158,217,0.55);
+    background: rgba(255,255,255,0.055);
+    box-shadow: 0 0 0 3px rgba(34,158,217,0.10);
+  }
+  .input .plus { color: #5C5C63; }
+  .input .text { flex: 1; }
+  .input .kbd { font-family: 'Work Sans', monospace; font-size: 10px; padding: 3px 8px; border-radius: 5px; background: rgba(34,158,217,0.12); color: #5BB8E8; }
+
+  .empty {
+    padding: 36px 24px; text-align: center;
+    color: #8E8E93; line-height: 1.55;
+    border: 1px dashed rgba(255,255,255,0.08);
+    border-radius: 12px;
+    font-size: 13px;
+  }
+
+  .list { background: rgba(255,255,255,0.035); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; overflow: hidden; }
+  .item { display: grid; grid-template-columns: 56px 1fr auto; gap: 14px; align-items: center; padding: 11px 14px; border-bottom: 1px solid rgba(255,255,255,0.08); font-size: 13px; color: #F5F5F7; }
+  .item:last-child { border-bottom: none; }
+  .item.hover { background: rgba(255,255,255,0.025); }
+  .t { font-family: 'Work Sans', monospace; font-size: 10px; color: #5C5C63; }
+  .act { display: inline-flex; gap: 4px; opacity: 1; }
+  .btn { display: inline-flex; align-items: center; gap: 5px; padding: 5px 9px; border-radius: 6px; background: transparent; color: #8E8E93; border: 1px solid rgba(255,255,255,0.08); font-size: 11px; }
+  .btn.solid { background: rgba(255,138,30,0.10); border-color: rgba(255,138,30,0.32); color: #FFC066; }
+  .btn svg { width: 12px; height: 12px; }
+</style></head>
+<body><div class="frame">
+  <div class="col">
+    <div class="lab">empty state</div>
+    <div class="input"><span class="plus">+</span><span class="text">что на уме? enter — добавить</span></div>
+    <div class="empty">пусто. сюда быстро сваливать мысли — разгребать потом.</div>
+  </div>
+
+  <div class="col">
+    <div class="lab">populated · promote action</div>
+    <div class="input focus"><span class="plus">+</span><span class="text" style="color:#F5F5F7;">переслать договор</span><span class="kbd">↵</span></div>
+    <div class="list">
+      <div class="item">
+        <span class="t">08:14</span>
+        <span>спросить у врача про дозу</span>
+        <span class="act">
+          <span class="btn solid"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg> в задачу</span>
+        </span>
+      </div>
+      <div class="item hover">
+        <span class="t">11:02</span>
+        <span>идея: разделить расходы на постоянные/перем.</span>
+        <span class="act">
+          <span class="btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg> в задачу</span>
+          <span class="btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg></span>
+        </span>
+      </div>
+      <div class="item">
+        <span class="t">14:48</span>
+        <span>мама — найти билеты на декабрь</span>
+        <span class="act"></span>
+      </div>
+    </div>
+  </div>
+</div></body></html>

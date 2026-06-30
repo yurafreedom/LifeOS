@@ -1,0 +1,112 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>components · card system v2</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@700;800&family=Work+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="_base.css">
+<style>
+  .frame { padding: 24px; }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 14px; }
+
+  /* each theme stage carries its own gradient so backdrop-blur has
+     something to sample, exactly like the app canvas. */
+  .stage {
+    border-radius: 14px; padding: 22px;
+    border: 1px solid rgba(255,255,255,0.06);
+    position: relative; overflow: hidden;
+  }
+  .stage-dark  { background: linear-gradient(180deg, #0E1117 0%, #14181F 100%); }
+  .stage-light { background: linear-gradient(180deg, #FFFFFF 0%, #FBF8F4 100%); border-color: rgba(0,0,0,0.06); }
+  .stage::before {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background:
+      radial-gradient(420px 240px at 88% -20%, rgba(34,158,217,0.12), transparent 60%),
+      radial-gradient(360px 220px at -10% 120%, rgba(255,138,30,0.10), transparent 65%);
+  }
+  .stage-light::before {
+    background:
+      radial-gradient(420px 240px at 88% -20%, rgba(27,138,196,0.07), transparent 60%),
+      radial-gradient(360px 220px at -10% 120%, rgba(219,90,12,0.06), transparent 65%);
+  }
+  .stage-lab { font-family: 'Work Sans', sans-serif; font-weight: 500; font-size: 11px; margin-bottom: 14px; position: relative; }
+  .stage-dark  .stage-lab { color: #8E8E93; }
+  .stage-light .stage-lab { color: #6B7280; }
+
+  .cards { display: flex; flex-direction: column; gap: 14px; position: relative; }
+
+  /* ---- the glass card itself ---- */
+  .card {
+    -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+    border-radius: 10px; padding: 12px 14px;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .stage-dark .card {
+    background: rgba(22,26,33,0.65);
+    border: 1px solid rgba(219,90,12,0.16);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+  }
+  .stage-dark .card.stakes {
+    border: 1.5px solid rgba(219,90,12,0.55);
+    box-shadow: 0 0 0 1px rgba(219,90,12,0.18), 0 4px 16px rgba(219,90,12,0.14);
+  }
+  .stage-light .card {
+    background: rgba(255,251,246,0.72);
+    border: 1px solid rgba(219,90,12,0.18);
+    box-shadow: 0 1px 4px rgba(219,90,12,0.04);
+  }
+  .stage-light .card.stakes {
+    border: 1.5px solid rgba(219,90,12,0.65);
+    box-shadow: 0 0 0 1px rgba(219,90,12,0.15), 0 4px 12px rgba(219,90,12,0.10);
+  }
+
+  .c-eb  { font-family: 'Work Sans', sans-serif; font-weight: 500; font-size: 11px; }
+  .c-num { font-family: 'Work Sans', sans-serif; font-weight: 600; font-size: 28px; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; line-height: 1; }
+  .c-ctx { font-family: 'Work Sans', sans-serif; font-size: 12px; }
+  .stage-dark  .c-eb { color: #8E8E93; } .stage-dark  .c-num { color: #F5F5F7; } .stage-dark  .c-ctx { color: #C7C7CC; }
+  .stage-light .c-eb { color: #6B7280; } .stage-light .c-num { color: #0F1419; } .stage-light .c-ctx { color: #2A323D; }
+  .stage-dark  .card.stakes .c-num { color: #FFC066; }
+  .stage-light .card.stakes .c-num { color: #DB5A0C; }
+
+  .tag { font-family: 'Work Sans', sans-serif; font-size: 10px; font-weight: 500; }
+  .stage-dark  .tag { color: #5C5C63; } .stage-light .tag { color: #9CA3AF; }
+</style></head>
+<body><div class="frame">
+  <div class="eyebrow" style="margin-bottom:6px;">components · card system v2 · variant А</div>
+  <div class="fg2" style="font:400 13px 'Work Sans',sans-serif; line-height:1.5;">Semi-transparent surface + backdrop-blur + soft orange tint border over a gradient canvas. Routine = ambient warmth (1px, low-alpha tint). Stakes = signal (1.5px saturated border + glow). Stakes stays an event property, never a category one.</div>
+
+  <div class="pair">
+    <div class="stage stage-dark">
+      <div class="stage-lab">dark · rgba(22,26,33,.65) · blur(12)</div>
+      <div class="cards">
+        <div class="card">
+          <span class="c-eb">бюджет месяца</span>
+          <span class="c-num">60%</span>
+          <span class="c-ctx">учтено $2 380 · скрыто $100</span>
+          <span class="tag">routine · border rgba(219,90,12,.16)</span>
+        </div>
+        <div class="card stakes">
+          <span class="c-eb">бюджет месяца</span>
+          <span class="c-num">92%</span>
+          <span class="c-ctx">почти перерасход · $3 680 из $4 000</span>
+          <span class="tag">stakes · border 1.5px rgba(219,90,12,.55) + glow</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="stage stage-light">
+      <div class="stage-lab">light · rgba(255,251,246,.72) · blur(10)</div>
+      <div class="cards">
+        <div class="card">
+          <span class="c-eb">бюджет месяца</span>
+          <span class="c-num">60%</span>
+          <span class="c-ctx">учтено $2 380 · скрыто $100</span>
+          <span class="tag">routine · border rgba(219,90,12,.18)</span>
+        </div>
+        <div class="card stakes">
+          <span class="c-eb">бюджет месяца</span>
+          <span class="c-num">92%</span>
+          <span class="c-ctx">почти перерасход · $3 680 из $4 000</span>
+          <span class="tag">stakes · border 1.5px rgba(219,90,12,.65) + glow</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div></body></html>

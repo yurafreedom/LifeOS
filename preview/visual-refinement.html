@@ -1,0 +1,136 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>brand · visual refinement (Sprint 3.5)</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@700;800;900&family=Work+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="_base.css">
+<style>
+  .frame { padding: 24px; display: flex; flex-direction: column; gap: 22px; }
+  .sec-h { font-family: 'Onest', sans-serif; font-weight: 800; font-size: 16px; letter-spacing: -0.02em; color: #F5F5F7; }
+  .sec-sub { font-family: 'Work Sans', sans-serif; font-size: 12px; color: #8E8E93; margin-top: 2px; line-height: 1.5; }
+  .block { border-top: 1px solid rgba(255,255,255,0.06); padding-top: 14px; }
+
+  /* type */
+  .type-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 12px; }
+  .display { font-family: 'Onest', sans-serif; font-weight: 800; font-size: 30px; letter-spacing: -0.025em; color: #F5F5F7; line-height: 1.08; }
+  .body { font-family: 'Work Sans', sans-serif; font-weight: 400; font-size: 14px; line-height: 1.55; color: #C7C7CC; margin-top: 8px; }
+  .nums { font-family: 'Work Sans', sans-serif; font-weight: 500; font-variant-numeric: tabular-nums; color: #F5F5F7; margin-top: 10px; display: flex; flex-direction: column; gap: 2px; font-size: 13px; }
+  .nums b { font-weight: 600; }
+  .cap { font-family: 'Work Sans', sans-serif; font-size: 11px; color: #8E8E93; margin-bottom: 6px; }
+
+  /* cards mini */
+  .stage { border-radius: 12px; padding: 18px; position: relative; overflow: hidden; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .stage-dark  { background: linear-gradient(180deg, #0E1117 0%, #14181F 100%); border: 1px solid rgba(255,255,255,0.06); }
+  .stage-light { background: linear-gradient(180deg, #FFFFFF 0%, #FBF8F4 100%); border: 1px solid rgba(0,0,0,0.06); margin-top: 12px; }
+  .gcard { -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; }
+  .stage-dark .gcard  { background: rgba(22,26,33,0.65); border: 1px solid rgba(219,90,12,0.16); box-shadow: 0 1px 4px rgba(0,0,0,0.25); }
+  .stage-dark .gcard.s { border: 1.5px solid rgba(219,90,12,0.55); box-shadow: 0 0 0 1px rgba(219,90,12,0.18), 0 4px 16px rgba(219,90,12,0.14); }
+  .stage-light .gcard { background: rgba(255,251,246,0.72); border: 1px solid rgba(219,90,12,0.18); box-shadow: 0 1px 4px rgba(219,90,12,0.04); }
+  .stage-light .gcard.s { border: 1.5px solid rgba(219,90,12,0.65); box-shadow: 0 0 0 1px rgba(219,90,12,0.15), 0 4px 12px rgba(219,90,12,0.10); }
+  .geb  { font: 500 11px 'Work Sans', sans-serif; }
+  .gnum { font: 600 22px 'Work Sans', sans-serif; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
+  .stage-dark .geb { color:#8E8E93; } .stage-dark .gnum { color:#F5F5F7; } .stage-dark .gcard.s .gnum { color:#FFC066; }
+  .stage-light .geb { color:#6B7280; } .stage-light .gnum { color:#0F1419; } .stage-light .gcard.s .gnum { color:#DB5A0C; }
+
+  /* sidebar mini */
+  .sb-grid { display: flex; gap: 14px; margin-top: 12px; }
+  .sb { border-radius: 10px; padding: 10px 8px; display: flex; flex-direction: column; gap: 1px; }
+  .sb-d { background: #0E1117; border: 1px solid rgba(255,255,255,0.06); width: 170px; }
+  .sb-l { background: #FFFFFF; border: 1px solid rgba(0,0,0,0.06); width: 170px; }
+  .sb-c { background: #0E1117; border: 1px solid rgba(255,255,255,0.06); width: 52px; align-items: center; }
+  .si { display: flex; align-items: center; gap: 10px; padding: 6px 10px; border-radius: 8px; font: 500 13px 'Work Sans', sans-serif; }
+  .sb-c .si { justify-content: center; padding: 7px 0; }
+  .si .dot { width: 14px; height: 14px; border-radius: 4px; flex: none; }
+  .sb-d .si { color: #C7C7CC; } .sb-d .si .dot { background: #3a4150; }
+  .sb-l .si { color: #2A323D; } .sb-l .si .dot { background: #c9cdd4; }
+  .sb-c .si .dot { background: #3a4150; }
+  .si.act-d { background: rgba(34,158,217,0.12); color: #F5F5F7; } .si.act-d .dot { background: #FF8A1E; box-shadow: 0 0 6px rgba(255,138,30,0.55); }
+  .si.act-l { background: rgba(27,138,196,0.10); color: #0F1419; } .si.act-l .dot { background: #DB5A0C; }
+  .si .ct { margin-left: 12px; font-size: 11px; color: #8E8E93; font-variant-numeric: tabular-nums; }
+  .sb-l .si .ct { color: #6B7280; }
+  .sb-div { border: 0; height: 0.5px; margin: 8px 14px; }
+  .sb-d .sb-div, .sb-c .sb-div { background: rgba(255,255,255,0.06); }
+  .sb-l .sb-div { background: rgba(0,0,0,0.06); }
+  .sb-lab { font: 500 11px 'Work Sans', sans-serif; color: #8E8E93; margin-bottom: 8px; }
+</style></head>
+<body><div class="frame">
+  <div>
+    <div class="eyebrow" style="margin-bottom:8px;">brand · visual refinement · Sprint 3.5</div>
+    <div class="sec-h">one type family, glass surfaces, quieter chrome</div>
+    <div class="sec-sub">JetBrains Mono retired · uppercase eyebrows removed (wordmark excepted) · solid cards → semi-transparent + blur + orange tint · sidebar headers → dividers.</div>
+  </div>
+
+  <!-- TYPOGRAPHY -->
+  <div class="block">
+    <div class="sec-h">typography</div>
+    <div class="sec-sub">Onest for display headlines + hero numbers. Work Sans for everything else, with <span class="mono">font-variant-numeric: tabular-nums</span> wherever JetBrains Mono used to sit.</div>
+    <div class="type-grid">
+      <div>
+        <div class="cap">onest 800 · display · -0.025em</div>
+        <div class="display">отправь цель.</div>
+        <div class="body">Work Sans 400 — прямой, сухой, слегка ироничный. Корпус текста, подписи, чипы и метаданные теперь живут в одном семействе.</div>
+      </div>
+      <div>
+        <div class="cap">work sans 500 · tabular figures</div>
+        <div class="nums">
+          <span><b>$2&nbsp;380.00</b> &nbsp; 14:32 · сегодня</span>
+          <span>через 5ч 47м &nbsp;·&nbsp; t½ ~14ч</span>
+          <span>48 / 56 &nbsp;·&nbsp; 24 таб · ~10 дней</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CARDS -->
+  <div class="block">
+    <div class="sec-h">cards · routine + stakes</div>
+    <div class="sec-sub">Left = routine (ambient warmth). Right = stakes (saturated 1.5px border + glow). Shown over both theme canvases.</div>
+    <div class="stage stage-dark">
+      <div class="gcard"><span class="geb">бюджет месяца</span><span class="gnum">60%</span></div>
+      <div class="gcard s"><span class="geb">бюджет месяца</span><span class="gnum">92%</span></div>
+    </div>
+    <div class="stage stage-light">
+      <div class="gcard"><span class="geb">бюджет месяца</span><span class="gnum">60%</span></div>
+      <div class="gcard s"><span class="geb">бюджет месяца</span><span class="gnum">92%</span></div>
+    </div>
+  </div>
+
+  <!-- SIDEBAR -->
+  <div class="block">
+    <div class="sec-h">sidebar · 200px · dividers only</div>
+    <div class="sec-sub">No text section headers — thin 0.5px dividers between groups. Light sidebar is pure white. Counts flow beside labels, tabular.</div>
+    <div class="sb-grid">
+      <div>
+        <div class="sb-lab">expanded · dark</div>
+        <div class="sb sb-d">
+          <div class="si act-d"><span class="dot"></span>главная</div>
+          <div class="si"><span class="dot"></span>календарь</div>
+          <div class="si"><span class="dot"></span>заметки<span class="ct">4</span></div>
+          <hr class="sb-div"/>
+          <div class="si"><span class="dot"></span>задачи<span class="ct">5</span></div>
+          <div class="si"><span class="dot"></span>цели<span class="ct">3</span></div>
+        </div>
+      </div>
+      <div>
+        <div class="sb-lab">expanded · light (pure white)</div>
+        <div class="sb sb-l">
+          <div class="si act-l"><span class="dot"></span>главная</div>
+          <div class="si"><span class="dot"></span>календарь</div>
+          <div class="si"><span class="dot"></span>заметки<span class="ct">4</span></div>
+          <hr class="sb-div"/>
+          <div class="si"><span class="dot"></span>задачи<span class="ct">5</span></div>
+          <div class="si"><span class="dot"></span>цели<span class="ct">3</span></div>
+        </div>
+      </div>
+      <div>
+        <div class="sb-lab">collapsed · 60px</div>
+        <div class="sb sb-c">
+          <div class="si act-d"><span class="dot"></span></div>
+          <div class="si"><span class="dot"></span></div>
+          <div class="si"><span class="dot"></span></div>
+          <hr class="sb-div"/>
+          <div class="si"><span class="dot"></span></div>
+          <div class="si"><span class="dot"></span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div></body></html>

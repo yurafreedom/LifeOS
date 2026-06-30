@@ -1,0 +1,89 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Mobile responsive" subtitle="Phone-frame mock · bottom nav · single column" viewport="700x520" -->
+<html><head><meta charset="utf-8"><title>responsive · mobile</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@700;800&family=Work+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="_base.css">
+<style>
+  body { background-image: none; background-color: #0E1117; }
+  .frame { padding: 18px; display: flex; gap: 18px; justify-content: center; align-items: flex-start; }
+  .phone {
+    width: 280px; height: 460px;
+    background: #0E1117;
+    background-image:
+      radial-gradient(360px 240px at 90% -20%, rgba(34,158,217,0.14), transparent 60%),
+      radial-gradient(280px 200px at -10% 110%, rgba(255,138,30,0.09), transparent 65%);
+    border-radius: 28px;
+    border: 6px solid #1A1F28;
+    box-shadow: 0 18px 40px -16px rgba(0,0,0,0.6);
+    position: relative; overflow: hidden;
+  }
+  .notch { position: absolute; top: 6px; left: 50%; transform: translateX(-50%); width: 64px; height: 14px; background: #0a0c11; border-radius: 0 0 10px 10px; }
+  .content { padding: 28px 14px 70px; height: 100%; box-sizing: border-box; overflow: hidden; }
+  .eb { font-family: 'Work Sans'; font-size: 8px; color: #8E8E93; }
+  .h { font-family: 'Onest'; font-weight: 800; font-size: 22px; letter-spacing: -0.025em; color: #F5F5F7; margin: 4px 0 12px; }
+  .today {
+    border: 1px solid rgba(255,138,30,0.32); border-radius: 12px; padding: 12px;
+    background: linear-gradient(180deg, rgba(255,138,30,0.08), rgba(255,138,30,0) 60%);
+    margin-bottom: 10px;
+  }
+  .today-eb { font-family: 'Work Sans'; font-size: 9px; color: #FFC066; }
+  .today-row { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
+  .num { font-family: 'Work Sans'; font-weight: 500; color: #F5F5F7; font-size: 28px; }
+  .num .done { background: linear-gradient(135deg,#FFC066,#FF8A1E,#FF6B0A); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .num .rest { color: #5C5C63; font-size: 18px; }
+  .today-msg { font-family: 'Work Sans'; font-size: 11px; color: #F5F5F7; font-weight: 600; flex: 1; }
+  .card { background: rgba(255,255,255,0.035); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 10px 12px; margin-bottom: 8px; }
+  .card-h { display: flex; justify-content: space-between; margin-bottom: 8px; }
+  .ct { font-family: 'Onest'; font-weight: 700; font-size: 14px; color: #F5F5F7; }
+  .cm { font-family: 'Work Sans'; font-size: 9px; color: #8E8E93; }
+  .task { display: flex; align-items: center; gap: 8px; padding: 4px 0; font-family: 'Work Sans'; font-size: 12px; color: #F5F5F7; }
+  .check { width: 14px; height: 14px; border-radius: 4px; border: 1.5px solid rgba(255,255,255,0.2); }
+  .mnav {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    display: grid; grid-template-columns: repeat(5, 1fr);
+    padding: 8px 6px 16px;
+    background: rgba(14,17,23,0.92);
+    border-top: 1px solid rgba(255,255,255,0.08);
+  }
+  .mn { display: flex; flex-direction: column; align-items: center; gap: 3px; color: #8E8E93; }
+  .mn.on { color: #5BB8E8; }
+  .mn.stakes-on { color: #FFC066; }
+  .mn-i { width: 16px; height: 16px; }
+  .mn-l { font: 500 8px 'Work Sans'; }
+  .label {
+    font-family: 'Work Sans'; font-size: 10px;
+    color: #8E8E93; margin-top: 12px;
+  }
+</style></head>
+<body><div class="frame">
+  <div>
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="content">
+        <div class="eb">21:06 · чт 21 мая</div>
+        <div class="h">добрый вечер.</div>
+        <div class="today">
+          <div class="today-eb">сегодня · 2 задачи в работе</div>
+          <div class="today-row">
+            <div class="num"><span class="done">0</span> <span class="rest">/ 2</span></div>
+            <div class="today-msg">сначала важные. остальное подождёт.</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-h"><span class="ct">входящие</span><span class="cm">5/6</span></div>
+          <div class="task"><span class="check"></span>выпустить лендинг</div>
+          <div class="task"><span class="check"></span>зафиксировать цели Q4</div>
+          <div class="task"><span class="check"></span>просмотреть pull-реквесты</div>
+        </div>
+      </div>
+      <div class="mnav">
+        <div class="mn stakes-on"><svg class="mn-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg><span class="mn-l">сегодня</span></div>
+        <div class="mn on"><svg class="mn-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg><span class="mn-l">входящие</span></div>
+        <div class="mn"><svg class="mn-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg><span class="mn-l">финансы</span></div>
+        <div class="mn"><svg class="mn-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/></svg><span class="mn-l">привычки</span></div>
+        <div class="mn"><svg class="mn-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg><span class="mn-l">ещё</span></div>
+      </div>
+    </div>
+    <div class="label">today · inbox active · bottom-nav</div>
+  </div>
+</div></body></html>

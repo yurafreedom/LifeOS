@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ru"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Paradise buttons v4</title>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Work Sans',system-ui,sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;
+  background:#0E1117;transition:background .4s;padding:30px}
+body.light{background:#FBF8F4}
+.stage{width:100%;max-width:560px}
+.panel{border-radius:16px;padding:36px 32px;backdrop-filter:blur(12px);
+  background:rgba(22,26,33,0.65);border:1px solid rgba(219,90,12,0.16);transition:all .4s;box-shadow:0 8px 26px rgba(0,0,0,.4)}
+body.light .panel{background:rgba(255,251,246,0.86);border-color:rgba(219,90,12,0.18);box-shadow:0 6px 22px rgba(10,20,40,.18)}
+.lbl{font-size:11px;font-weight:600;color:#9fb2c6;margin-bottom:18px}
+body.light .lbl{color:#6b7280}
+.grp{margin-bottom:34px}.grp:last-child{margin-bottom:0}
+.rowb{display:flex;gap:22px;align-items:center;flex-wrap:wrap}
+
+/* ===== CAPSULE BUTTON — full anatomy ===== */
+.gbtn{position:relative;display:inline-flex;padding:4px;border:none;cursor:pointer;border-radius:14px;
+  /* cream plate: gradient darker at bottom + its own drop shadow + top highlight */
+  background:linear-gradient(180deg,#F2E1B8 0%,#D8BC84 100%);
+  box-shadow:0 7px 15px rgba(70,45,15,.45), 0 2px 4px rgba(70,45,15,.3), inset 0 1px 0 rgba(255,255,255,.75);
+  transform-origin:center;
+  transition:transform .14s cubic-bezier(.4,.7,.4,1), filter .15s ease;
+  -webkit-tap-highlight-color:transparent;user-select:none}
+.gbtn .body{position:relative;display:inline-flex;align-items:center;justify-content:center;border-radius:10px;
+  padding:13px 30px;font-weight:800;font-size:18px;color:#fff;overflow:hidden;
+  /* orange/green casts shadow onto cream + top sheen + bottom inner shadow */
+  box-shadow:0 2px 4px rgba(120,50,10,.5), inset 0 1px 1px rgba(255,255,255,.55), inset 0 -3px 7px rgba(0,0,0,.22)}
+.gbtn .body span{position:relative;z-index:2;text-shadow:0 2px 0 rgba(120,45,8,.5), 0 1px 4px rgba(90,35,5,.4)}
+/* hover gloss — button gets a touch whiter + sheen on top half */
+.gbtn .body::before{content:"";position:absolute;left:5%;right:5%;top:3px;height:46%;border-radius:8px;z-index:1;
+  background:linear-gradient(180deg,rgba(255,255,255,.5),rgba(255,255,255,0));opacity:.65;transition:opacity .15s}
+.gbtn:hover{filter:brightness(1.06)}
+.gbtn:hover .body::before{opacity:1}
+
+.gbtn.orange .body{background:linear-gradient(180deg,#FFB347 0%,#F0790F 52%,#C53C1A 100%)}
+.gbtn.green .body{background:linear-gradient(180deg,#D4F55E 0%,#ABE322 50%,#7FCA0D 100%)}
+.gbtn.green .body span{text-shadow:0 2px 0 rgba(60,110,10,.5), 0 1px 4px rgba(40,80,5,.4)}
+.gbtn.cream .body{background:linear-gradient(180deg,#FFFCF5 0%,#F1E1C9 100%)}
+.gbtn.cream .body span{color:#9a5a2a;text-shadow:0 1px 0 rgba(255,255,255,.6)}
+.gbtn.cream .body::before{opacity:.4}
+
+/* ===== CLICK PHYSICS ===== */
+/* press-in: gradual scale-down + rotate left-down (via transition) */
+.gbtn.pressing{transform:scale(.68) rotate(-2.6deg)}
+/* release: damped wobble back — butterfly-flap oscillation on the rotate axis */
+.gbtn.releasing{animation:wobble .52s cubic-bezier(.25,.8,.35,1) both}
+@keyframes wobble{
+  0%   {transform:scale(.68) rotate(-2.6deg)}
+  24%  {transform:scale(1.09) rotate(2.2deg)}
+  44%  {transform:scale(.97) rotate(-1.3deg)}
+  60%  {transform:scale(1.03) rotate(.8deg)}
+  76%  {transform:scale(.99) rotate(-.4deg)}
+  88%  {transform:scale(1.005) rotate(.15deg)}
+  100% {transform:scale(1) rotate(0)}
+}
+
+.hint{font-size:12px;color:#9fb2c6;margin-top:10px}
+body.light .hint{color:#9a8c7a}
+.toggle{position:fixed;top:18px;right:18px;font-size:12px;font-weight:600;color:#fff;
+  background:rgba(0,0,0,.42);border:1px solid rgba(255,255,255,.2);padding:8px 13px;border-radius:10px;cursor:pointer;backdrop-filter:blur(6px)}
+body.light .toggle{color:#333;background:rgba(255,255,255,.7)}
+.note{text-align:center;font-size:12px;color:#7a8aa0;margin-top:22px;line-height:1.5}
+body.light .note{color:#9a8c7a}
+</style></head>
+<body>
+<button class="toggle" onclick="document.body.classList.toggle('light')">фон день/ночь</button>
+<div class="stage">
+  <div class="panel">
+    <div class="grp">
+      <div class="lbl">основное — оранжевая (как «Superb!»)</div>
+      <div class="rowb">
+        <button class="gbtn orange"><span class="body"><span>Готово!</span></span></button>
+        <button class="gbtn orange"><span class="body"><span>Принять дозу</span></span></button>
+      </div>
+      <div class="hint">зажми и держи: уменьшается + наклон влево. отпусти — «бамц» с затухающим качанием</div>
+    </div>
+    <div class="grp">
+      <div class="lbl">зелёная (как «Hooray!» / «Play»)</div>
+      <div class="rowb">
+        <button class="gbtn green"><span class="body"><span>Готово</span></span></button>
+        <button class="gbtn cream"><span class="body"><span>Отмена</span></span></button>
+      </div>
+      <div class="hint">та же физика и слои теней, другой цвет тела</div>
+    </div>
+  </div>
+  <div class="note">наведи — кнопка чуть белеет (блик).&nbsp; зажми не отпуская — увидишь весь цикл: вдавливание → наклон → пружина-бабочка на отпускании.<br>переключи день/ночь справа.</div>
+</div>
+<script>
+document.querySelectorAll('.gbtn').forEach(function(b){
+  function press(e){ b.classList.remove('releasing'); b.classList.add('pressing'); }
+  function release(){ if(!b.classList.contains('pressing'))return; b.classList.remove('pressing'); b.classList.add('releasing'); }
+  b.addEventListener('pointerdown',press);
+  b.addEventListener('pointerup',release);
+  b.addEventListener('pointerleave',release);
+  b.addEventListener('pointercancel',release);
+  b.addEventListener('animationend',function(){ b.classList.remove('releasing'); });
+});
+</script>
+</body></html>

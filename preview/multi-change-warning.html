@@ -1,0 +1,48 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="multi-change-warning" subtitle="Sprint 3A · mode-change pause-warning modal" viewport="800x420" -->
+<html><head><meta charset="utf-8"><title>components · multi-change warning</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@500;700&family=Work+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="_base.css">
+<style>
+  .frame { padding: 60px 32px; display: flex; justify-content: center; }
+  .modal {
+    width: 480px; max-width: 100%;
+    background: #14181F; border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 16px; padding: 16px;
+    box-shadow: 0 32px 80px -20px rgba(0,0,0,0.7);
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .head { display: flex; justify-content: space-between; align-items: center; }
+  .head-title { font: 500 10px 'Work Sans', monospace; color: #8E8E93; }
+  .body { display: flex; flex-direction: column; gap: 8px; }
+  .intro { font-size: 12px; color: #C7C7CC; }
+  ul { list-style: none; padding: 0 0 0 12px; margin: 0; display: flex; flex-direction: column; gap: 4px; }
+  li { display: inline-flex; gap: 6px; align-items: baseline; font-size: 12px; color: #F5F5F7; }
+  .dot { color: #5C5C63; }
+  .when { font: 500 10.5px 'Work Sans', monospace; color: #5C5C63; }
+  .changing { font-size: 12px; color: #C7C7CC; padding-top: 4px; }
+  .rationale {
+    margin: 8px 0 0; padding: 10px 12px; border-radius: 6px;
+    background: rgba(255,138,30,0.10); border: 1px solid rgba(255,138,30,0.32);
+    color: #F5F5F7; font-size: 12px; line-height: 1.5;
+  }
+  .foot { display: flex; justify-content: flex-end; gap: 8px; padding-top: 6px; }
+  .btn-ghost { padding: 0 12px; height: 30px; border-radius: 8px; background: transparent; color: #8E8E93; border: 1px solid rgba(255,255,255,0.08); font-size: 12px; cursor: pointer; }
+  .btn-save { padding: 0 12px; height: 30px; border-radius: 8px; background: #229ED9; color: #fff; font: 600 12px 'Work Sans', sans-serif; border: none; cursor: pointer; }
+</style></head>
+<body><div class="frame"><div class="modal">
+  <div class="head"><span class="head-title">риск множественных изменений</span></div>
+  <div class="body">
+    <div class="intro">за последние 7 дней ты менял:</div>
+    <ul>
+      <li><span class="dot">·</span>бупропион<span class="when">(06.10)</span></li>
+      <li><span class="dot">·</span>вортиоксетин<span class="when">(09.10)</span></li>
+    </ul>
+    <div class="changing">сейчас меняешь дулоксетин.</div>
+    <p class="rationale">при параллельных изменениях сложно отделить эффекты каждого препарата. стандартная рекомендация — выдерживать паузу 2-4 недели между изменениями.</p>
+  </div>
+  <div class="foot">
+    <button class="btn-ghost">отложить изменение</button>
+    <button class="btn-save">понял, продолжить</button>
+  </div>
+</div></div></body></html>

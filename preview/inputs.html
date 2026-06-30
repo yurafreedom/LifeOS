@@ -1,0 +1,43 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Inputs" subtitle="Default field + money input with accent tint" viewport="700x240" -->
+<html><head><meta charset="utf-8"><title>components · inputs</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@700&family=Work+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="_base.css">
+<style>
+  .field { margin-top: 12px; }
+  .lab { font-family: 'Work Sans', monospace; font-size: 9.5px; color: #8E8E93; display:block; margin-bottom: 6px; }
+  .input {
+    font-family: 'Work Sans', sans-serif; font-weight: 500; font-size: 14px;
+    width: 100%; padding: 11px 14px; border-radius: 10px;
+    background: rgba(255,255,255,0.035); border: 1px solid rgba(255,255,255,0.08);
+    color: #F5F5F7; outline: none;
+    transition: border-color 180ms, box-shadow 180ms, background-color 180ms;
+    box-sizing: border-box;
+  }
+  .input:focus { border-color: rgba(34,158,217,0.55); box-shadow: 0 0 0 3px rgba(34,158,217,0.15); }
+  .input::placeholder { color: #5C5C63; }
+  .money {
+    background: rgba(255,138,30,0.06);
+    border-color: rgba(255,138,30,0.32);
+    font-family: 'Work Sans', monospace; font-weight: 500; font-size: 18px;
+    font-variant-numeric: tabular-nums;
+    padding-left: 36px;
+  }
+  .money:focus { border-color: rgba(255,138,30,0.6); box-shadow: 0 0 0 3px rgba(255,138,30,0.12); }
+  .money-wrap { position: relative; }
+  .money-prefix { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-family: 'Work Sans', monospace; font-size: 18px; color: #FF8A1E; }
+</style></head>
+<body><div class="frame">
+  <div class="eyebrow">inputs</div>
+  <div class="field">
+    <label class="lab">task name</label>
+    <input class="input" placeholder="e.g. ship landing page" value=""/>
+  </div>
+  <div class="field">
+    <label class="lab">amount · money input has accent tint</label>
+    <div class="money-wrap">
+      <span class="money-prefix">$</span>
+      <input class="input money" value="42.00"/>
+    </div>
+  </div>
+</div></body></html>

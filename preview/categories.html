@@ -1,0 +1,49 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Categories (RU)" subtitle="16 expense (neutral) + 6 income (green) · stakes is per-event" viewport="700x380" -->
+<html><head><meta charset="utf-8"><title>categories · expense + income</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@700&family=Work+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="_base.css">
+<style>
+  .frame { padding: 18px 22px 20px; }
+  .sec { font-family: 'Work Sans', monospace; font-size: 9.5px; color: #8E8E93; margin-top: 12px; margin-bottom: 6px; }
+  .sec:first-of-type { margin-top: 4px; }
+  .list { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
+  .row { display: flex; align-items: center; gap: 8px; padding: 5px 8px; border-radius: 8px; background: rgba(255,255,255,0.025); border: 1px solid rgba(255,255,255,0.05); }
+  .dot { width: 22px; height: 22px; border-radius: 5px; flex: none; }
+  .dot.neutral { background: rgba(255,255,255,0.06); }
+  .dot.income  { background: rgba(29,158,117,0.16); }
+  .nm { font-family: 'Work Sans', sans-serif; font-size: 11px; color: #C7C7CC; line-height: 1.15; }
+  .note { font-family: 'Work Sans', monospace; font-size: 9.5px; color: #5C5C63; margin-top: 14px; }
+</style></head>
+<body><div class="frame">
+  <div class="eyebrow">categories · 16 expense (neutral) + 6 income (green)</div>
+  <div class="sec">расходы</div>
+  <div class="list">
+    <div class="row"><span class="dot neutral"></span><span class="nm">продукты</span></div>
+    <div class="row"><span class="dot neutral"></span><span class="nm">рестораны, кафе</span></div>
+    <div class="row"><span class="dot neutral"></span><span class="nm">транспорт</span></div>
+    <div class="row"><span class="dot neutral"></span><span class="nm">коммуналка</span></div>
+    <div class="row"><span class="dot neutral"></span><span class="nm">аренда, ипотека</span></div>
+    <div class="row"><span class="dot neutral"></span><span class="nm">связь и интернет</span></div>
+    <div class="row"><span class="dot neutral"></span><span class="nm">подписки, софт</span></div>
+    <div class="row"><span class="dot neutral"></span><span class="nm">здоровье, аптека</span></div>
+    <div class="row"><span class="dot neutral"></span><span class="nm">одежда</span></div>
+    <div class="row"><span class="dot neutral"></span><span class="nm">развлечения</span></div>
+    <div class="row"><span class="dot neutral"></span><span class="nm">образование, курсы</span></div>
+    <div class="row"><span class="dot neutral"></span><span class="nm">подарки</span></div>
+    <div class="row"><span class="dot neutral"></span><span class="nm">путешествия</span></div>
+    <div class="row"><span class="dot neutral"></span><span class="nm">красота, уход</span></div>
+    <div class="row"><span class="dot neutral"></span><span class="nm">дом, быт</span></div>
+    <div class="row"><span class="dot neutral"></span><span class="nm">другое</span></div>
+  </div>
+  <div class="sec">доходы</div>
+  <div class="list">
+    <div class="row"><span class="dot income"></span><span class="nm">зарплата</span></div>
+    <div class="row"><span class="dot income"></span><span class="nm">фриланс, контракты</span></div>
+    <div class="row"><span class="dot income"></span><span class="nm">CortexMD выручка</span></div>
+    <div class="row"><span class="dot income"></span><span class="nm">инвестиции, дивиденды</span></div>
+    <div class="row"><span class="dot income"></span><span class="nm">подарки (входящие)</span></div>
+    <div class="row"><span class="dot income"></span><span class="nm">другое</span></div>
+  </div>
+  <div class="note">stakes is not a property of a category · it's a property of an event</div>
+</div></body></html>

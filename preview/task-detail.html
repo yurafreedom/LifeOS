@@ -1,0 +1,78 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Task detail modal" subtitle="Detail edit · subtasks · activity · stakes save" viewport="700x580" -->
+<html><head><meta charset="utf-8"><title>components · task detail modal</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@500;700;800&family=Work+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="_base.css">
+<style>
+  body { background-image: none; background-color: #0E1117; }
+  .frame { padding: 18px; }
+  .modal {
+    width: 88%; max-width: 540px;
+    margin: 8px auto 0;
+    background: #14181F;
+    border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 14px;
+    padding: 14px 16px 12px;
+  }
+  .head { display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px; }
+  .eb  { font-family: 'Work Sans', monospace; font-size: 10px; color: #8E8E93; }
+  .stakes { color: #FFC066; }
+  .x   { color: #8E8E93; font-size: 12px; }
+  .title { width: 100%; background: transparent; border: none; outline: none; font-family: 'Onest'; font-weight: 500; font-size: 20px; letter-spacing: -0.02em; color: #F5F5F7; padding: 4px 0 12px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+  .row { display:flex; gap: 8px; align-items: center; padding: 10px 0; }
+  .toggle { display: inline-flex; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 2px; }
+  .tb { font-family: 'Work Sans'; font-size: 10px; padding: 6px 10px; border-radius: 6px; color: #8E8E93; }
+  .tb.stakes-on { background: rgba(255,138,30,0.12); color: #FFC066; }
+  .cat { flex: 1; display: flex; align-items: center; gap: 8px; padding: 7px 10px; border-radius: 8px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); color: #C7C7CC; font-family: 'Work Sans'; font-size: 13px; }
+  .cat-dot { width: 20px; height: 20px; border-radius: 5px; background: rgba(255,255,255,0.06); }
+  .section { padding: 10px 0; border-top: 1px solid rgba(255,255,255,0.08); }
+  .sec-head { display: flex; justify-content: space-between; margin-bottom: 6px; }
+  .sec-lab { font-family: 'Work Sans'; font-size: 10px; color: #8E8E93; }
+  .sec-ct  { font-family: 'Work Sans'; font-size: 10px; color: #C7C7CC; }
+  .sub { display: flex; align-items: center; gap: 10px; padding: 5px 8px; }
+  .sub-check { width: 16px; height: 16px; border-radius: 5px; border: 1.5px solid rgba(255,255,255,0.22); }
+  .sub-check.done { background: #1D9E75; border-color: #1D9E75; position: relative; }
+  .sub-check.done::after { content: '✓'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 11px; }
+  .sub-t { flex: 1; font-family: 'Work Sans'; font-size: 13px; color: #F5F5F7; }
+  .sub-t.done { color: #5C5C63; text-decoration: line-through; }
+  .foot { display: flex; justify-content: space-between; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.08); margin-top: 6px; align-items: center; }
+  .actions { display: flex; gap: 8px; }
+  .ghost { padding: 8px 14px; border-radius: 8px; background: transparent; border: 1px solid rgba(255,255,255,0.08); color: #8E8E93; font-size: 13px; }
+  .save  { padding: 8px 14px; border-radius: 8px; background: linear-gradient(135deg,#FFC066,#FF8A1E,#FF6B0A); color: #1a0d04; font-weight: 600; font-size: 13px; }
+  .menu  { display:flex; gap: 6px; }
+  .menu-btn { color:#8E8E93; padding: 4px 8px; border-radius: 4px; font-family: 'Work Sans'; font-size: 12px; }
+</style></head>
+<body><div class="frame">
+  <div class="eyebrow" style="margin-bottom: 8px;">task detail · stakes task · with subtasks + activity</div>
+  <div class="modal">
+    <div class="head">
+      <span class="eb">задача · <span class="stakes">важное</span></span>
+      <span class="menu"><span class="menu-btn">⋯</span><span class="x">✕</span></span>
+    </div>
+    <input class="title" value="выпустить лендинг" readonly />
+    <div class="row">
+      <div class="toggle"><span class="tb">рутина</span><span class="tb stakes-on">важное</span></div>
+      <div class="cat"><span class="cat-dot"></span><span style="flex:1; color:#C7C7CC;">без категории</span><span style="color:#8E8E93;">▾</span></div>
+    </div>
+    <div class="section">
+      <div class="sec-head"><span class="sec-lab">подзадачи</span><span class="sec-ct">2/3</span></div>
+      <div class="sub"><span class="sub-check done"></span><span class="sub-t done">набросать первый экран</span></div>
+      <div class="sub"><span class="sub-check done"></span><span class="sub-t done">свести цвета</span></div>
+      <div class="sub"><span class="sub-check"></span><span class="sub-t">подключить аналитику</span></div>
+      <div class="sub"><span style="color:#5C5C63; width: 16px; text-align: center;">+</span><span class="sub-t" style="color:#5C5C63;">добавить подзадачу…</span></div>
+    </div>
+    <div class="section">
+      <div class="sec-head"><span class="sec-lab">история</span></div>
+      <div style="font-family: 'Work Sans'; font-size: 11px;">
+        <div style="display:flex; gap: 12px; padding: 2px 0;"><span style="color:#8E8E93; min-width: 80px;">21 мая · 09:12</span><span style="color:#C7C7CC;">создана</span></div>
+        <div style="display:flex; gap: 12px; padding: 2px 0;"><span style="color:#8E8E93; min-width: 80px;">21 мая · 11:48</span><span style="color:#C7C7CC;">отредактирована</span></div>
+      </div>
+    </div>
+    <div class="foot">
+      <div class="actions">
+        <button class="ghost">сохранить</button>
+        <button class="save">выполнить</button>
+      </div>
+    </div>
+  </div>
+</div></body></html>

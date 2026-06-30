@@ -1,0 +1,123 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Sidebar (v2)" subtitle="Expanded 220px + collapsed 60px · orange icon glow active state · MAIN/LIFE/MONEY/MEDS sections" viewport="1120x580" -->
+<html><head><meta charset="utf-8"><title>components · sidebar (v2)</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@700;800;900&family=Work+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="_base.css">
+<style>
+  .frame { display: flex; gap: 22px; padding: 22px; align-items: stretch; }
+
+  .nav {
+    background: rgba(255,255,255,0.025);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    padding: 12px 10px;
+    display: flex; flex-direction: column;
+  }
+  .nav-exp  { width: 200px; }
+  .nav-col  { width: 60px;  align-items: stretch; padding: 12px 8px; }
+
+  .top { display: flex; align-items: center; justify-content: space-between; padding: 2px 4px 12px; }
+  .nav-col .top { flex-direction: column; gap: 8px; padding: 2px 0 12px; }
+  .logo svg { display: block; }
+  .logo-dot { width: 14px; height: 14px; border-radius: 999px; background: linear-gradient(135deg, #FFC066, #FF8A1E, #FF6B0A); box-shadow: 0 0 8px rgba(255,138,30,0.45); }
+  .toggle { width: 24px; height: 24px; border-radius: 6px; color: #8E8E93; display: inline-flex; align-items: center; justify-content: center; border: 1px solid transparent; }
+
+  .divider { border: 0; height: 0.5px; background: rgba(255,255,255,0.06); margin: 12px 16px; }
+  .nav-col .divider { margin: 8px 12px; }
+
+  .item {
+    position: relative;
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 10px; border-radius: 8px;
+    font: 500 14px 'Work Sans', sans-serif;
+    color: #C7C7CC;
+  }
+  .item .ic { width: 18px; height: 18px; color: #8E8E93; display: inline-flex; flex: none; }
+  .item .lbl { flex: 1; min-width: 0; }
+  .item .ct { font-family: 'Work Sans', monospace; font-size: 11px; color: #8E8E93; margin-left: 12px; flex-shrink: 0; font-variant-numeric: tabular-nums; }
+  .item.active {
+    background: rgba(34,158,217,0.12);
+    color: #F5F5F7;
+  }
+  .item.active .ic {
+    color: #FF8A1E;
+    filter: drop-shadow(0 0 6px rgba(255,138,30,0.55));
+  }
+  .item.active .ct { color: #C7C7CC; }
+
+  .nav-col .item { justify-content: center; padding: 9px 0; }
+  .nav-col .item .lbl { display: none; }
+  .nav-col .item .ct {
+    position: absolute; top: 4px; right: 6px; margin: 0;
+    font-size: 8.5px; color: #FF8A1E;
+  }
+
+  .foot { margin-top: auto; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.08); }
+  .nav-col .foot { padding-top: 8px; }
+
+  .callout {
+    position: absolute; top: 60px; left: -14px;
+    background: rgba(255,138,30,0.10);
+    border: 1px solid rgba(255,138,30,0.45);
+    color: #FFC066;
+    padding: 6px 10px; border-radius: 6px;
+    font-family: 'Work Sans', monospace; font-size: 9.5px;
+    white-space: nowrap;
+    transform: translateY(-50%);
+  }
+
+  .notes { flex: 1; padding-top: 4px; }
+  .notes .lab { font-family: 'Work Sans', monospace; font-size: 10px; color: #8E8E93; }
+  .notes .p { font-family: 'Work Sans', sans-serif; font-size: 13px; color: #8E8E93; margin-top: 8px; line-height: 1.55; }
+  .notes .p + .p { margin-top: 6px; }
+  .key { font-family: 'Work Sans', monospace; font-size: 10px; padding: 2px 6px; border-radius: 4px; background: rgba(255,255,255,0.06); color: #C7C7CC; }
+
+  /* icon glyphs (tiny inline SVGs) */
+  .ic svg { width: 100%; height: 100%; }
+</style></head>
+<body><div class="frame">
+
+  <!-- expanded -->
+  <div class="nav nav-exp" style="position: relative;">
+    <div class="top">
+      <div class="logo"><svg width="80" height="26" viewBox="0 0 124 40" fill="none"><defs><linearGradient id="sbDot" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#FFC066"/><stop offset="48%" stop-color="#FF8A1E"/><stop offset="100%" stop-color="#FF6B0A"/></linearGradient></defs><text x="0" y="29" font-family="Onest" font-weight="900" font-size="28" letter-spacing="-0.03em"><tspan fill="#F5F5F7">Life</tspan><tspan fill="url(#sbDot)">·</tspan><tspan fill="#F5F5F7">OS</tspan></text></svg></div>
+      <div class="toggle"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></div>
+    </div>
+    <div class="item active"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span><span class="lbl">главная</span></div>
+    <div class="item"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span><span class="lbl">календарь</span></div>
+    <div class="item"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M16 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11l5-5V5a2 2 0 0 0-2-2z"/></svg></span><span class="lbl">заметки</span><span class="ct">4</span></div>
+    <div class="divider"></div>
+    <div class="item"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="7" r="4"/><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/></svg></span><span class="lbl">я</span></div>
+    <div class="item"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><polyline points="3 8 5 10 9 6"/><polyline points="3 16 5 18 9 14"/><line x1="13" y1="9" x2="21" y2="9"/><line x1="13" y1="17" x2="21" y2="17"/></svg></span><span class="lbl">задачи</span><span class="ct">5</span></div>
+    <div class="item"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg></span><span class="lbl">привычки</span><span class="ct">7</span></div>
+    <div class="item"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg></span><span class="lbl">цели</span><span class="ct">3</span></div>
+    <div class="item"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span><span class="lbl">здоровье</span></div>
+    <div class="item"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="10" r="2"/><circle cx="10" cy="6" r="2"/><circle cx="14" cy="6" r="2"/><circle cx="18" cy="10" r="2"/><path d="M8 14.5C7.5 17 6 18 6 20a2.5 2.5 0 0 0 4.4 1.6 2 2 0 0 1 2.2 0A2.5 2.5 0 0 0 17 20c0-2-1.5-3-2-5.5-.4-2-1.7-3-3.5-3s-3.1 1-3.5 3z"/></svg></span><span class="lbl">собака</span></div>
+
+    <div class="callout">↑ active = orange icon glow</div>
+  </div>
+
+  <!-- collapsed -->
+  <div class="nav nav-col">
+    <div class="top">
+      <div class="logo"><span class="logo-dot"></span></div>
+      <div class="toggle"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>
+    </div>
+    <div class="item active"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span></div>
+    <div class="item"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span></div>
+    <div class="item"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M16 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11l5-5V5a2 2 0 0 0-2-2z"/></svg></span><span class="ct">4</span></div>
+    <div class="divider"></div>
+    <div class="item"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="7" r="4"/><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/></svg></span></div>
+    <div class="item"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><polyline points="3 8 5 10 9 6"/><polyline points="3 16 5 18 9 14"/><line x1="13" y1="9" x2="21" y2="9"/><line x1="13" y1="17" x2="21" y2="17"/></svg></span><span class="ct">5</span></div>
+    <div class="item"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg></span></div>
+    <div class="item"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span></div>
+    <div class="item"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="10" r="2"/><circle cx="10" cy="6" r="2"/><circle cx="14" cy="6" r="2"/><circle cx="18" cy="10" r="2"/><path d="M8 14.5C7.5 17 6 18 6 20a2.5 2.5 0 0 0 4.4 1.6 2 2 0 0 1 2.2 0A2.5 2.5 0 0 0 17 20c0-2-1.5-3-2-5.5-.4-2-1.7-3-3.5-3s-3.1 1-3.5 3z"/></svg></span></div>
+  </div>
+
+  <div class="notes">
+    <div class="lab">sidebar v2 · expanded 200px / collapsed 60px</div>
+    <div class="p">Toggle via chevron or <span class="key">⌘ \\</span> · state persists in <span class="mono">localStorage.lifeOsSidebar</span>.</div>
+    <div class="p">Active state signal is the <strong>icon glowing orange</strong> (mid-stop accent color with a 6px drop-shadow). Row tint stays blue · the orange icon is what reads first.</div>
+    <div class="p">Section text headers are gone (Sprint 3.5) — groups are now separated by thin dividers only, in both expanded and collapsed states. Tooltips appear on hover when collapsed.</div>
+  </div>
+</div></body></html>

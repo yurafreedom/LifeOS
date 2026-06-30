@@ -1,0 +1,130 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="density-tokens" subtitle="Sprint 2 Batch 0.5 density reference" viewport="1100x680" -->
+<html><head><meta charset="utf-8"><title>tokens · density</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@500;700;800&family=Work+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="_base.css">
+<style>
+  body { background-image: none; background-color: #0E1117; }
+  .frame { padding: 22px; display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: start; }
+  .section {
+    background: #14181F;
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 14px;
+    padding: 16px;
+  }
+  .section h3 {
+    font-family: 'Work Sans', monospace;
+    font-size: 10px;
+    color: #8E8E93;
+    margin: 0 0 12px;
+  }
+  .row {
+    display: grid; grid-template-columns: 90px 1fr 60px;
+    gap: 12px; align-items: center;
+    padding: 7px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .row:last-child { border-bottom: none; }
+  .token { font-family: 'Work Sans', monospace; font-size: 11px; color: #5BB8E8; }
+  .val { font-family: 'Work Sans', monospace; font-size: 11px; color: #8E8E93; text-align: right; }
+  .demo { color: #F5F5F7; font-family: 'Work Sans', sans-serif; min-width: 0; }
+
+  /* type demo */
+  .t11 { font-size: 11px; }
+  .t12 { font-size: 12px; }
+  .t13 { font-size: 13px; }
+  .t15 { font-size: 15px; }
+  .t18 { font-size: 18px; }
+  .t24 { font-size: 24px; font-family: 'Work Sans', monospace; letter-spacing: -0.01em; }
+  .t32 { font-size: 32px; font-family: 'Work Sans', monospace; letter-spacing: -0.01em; }
+
+  /* control height demo */
+  .ctrl {
+    display: inline-flex; align-items: center; justify-content: center;
+    padding: 0 12px; border-radius: 8px;
+    font-family: 'Work Sans', sans-serif; font-size: 13px;
+    background: rgba(34,158,217,0.12); color: #5BB8E8;
+    border: 1px solid rgba(34,158,217,0.18);
+  }
+  .input {
+    display: inline-flex; align-items: center;
+    padding: 0 12px; border-radius: 8px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: #C7C7CC; font-family: 'Work Sans', sans-serif; font-size: 12px;
+    min-width: 140px;
+  }
+  .therow {
+    display: flex; align-items: center;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.02);
+    padding: 0 10px;
+    color: #C7C7CC; font-family: 'Work Sans', sans-serif; font-size: 13px;
+  }
+
+  /* spacing demo — visualize via a swatch with given padding around a 12px dot */
+  .pad-box {
+    display: inline-block;
+    background: rgba(34,158,217,0.10);
+    border: 1px solid rgba(34,158,217,0.18);
+    border-radius: 4px;
+    line-height: 0;
+  }
+  .pad-box .dot {
+    display: inline-block; width: 8px; height: 8px;
+    background: #5BB8E8; border-radius: 50%;
+  }
+
+  /* icon demo */
+  .iconbox {
+    display: inline-flex; align-items: center; justify-content: center;
+    color: #5BB8E8;
+  }
+  .iconbox svg { fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+</style></head>
+<body><div class="frame">
+
+  <div class="section">
+    <h3>type scale</h3>
+    <div class="row"><span class="token">--text-xs</span> <span class="demo t11">eyebrow · 11/16</span> <span class="val">11px</span></div>
+    <div class="row"><span class="token">--text-sm</span> <span class="demo t12">secondary copy 12</span> <span class="val">12px</span></div>
+    <div class="row"><span class="token">--text-md</span> <span class="demo t13">body default 13</span> <span class="val">13px</span></div>
+    <div class="row"><span class="token">--text-lg</span> <span class="demo t15">emphasized body 15</span> <span class="val">15px</span></div>
+    <div class="row"><span class="token">--text-xl</span> <span class="demo t18">section heading 18</span> <span class="val">18px</span></div>
+    <div class="row"><span class="token">--text-2xl</span> <span class="demo t24">$2 480</span> <span class="val">24px</span></div>
+    <div class="row"><span class="token">--text-3xl</span> <span class="demo t32">62%</span> <span class="val">32px</span></div>
+  </div>
+
+  <div class="section">
+    <h3>control heights</h3>
+    <div class="row"><span class="token">--btn-h-sm</span> <span class="demo"><span class="ctrl" style="height: 26px;">small btn</span></span> <span class="val">26px</span></div>
+    <div class="row"><span class="token">--btn-h-md</span> <span class="demo"><span class="ctrl" style="height: 30px;">default btn</span></span> <span class="val">30px</span></div>
+    <div class="row"><span class="token">--btn-h-lg</span> <span class="demo"><span class="ctrl" style="height: 36px;">primary CTA</span></span> <span class="val">36px</span></div>
+    <div class="row"><span class="token">--input-h</span>  <span class="demo"><span class="input" style="height: 30px;">type something…</span></span> <span class="val">30px</span></div>
+    <div class="row"><span class="token">--row-h</span>    <span class="demo"><span class="therow" style="height: 34px;">list / nav row</span></span> <span class="val">34px</span></div>
+  </div>
+
+  <div class="section">
+    <h3>spacing scale</h3>
+    <div class="row"><span class="token">--pad-xs</span> <span class="demo"><span class="pad-box" style="padding: 4px;"><span class="dot"></span></span></span> <span class="val">4px</span></div>
+    <div class="row"><span class="token">--pad-sm</span> <span class="demo"><span class="pad-box" style="padding: 8px;"><span class="dot"></span></span></span> <span class="val">8px</span></div>
+    <div class="row"><span class="token">--pad-md</span> <span class="demo"><span class="pad-box" style="padding: 12px;"><span class="dot"></span></span></span> <span class="val">12px</span></div>
+    <div class="row"><span class="token">--pad-lg</span> <span class="demo"><span class="pad-box" style="padding: 16px;"><span class="dot"></span></span></span> <span class="val">16px</span></div>
+    <div class="row"><span class="token">--pad-xl</span> <span class="demo"><span class="pad-box" style="padding: 24px;"><span class="dot"></span></span></span> <span class="val">24px</span></div>
+    <div class="row"><span class="token">--pad-2xl</span> <span class="demo"><span class="pad-box" style="padding: 32px;"><span class="dot"></span></span></span> <span class="val">32px</span></div>
+  </div>
+
+  <div class="section">
+    <h3>icon sizes</h3>
+    <div class="row"><span class="token">--icon-sm</span>
+      <span class="demo"><span class="iconbox"><svg width="12" height="12" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span> <span class="t12" style="color:#8E8E93; margin-left: 10px;">inline mono</span></span>
+      <span class="val">12px</span></div>
+    <div class="row"><span class="token">--icon-md</span>
+      <span class="demo"><span class="iconbox"><svg width="14" height="14" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span> <span class="t12" style="color:#8E8E93; margin-left: 10px;">nav expanded · default UI</span></span>
+      <span class="val">14px</span></div>
+    <div class="row"><span class="token">--icon-lg</span>
+      <span class="demo"><span class="iconbox"><svg width="18" height="18" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span> <span class="t12" style="color:#8E8E93; margin-left: 10px;">emphasized · collapsed sidebar</span></span>
+      <span class="val">18px</span></div>
+  </div>
+
+</div></body></html>

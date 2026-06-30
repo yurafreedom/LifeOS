@@ -1,0 +1,51 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Settings" subtitle="8 sections · notifications visible" viewport="700x380" -->
+<html><head><meta charset="utf-8"><title>screens · settings</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@700;800&family=Work+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="_base.css">
+<style>
+  .frame { padding: 18px 22px; }
+  .h { font-family: 'Onest'; font-weight: 800; font-size: 24px; letter-spacing: -0.025em; color: #F5F5F7; margin: 0 0 18px; }
+  .layout { display: grid; grid-template-columns: 160px 1fr; gap: 24px; }
+  .nav { display: flex; flex-direction: column; gap: 2px; }
+  .nv { text-align: left; padding: 7px 10px; border-radius: 7px; font: 500 13px 'Work Sans'; color: #8E8E93; }
+  .nv.on { background: rgba(34,158,217,0.12); color: #5BB8E8; }
+  .nv.danger { color: #FF7479; }
+  .body { display: flex; flex-direction: column; }
+  .row { display: grid; grid-template-columns: 180px 1fr; gap: 12px; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.08); align-items: center; }
+  .row:last-child { border-bottom: none; }
+  .lab { font-size: 13px; color: #F5F5F7; font-weight: 500; }
+  .hint { font-family: 'Work Sans'; font-size: 9.5px; color: #8E8E93; margin-top: 3px; }
+  .control { display: flex; justify-content: flex-end; }
+  .input { padding: 8px 10px; border-radius: 7px; background: rgba(255,255,255,0.035); border: 1px solid rgba(255,255,255,0.08); color: #F5F5F7; font: 500 12px 'Work Sans'; min-width: 220px; }
+  .toggle { width: 32px; height: 18px; border-radius: 999px; background: rgba(255,255,255,0.08); position: relative; }
+  .toggle.on { background: #229ED9; }
+  .toggle::after { content:''; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 999px; background: #fff; transition: transform 160ms; }
+  .toggle.on::after { transform: translateX(14px); }
+  .seg { display: inline-flex; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 7px; padding: 2px; }
+  .sb { padding: 5px 10px; border-radius: 5px; font: 500 11px 'Work Sans'; color: #8E8E93; }
+  .sb.on { background: rgba(34,158,217,0.12); color: #5BB8E8; }
+</style></head>
+<body><div class="frame">
+  <div class="eyebrow" style="margin-bottom: 8px;">settings · 8 sections · уведомления visible</div>
+  <h2 class="h">настройки</h2>
+  <div class="layout">
+    <div class="nav">
+      <span class="nv">аккаунт</span>
+      <span class="nv">категории</span>
+      <span class="nv">telegram-бот</span>
+      <span class="nv">monobank</span>
+      <span class="nv on">уведомления</span>
+      <span class="nv">оформление</span>
+      <span class="nv">экспорт данных</span>
+      <span class="nv danger">опасная зона</span>
+    </div>
+    <div class="body">
+      <div class="row"><div><div class="lab">веха цели</div></div><div class="control"><span class="toggle on"></span></div></div>
+      <div class="row"><div><div class="lab">бюджет 80%+</div></div><div class="control"><span class="toggle on"></span></div></div>
+      <div class="row"><div><div class="lab">веха серии</div></div><div class="control"><span class="toggle on"></span></div></div>
+      <div class="row"><div><div class="lab">напоминания бота</div></div><div class="control"><span class="toggle"></span></div></div>
+      <div class="row"><div><div class="lab">тихие часы</div><div class="hint">22:00 → 09:00</div></div><div class="control"><span style="font-family:'Work Sans'; font-size: 12px; color:#C7C7CC;">22:00 — 09:00</span></div></div>
+    </div>
+  </div>
+</div></body></html>

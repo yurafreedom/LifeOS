@@ -1,0 +1,105 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="pharm-notes" subtitle="Sprint 3A · per-med journal + global feed" viewport="1100x540" -->
+<html><head><meta charset="utf-8"><title>components · pharm-notes</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@500;700&family=Work+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="_base.css">
+<style>
+  .frame { padding: 24px; display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .col { display: flex; flex-direction: column; gap: 10px; }
+  .label { font: 500 10px 'Work Sans', monospace; color: #8E8E93; }
+  .capture {
+    display: flex; gap: 6px; align-items: center; padding: 8px;
+    background: #14181F; border: 1px solid rgba(255,255,255,0.08); border-radius: 10px;
+  }
+  .pol { display: inline-flex; gap: 2px; }
+  .pol-btn {
+    width: 28px; height: 30px; border-radius: 6px;
+    background: transparent; color: #5C5C63;
+    border: 1px solid rgba(255,255,255,0.08);
+    font-weight: 700; font-size: 13px;
+  }
+  .pol-plus.is-on  { color: #1D9E75; background: rgba(29,158,117,0.14); border-color: rgba(29,158,117,0.32); }
+  .pol-minus.is-on { color: #E5484D; background: rgba(229,72,77,0.14);  border-color: rgba(229,72,77,0.32); }
+  input {
+    background: transparent; border: 1px solid rgba(255,255,255,0.08); border-radius: 6px;
+    padding: 0 10px; height: 30px; color: #F5F5F7; font: 500 12px 'Work Sans', sans-serif; outline: none;
+  }
+  .field { flex: 1; min-width: 0; }
+  .date { width: 130px; }
+  .save { padding: 0 12px; height: 30px; border-radius: 8px; background: #229ED9; color: #fff; font: 600 12px 'Work Sans', sans-serif; border: none; }
+  .summary { font: 500 10.5px 'Work Sans', monospace; color: #8E8E93; }
+  .list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 4px; }
+  .row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 10px; border-radius: 8px;
+    background: #14181F;
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  .mark { width: 18px; text-align: center; font-weight: 700; font-size: 13px; }
+  .mark-plus  { color: #1D9E75; }
+  .mark-minus { color: #E5484D; }
+  .date-cell { font: 500 10.5px 'Work Sans', monospace; color: #8E8E93; min-width: 56px; }
+  .med-tag { font: 500 9.5px 'Work Sans', monospace; color: #8E8E93; }
+  .text { flex: 1; font-size: 12px; color: #F5F5F7; }
+  .filters { display: flex; flex-direction: column; gap: 8px; margin-bottom: 4px; }
+  .chip-row { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { padding: 4px 10px; border-radius: 999px; background: transparent; border: 1px solid rgba(255,255,255,0.08); color: #8E8E93; font-size: 10.5px; }
+  .chip.is-on { color: #5BB8E8; background: rgba(34,158,217,0.12); border-color: transparent; }
+  .pol-toggle {
+    display: inline-flex; gap: 2px; padding: 2px;
+    background: #14181F; border: 1px solid rgba(255,255,255,0.08); border-radius: 6px;
+  }
+  .pol-toggle .pol-opt {
+    padding: 4px 10px; border-radius: 4px; background: transparent; color: #8E8E93;
+    font: 500 9.5px 'Work Sans', monospace; border: none;
+  }
+  .pol-opt.is-on { color: #F5F5F7; background: rgba(255,255,255,0.08); }
+  .controls { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .search { flex: 1; min-width: 180px; }
+</style></head>
+<body><div class="frame">
+
+  <div class="col">
+    <div class="label">per-med journal</div>
+    <div class="capture">
+      <div class="pol"><button class="pol-btn pol-plus is-on">+</button><button class="pol-btn pol-minus">−</button></div>
+      <input class="field" placeholder="что заметил?"/>
+      <input class="date" type="date" value="2026-05-23"/>
+      <button class="save">сохр.</button>
+    </div>
+    <div class="summary">за 30 дней: 2 плюсов · 1 минуса</div>
+    <ul class="list">
+      <li class="row"><span class="mark mark-plus">+</span><span class="date-cell">21.05</span><span class="text">энергия в первой половине дня лучше</span></li>
+      <li class="row"><span class="mark mark-plus">+</span><span class="date-cell">18.05</span><span class="text">легче сесть за работу с утра</span></li>
+      <li class="row"><span class="mark mark-minus">−</span><span class="date-cell">15.05</span><span class="text">сухость во рту, особенно утром</span></li>
+    </ul>
+  </div>
+
+  <div class="col">
+    <div class="label">global journal · all meds</div>
+    <div class="filters">
+      <div class="chip-row">
+        <span class="chip is-on">все</span>
+        <span class="chip">сертралин</span>
+        <span class="chip">бупропион</span>
+        <span class="chip">вортиоксетин</span>
+      </div>
+      <div class="controls">
+        <div class="pol-toggle">
+          <button class="pol-opt is-on">все</button>
+          <button class="pol-opt">только +</button>
+          <button class="pol-opt">только −</button>
+        </div>
+        <input class="search" placeholder="поиск по тексту…"/>
+      </div>
+    </div>
+    <ul class="list">
+      <li class="row"><span class="mark mark-plus">+</span><span class="date-cell">21.05</span><span class="med-tag">бупропион</span><span class="text">энергия в первой половине дня лучше</span></li>
+      <li class="row"><span class="mark mark-plus">+</span><span class="date-cell">20.05</span><span class="med-tag">вортиоксетин</span><span class="text">настроение ровнее на 5 неделю</span></li>
+      <li class="row"><span class="mark mark-plus">+</span><span class="date-cell">18.05</span><span class="med-tag">бупропион</span><span class="text">легче сесть за работу с утра</span></li>
+      <li class="row"><span class="mark mark-minus">−</span><span class="date-cell">15.05</span><span class="med-tag">бупропион</span><span class="text">сухость во рту, особенно утром</span></li>
+      <li class="row"><span class="mark mark-minus">−</span><span class="date-cell">11.05</span><span class="med-tag">вортиоксетин</span><span class="text">тошнота в первый час после приёма</span></li>
+    </ul>
+  </div>
+
+</div></body></html>

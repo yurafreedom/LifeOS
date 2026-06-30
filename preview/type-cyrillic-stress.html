@@ -1,0 +1,34 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Cyrillic stress test" subtitle="UA / RU at known failure points" viewport="700x320" -->
+<html><head><meta charset="utf-8"><title>type · cyrillic stress test</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@700;800&family=Work+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="_base.css">
+<style>
+  .frame { padding: 20px 24px; }
+  .test { padding: 14px 16px; border-radius: 12px; background: rgba(255,255,255,0.025); border: 1px solid rgba(255,255,255,0.08); margin-top: 10px; }
+  .test .nm { font-family: 'Work Sans', monospace; font-size: 9.5px; color: #8E8E93; margin-bottom: 8px; }
+  .body { font-family: 'Work Sans', sans-serif; font-weight: 500; font-size: 15px; line-height: 1.5; color: #F5F5F7; }
+  .body-sm { font-family: 'Work Sans', sans-serif; font-weight: 400; font-size: 13px; line-height: 1.5; color: #C7C7CC; margin-top: 6px; }
+  .mono-cap { font-family: 'Work Sans', monospace; font-weight: 500; font-size: 11px; color: #F5F5F7; }
+  .display { font-family: 'Onest', sans-serif; font-weight: 800; font-size: 26px; line-height: 1.12; letter-spacing: -0.025em; color: #F5F5F7; }
+  .accent { background: linear-gradient(135deg, #FFC066, #FF8A1E, #FF6B0A); -webkit-background-clip: text; background-clip: text; color: transparent; }
+</style></head>
+<body><div class="frame">
+  <div class="eyebrow">cyrillic stress test · long strings + tabular nums</div>
+
+  <div class="test">
+    <div class="nm">work sans 500 · 15 · body</div>
+    <div class="body">Підписати документи з нотаріусом до п'ятниці включно</div>
+    <div class="body-sm">Подписать документы у нотариуса до пятницы включительно</div>
+  </div>
+
+  <div class="test">
+    <div class="nm">work sans 500 · 11 · tabular nums</div>
+    <div class="mono-cap" style="font-variant-numeric:tabular-nums;">ціна бездіяльності &nbsp;·&nbsp; 14:32 · сьогодні &nbsp;·&nbsp; бюджет вичерпано</div>
+  </div>
+
+  <div class="test">
+    <div class="nm">onest 800 · 26 · display · -0.025em</div>
+    <div class="display">відправ ціль. <span class="accent">не зірви серію.</span></div>
+  </div>
+</div></body></html>

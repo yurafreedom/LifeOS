@@ -1,0 +1,107 @@
+<!doctype html>
+<!-- @dsCard group="UI Kit — Life Os" name="Life OS · dashboard" subtitle="Interactive dashboard — sidebar, today, tasks, money, goals, habits" viewport="1280x820" -->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Life OS · dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/svg+xml" href="../../assets/favicon.svg">
+  <script>
+    /* Pre-paint theme application — must run before stylesheet loads
+       so the user never sees a flash of the wrong theme. */
+    (function () {
+      var t = null;
+      try { t = localStorage.getItem('lifeOsTheme'); } catch (e) {}
+      if (t !== 'dark' && t !== 'light' && t !== 'paradise') {
+        t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches)
+          ? 'light' : 'dark';
+      }
+      document.documentElement.setAttribute('data-theme', t);
+      /* Sprint 3.6 · paradise: resolve day/night from Kyiv time before
+         first paint so the scene tokens never flash the wrong scene. */
+      if (t === 'paradise') {
+        var h;
+        try {
+          h = parseInt(new Intl.DateTimeFormat('en-US',
+            { timeZone: 'Europe/Kiev', hour: 'numeric', hour12: false })
+            .format(new Date()), 10) % 24;
+        } catch (e) { h = new Date().getHours(); }
+        document.documentElement.setAttribute('data-scene', (h >= 20 || h < 6) ? 'night' : 'day');
+      }
+    })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800;900&family=Work+Sans:wght@400;500;600;700&display=swap&subset=cyrillic,cyrillic-ext,latin,latin-ext" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/prop-types@15.8.1/prop-types.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body>
+  <div id="root" data-screen-label="01 Dashboard"></div>
+
+  <script type="text/babel" src="i18n.jsx"></script>
+  <script type="text/babel" src="categories.jsx"></script>
+  <script type="text/babel" src="icons.jsx"></script>
+  <script src="data/profile.js"></script>
+  <script src="data/dog.js"></script>
+  <script src="data/medications.js"></script>
+  <script src="data/dashboard-seed.js"></script>
+  <script src="lib/storage.js"></script>
+  <script src="lib/activity.js"></script>
+  <script src="lib/finance.js"></script>
+  <script src="data/calendar-seed.js"></script>
+  <script src="lib/calendar.js"></script>
+  <script type="text/babel" src="components/ActivityTimeline.jsx"></script>
+  <script type="text/babel" src="components/MultiChangeWarningModal.jsx"></script>
+  <script type="text/babel" src="components/EyeToggle.jsx"></script>
+  <script type="text/babel" src="components/ParadiseScene.jsx"></script>
+  <script type="text/babel" src="LifeDataProvider.jsx"></script>
+  <script src="lib/medMath.js"></script>
+  <script type="text/babel" src="pages/medications/MedCard.jsx"></script>
+  <script type="text/babel" src="pages/medications/TakeDoseModal.jsx"></script>
+  <script type="text/babel" src="pages/medications/RefillModal.jsx"></script>
+  <script type="text/babel" src="pages/medications/MedConfigDrawer.jsx"></script>
+  <script type="text/babel" src="pages/medications/PharmNotes.jsx"></script>
+  <script type="text/babel" src="pages/medications/GlobalJournal.jsx"></script>
+  <script type="text/babel" src="pages/medications/MedDetailPage.jsx"></script>
+  <script type="text/babel" src="profile/EditableField.jsx"></script>
+  <script type="text/babel" src="profile/cards/IdentityCard.jsx"></script>
+  <script type="text/babel" src="profile/cards/BodyMetricsCard.jsx"></script>
+  <script type="text/babel" src="profile/cards/MeasurementsCard.jsx"></script>
+  <script type="text/babel" src="profile/cards/ClothingSizesCard.jsx"></script>
+  <script type="text/babel" src="profile/cards/FoodPreferencesCard.jsx"></script>
+  <script type="text/babel" src="pages/PlaceholderPage.jsx"></script>
+  <script type="text/babel" src="pages/QuickNotesPage.jsx"></script>
+  <script type="text/babel" src="pages/TasksPage.jsx"></script>
+  <script type="text/babel" src="pages/RelocatedPages.jsx"></script>
+  <script type="text/babel" src="pages/FinancesPage.jsx"></script>
+  <script type="text/babel" src="pages/ProfilePage.jsx"></script>
+  <script type="text/babel" src="pages/DogPage.jsx"></script>
+  <script type="text/babel" src="pages/HealthPage.jsx"></script>
+  <script type="text/babel" src="pages/MedicationsPage.jsx"></script>
+  <script type="text/babel" src="pages/home/StatCard.jsx"></script>
+  <script type="text/babel" src="pages/home/ChartCard.jsx"></script>
+  <script type="text/babel" src="pages/home/TrendChart.jsx"></script>
+  <script type="text/babel" src="pages/home/CategoryChart.jsx"></script>
+  <script type="text/babel" src="pages/HomePage.jsx"></script>
+  <script type="text/babel" src="Sidebar.jsx"></script>
+  <script type="text/babel" src="TopBar.jsx"></script>
+  <script type="text/babel" src="Today.jsx"></script>
+  <script type="text/babel" src="TaskList.jsx"></script>
+  <script type="text/babel" src="MoneyWidget.jsx"></script>
+  <script type="text/babel" src="GoalsWidget.jsx"></script>
+  <script type="text/babel" src="HabitsGrid.jsx"></script>
+  <script type="text/babel" src="StreakMilestone.jsx"></script>
+  <script type="text/babel" src="QuickAddModal.jsx"></script>
+  <script type="text/babel" src="TaskDetailModal.jsx"></script>
+  <script type="text/babel" src="SettingsPage.jsx"></script>
+  <script type="text/babel" src="CalendarView.jsx"></script>
+  <script type="text/babel" src="pages/calendar/DayDetailModal.jsx"></script>
+  <script type="text/babel" src="MobileBottomNav.jsx"></script>
+  <script type="text/babel" src="Toast.jsx"></script>
+  <script type="text/babel" src="App.jsx"></script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Radii" subtitle="6 · 10 · 14 · 18 · 24 · pill" viewport="700x230" -->
+<html><head><meta charset="utf-8"><title>radii</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@700&family=Work+Sans:wght@400;500&display=swap">
+<link rel="stylesheet" href="_base.css">
+<style>
+  .grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-top: 12px; }
+  .tile { aspect-ratio: 1 / 1; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; justify-content: flex-end; padding: 10px; }
+  .nm  { font-family: 'Work Sans', monospace; font-size: 9.5px; color: #8E8E93; }
+  .px  { font-family: 'Work Sans', monospace; font-size: 11px; color: #C7C7CC; }
+</style></head>
+<body><div class="frame">
+  <div class="eyebrow">radii</div>
+  <div class="grid">
+    <div class="tile" style="border-radius:6px;"><div class="nm">r-xs</div><div class="px">6</div></div>
+    <div class="tile" style="border-radius:10px;"><div class="nm">r-sm</div><div class="px">10</div></div>
+    <div class="tile" style="border-radius:14px;"><div class="nm">r-md</div><div class="px">14</div></div>
+    <div class="tile" style="border-radius:18px;"><div class="nm">r-lg</div><div class="px">18</div></div>
+    <div class="tile" style="border-radius:24px;"><div class="nm">r-xl</div><div class="px">24</div></div>
+    <div class="tile" style="border-radius:999px;"><div class="nm">pill</div><div class="px">∞</div></div>
+  </div>
+  <div class="muted mono" style="margin-top:14px; font-size:10px;">14 default card · 18 large card · 10 controls · 6 chips</div>
+</div></body></html>

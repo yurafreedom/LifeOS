@@ -1,0 +1,164 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="med-card" subtitle="Sprint 3A · 4 mode variants × 4 inventory tiers" viewport="1100x720" -->
+<html><head><meta charset="utf-8"><title>components · med-card</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@500;600;700&family=Work+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="_base.css">
+<style>
+  .frame { display: flex; flex-direction: column; gap: 20px; padding: 22px; }
+  .grid { display: grid; gap: 12px; grid-template-columns: 1fr 1fr; }
+  .card {
+    display: grid; grid-template-columns: 96px 1fr; gap: 16px;
+    padding: 16px;
+    background: #14181F;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    min-height: 280px;
+  }
+  .img {
+    width: 96px; height: 96px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    display: flex; align-items: center; justify-content: center;
+    color: #5C5C63;
+  }
+  .body { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+  .head { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+  .id { display: inline-flex; align-items: baseline; gap: 6px; flex-wrap: wrap; min-width: 0; }
+  .name { font: 700 15px Onest, sans-serif; letter-spacing: -0.01em; color: #F5F5F7; }
+  .dose { color: #8E8E93; font-size: 12px; }
+  .sub { font-size: 10.5px; color: #5C5C63; }
+  .mode {
+    font-size: 9.5px;
+    padding: 2px 8px; border-radius: 999px;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  .mode-steady { color: #1D9E75; background: rgba(29,158,117,0.14); border-color: rgba(29,158,117,0.25); }
+  .mode-up     { color: #5BB8E8; background: rgba(34,158,217,0.12); border-color: transparent; }
+  .mode-down   { color: #FFC066; background: rgba(255,138,30,0.10); border-color: rgba(255,138,30,0.32); }
+  .mode-prn    { color: #C7C7CC; background: transparent; }
+  .timers { display: flex; flex-direction: column; gap: 3px; }
+  .t {
+    font: 500 12px 'Work Sans', monospace;
+    color: #F5F5F7;
+    display: flex; gap: 6px; align-items: baseline;
+  }
+  .t.muted { color: #8E8E93; }
+  .arrow { color: #5C5C63; }
+  .usual { font: 500 11px 'Work Sans', monospace; color: #8E8E93; }
+  .actions { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .btn {
+    height: 30px; padding: 0 12px; border-radius: 6px;
+    font: 600 12px 'Work Sans', sans-serif;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: transparent; color: #C7C7CC; cursor: pointer;
+  }
+  .btn-take { background: #229ED9; border-color: transparent; color: #fff; }
+  .btn-take.is-disabled { background: rgba(255,255,255,0.04); color: #5C5C63; }
+  .cfg {
+    margin-left: auto;
+    width: 30px; height: 30px; border-radius: 6px;
+    background: transparent; border: 1px solid rgba(255,255,255,0.08);
+    color: #8E8E93; display: inline-flex; align-items: center; justify-content: center;
+  }
+  .inv {
+    display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+    padding-top: 8px; margin-top: auto;
+    border-top: 1px solid rgba(255,255,255,0.08);
+  }
+  .inv-text { font-size: 11px; color: #C7C7CC; flex: 1; }
+  .chip {
+    font-size: 9.5px;
+    padding: 2px 8px; border-radius: 4px;
+  }
+  .chip-soon   { color: #F1B33B; background: rgba(241,179,59,0.14); border: 1px solid rgba(241,179,59,0.28); }
+  .chip-urgent { color: #FFC066; background: rgba(255,138,30,0.10); border: 1px solid rgba(255,138,30,0.32); }
+  .chip-low    { color: #E5484D; background: rgba(229,72,77,0.14); border: 1px solid rgba(229,72,77,0.32); }
+  .chip-empty  { color: #E5484D; background: rgba(229,72,77,0.14); border: 1px solid rgba(229,72,77,0.32); }
+  .refill {
+    font-size: 10.5px;
+    color: #8E8E93; background: transparent; border: 1px solid rgba(255,255,255,0.08); border-radius: 6px;
+    padding: 4px 10px;
+  }
+  .progress {
+    height: 4px; background: rgba(255,255,255,0.05); border-radius: 999px; overflow: hidden;
+    margin-top: 4px;
+  }
+  .progress > div { height: 100%; background: #229ED9; border-radius: 999px; }
+  .progress-lab { font: 500 10.5px 'Work Sans', monospace; color: #8E8E93; margin-top: 4px; }
+</style></head>
+<body><div class="frame">
+
+  <div class="eyebrow">med-card · 4 mode variants × 4 inventory tiers</div>
+
+  <div class="grid">
+    <!-- STEADY · safe inventory -->
+    <div class="card">
+      <div class="img"><svg viewBox="0 0 48 48" width="44" height="44"><rect x="9" y="18" width="30" height="12" rx="6" fill="none" stroke="currentColor" stroke-width="1.6"/><line x1="24" y1="18" x2="24" y2="30" stroke="currentColor" stroke-width="1.6"/></svg></div>
+      <div class="body">
+        <div class="head"><div class="id"><span class="name">Сертралин</span><span class="dose mono">· 150 мг/день</span></div><span class="mode mode-steady mono">steady</span></div>
+        <div class="sub mono">Золофт / Zoloft · CYP2D6 · ингибитор · слабый</div>
+        <div class="timers">
+          <div class="t"><span class="arrow">▸</span>след. доза: через 7ч 47м (14:00)</div>
+          <div class="t muted"><span class="arrow">▸</span>t½: ~26ч (закончится в 22:00 без дозы)</div>
+          <div class="t muted"><span class="arrow">▸</span>полный вывод: ~5 дней (метаб.)</div>
+        </div>
+        <div class="usual">обычно принимаешь в 08:12</div>
+        <div class="actions"><button class="btn btn-take">принял</button><button class="btn">позже</button><button class="btn">пропустил</button><button class="cfg">⚙</button></div>
+        <div class="inv"><span class="inv-text mono">inventory: 18 таб. · ~18 дней запаса</span><button class="refill mono">пополнить</button></div>
+      </div>
+    </div>
+
+    <!-- UP-TITRATION · soon inventory -->
+    <div class="card">
+      <div class="img"><svg viewBox="0 0 48 48" width="44" height="44"><rect x="9" y="18" width="30" height="12" rx="6" fill="none" stroke="currentColor" stroke-width="1.6"/><line x1="24" y1="18" x2="24" y2="30" stroke="currentColor" stroke-width="1.6"/></svg></div>
+      <div class="body">
+        <div class="head"><div class="id"><span class="name">Бупропион</span><span class="dose mono">· 175 мг/день</span></div><span class="mode mode-up mono">↑ titration</span></div>
+        <div class="sub mono">Бупринол · CYP2D6 · ингибитор · умеренный</div>
+        <div class="timers">
+          <div class="t"><span class="arrow">▸</span>след. доза: через 5ч 47м (14:00)</div>
+          <div class="t muted"><span class="arrow">▸</span>t½: ~14ч (закончится в 22:00 без дозы)</div>
+          <div class="t muted"><span class="arrow">▸</span>полный вывод: ~3 дня (метаб.)</div>
+        </div>
+        <div class="progress"><div style="width: 19%"></div></div>
+        <div class="progress-lab">день 4 из 21 на стадии 175мг</div>
+        <div class="actions"><button class="btn btn-take">принял</button><button class="btn">позже</button><button class="btn">пропустил</button><button class="cfg">⚙</button></div>
+        <div class="inv"><span class="inv-text mono">inventory: 5 таб. · ~5 дней запаса</span><span class="chip chip-soon mono">купить скоро</span><button class="refill mono">пополнить</button></div>
+      </div>
+    </div>
+
+    <!-- DOWN-TITRATION · urgent inventory -->
+    <div class="card">
+      <div class="img"><svg viewBox="0 0 48 48" width="44" height="44"><rect x="9" y="18" width="30" height="12" rx="6" fill="none" stroke="currentColor" stroke-width="1.6"/><line x1="24" y1="18" x2="24" y2="30" stroke="currentColor" stroke-width="1.6"/></svg></div>
+      <div class="body">
+        <div class="head"><div class="id"><span class="name">Ламотриджин</span><span class="dose mono">· 25 мг/день</span></div><span class="mode mode-down mono">↓ taper</span></div>
+        <div class="sub mono">Епілептал · UGT-substrate</div>
+        <div class="timers">
+          <div class="t"><span class="arrow">▸</span>можно принимать сейчас</div>
+          <div class="t muted"><span class="arrow">▸</span>t½: ~25ч (закончится в 19:00 без дозы)</div>
+          <div class="t muted"><span class="arrow">▸</span>полный вывод: ~5 дней (метаб.)</div>
+        </div>
+        <div class="progress"><div style="width: 67%; background: #FFC066"></div></div>
+        <div class="progress-lab">день 28 из 42 · -25мг каждые 14 дней</div>
+        <div class="actions"><button class="btn btn-take">принял</button><button class="btn">позже</button><button class="btn">пропустил</button><button class="cfg">⚙</button></div>
+        <div class="inv"><span class="inv-text mono">inventory: 2 таб. · ~2 дня запаса</span><span class="chip chip-urgent mono">купить срочно</span><button class="refill mono">пополнить</button></div>
+      </div>
+    </div>
+
+    <!-- PRN · empty inventory · take disabled -->
+    <div class="card">
+      <div class="img"><svg viewBox="0 0 48 48" width="44" height="44"><rect x="9" y="18" width="30" height="12" rx="6" fill="none" stroke="currentColor" stroke-width="1.6"/><line x1="24" y1="18" x2="24" y2="30" stroke="currentColor" stroke-width="1.6"/></svg></div>
+      <div class="body">
+        <div class="head"><div class="id"><span class="name">Magtein</span></div><span class="mode mode-prn mono">prn</span></div>
+        <div class="sub mono">Magnesium L-Threonate · supplement</div>
+        <div class="timers">
+          <div class="t muted"><span class="arrow">▸</span>по требованию</div>
+          <div class="t muted"><span class="arrow">▸</span>интервал ≥ 24ч между дозами</div>
+        </div>
+        <div class="actions"><button class="btn btn-take is-disabled">принял</button><button class="btn">позже</button><button class="btn">пропустил</button><button class="cfg">⚙</button></div>
+        <div class="inv"><span class="inv-text mono">inventory: 0 капс. · ~0 дней запаса</span><span class="chip chip-empty mono">закончился</span><button class="refill mono">пополнить</button></div>
+      </div>
+    </div>
+  </div>
+
+</div></body></html>

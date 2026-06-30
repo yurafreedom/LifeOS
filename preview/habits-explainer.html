@@ -1,0 +1,30 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Habits explainer" subtitle="Done / today / missed / future cell states" viewport="700x280" -->
+<html><head><meta charset="utf-8"><title>habits · explainer</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@700;800&family=Work+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="_base.css">
+<style>
+  .frame { padding: 22px; }
+  .h { font-family: 'Onest', sans-serif; font-weight: 800; font-size: 22px; letter-spacing: -0.02em; color: #F5F5F7; margin-top: 6px; }
+  .lead { font-family: 'Work Sans', sans-serif; font-size: 13px; color: #C7C7CC; margin-top: 6px; line-height: 1.5; max-width: 580px; }
+  .legend { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 14px; }
+  .key { background: rgba(255,255,255,0.025); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 6px; }
+  .cell { width: 22px; height: 22px; border-radius: 5px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); }
+  .cell.done    { background: #229ED9; border-color: #229ED9; }
+  .cell.today   { background: transparent; border: 1px solid #229ED9; box-shadow: 0 0 0 2px rgba(34,158,217,0.18); }
+  .cell.missed  { background: transparent; border-color: rgba(229,72,77,0.25); }
+  .cell.future  { background: transparent; border: 1px dashed rgba(255,255,255,0.1); }
+  .lab { font-family: 'Work Sans', monospace; font-size: 9.5px; color: #8E8E93; }
+  .desc { font-family: 'Work Sans', sans-serif; font-size: 12px; color: #C7C7CC; line-height: 1.4; }
+</style></head>
+<body><div class="frame">
+  <div class="eyebrow">habits · recurring behavior trackers</div>
+  <div class="h">distinct from tasks &amp; goals.</div>
+  <div class="lead">Tasks are one-off. Goals are outcome-based. Habits are <strong style="color:#F5F5F7;">recurring behaviors</strong> — daily check-in, streak-driven, milestone-triggered.</div>
+  <div class="legend">
+    <div class="key"><div class="cell done"></div><div class="lab">done</div><div class="desc">past day · completed</div></div>
+    <div class="key"><div class="cell today"></div><div class="lab">today</div><div class="desc">click to mark · click again to undo</div></div>
+    <div class="key"><div class="cell missed"></div><div class="lab">missed</div><div class="desc">past day · empty · not editable</div></div>
+    <div class="key"><div class="cell future"></div><div class="lab">future</div><div class="desc">days ahead · dashed · not clickable</div></div>
+  </div>
+</div></body></html>

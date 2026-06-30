@@ -1,0 +1,35 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Semantic colors" subtitle="Success · danger · warning" viewport="700x200" -->
+<html><head><meta charset="utf-8"><title>colors · semantic</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@700&family=Work+Sans:wght@400;500&display=swap">
+<link rel="stylesheet" href="_base.css">
+<style>
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .sw { border-radius: 14px; padding: 16px; min-height: 110px; border: 1px solid rgba(255,255,255,0.08);
+        display: flex; flex-direction: column; justify-content: space-between; }
+  .sw .label { font-family: 'Onest', sans-serif; font-weight: 700; font-size: 15px; letter-spacing: -0.01em; color: #fff; }
+  .sw .hex   { font-family: 'Work Sans', monospace; font-size: 11px; color: rgba(255,255,255,0.78); }
+  .sw .use   { font-family: 'Work Sans', monospace; font-size: 9.5px; color: rgba(255,255,255,0.55); }
+  .success { background: #1D9E75; }
+  .danger  { background: #E5484D; }
+  .warn    { background: #F1B33B; color: #0E1117; }
+  .warn .label { color: #0E1117; }
+  .warn .hex, .warn .use { color: rgba(14,17,23,0.7); }
+</style></head>
+<body><div class="frame">
+  <div class="eyebrow" style="margin-bottom:10px;">semantic · state</div>
+  <div class="grid">
+    <div class="sw success">
+      <div class="use">success</div>
+      <div><div class="label">streak hit</div><div class="hex">#1D9E75</div></div>
+    </div>
+    <div class="sw danger">
+      <div class="use">danger</div>
+      <div><div class="label">irreversible</div><div class="hex">#E5484D</div></div>
+    </div>
+    <div class="sw warn">
+      <div class="use">warning</div>
+      <div><div class="label">attention</div><div class="hex">#F1B33B</div></div>
+    </div>
+  </div>
+</div></body></html>

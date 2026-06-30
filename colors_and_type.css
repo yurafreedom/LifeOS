@@ -1,0 +1,221 @@
+/* ============================================================
+   Life OS — Foundation tokens
+   Dark theme only. Cool primary + warm "stakes" accent.
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800;900&family=Work+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+:root {
+  /* ---------- Surfaces ---------- */
+  --bg:                 #0E1117;
+  --bg-elev-1:          #14181F;     /* slightly raised opaque (modals, popovers) */
+  --bg-elev-2:          #1A1F28;     /* commandbar, deepest popovers */
+
+  --surface:            rgba(255,255,255,0.035);   /* card fill */
+  --surface-hover:      rgba(255,255,255,0.055);
+  --surface-active:     rgba(255,255,255,0.075);
+
+  --border:             rgba(255,255,255,0.08);    /* hairline */
+  --border-strong:      rgba(255,255,255,0.14);
+  --border-focus:       rgba(34,158,217,0.55);
+
+  /* ---------- Ambient lighting (applied to body) ---------- */
+  --ambient:
+    radial-gradient(900px 600px at 92% -10%, rgba(34,158,217,0.10), transparent 60%),
+    radial-gradient(700px 500px at -10% 110%, rgba(255,138,30,0.07), transparent 65%); /* @kind color */
+
+  /* ---------- Brand: cool (Telegram blue) ---------- */
+  --primary:            #229ED9;
+  --primary-light:      #5BB8E8;
+  --primary-deep:       #1577A8;
+  --primary-soft:       rgba(34,158,217,0.12);
+  --primary-glow:       0 0 0 1px rgba(34,158,217,0.35), 0 8px 24px -8px rgba(34,158,217,0.45);
+
+  /* ---------- Brand: warm (Energy / Stakes) ---------- */
+  /* USE ONLY for: goals, money moments, "today", high-priority, irreversible commits,
+     telegram-bot notifications. Never decorative. */
+  --accent-1:           #FFC066;
+  --accent-2:           #FF8A1E;
+  --accent-3:           #FF6B0A;
+  --accent:             linear-gradient(135deg, #FFC066 0%, #FF8A1E 48%, #FF6B0A 100%); /* @kind color */
+  --accent-soft:        rgba(255,138,30,0.10);
+  --accent-tint:        rgba(255,138,30,0.06);   /* money-input bg */
+  --accent-border:      rgba(255,138,30,0.32);
+  --accent-glow:        0 0 0 1px rgba(255,138,30,0.32), 0 10px 28px -10px rgba(255,107,10,0.55);
+
+  /* ---------- Semantic ---------- */
+  --success:            #1D9E75;
+  --success-soft:       rgba(29,158,117,0.14);
+  --danger:             #E5484D;
+  --danger-soft:        rgba(229,72,77,0.14);
+  --warning:            #F1B33B;
+  --warning-soft:       rgba(241,179,59,0.14);
+
+  /* ---------- Text ---------- */
+  --fg:                 #F5F5F7;
+  --fg-1:               #F5F5F7;     /* primary */
+  --fg-2:               #C7C7CC;     /* secondary */
+  --fg-3:               #8E8E93;     /* muted */
+  --fg-4:               #5C5C63;     /* placeholder / disabled */
+
+  /* ---------- Radii ---------- */
+  --r-xs:               6px;
+  --r-sm:               10px;
+  --r-md:               14px;
+  --r-lg:               18px;
+  --r-xl:               24px;
+  --r-pill:             999px;
+
+  /* ---------- Spacing (4pt scale) ---------- */
+  --s-1:                4px;
+  --s-2:                8px;
+  --s-3:                12px;
+  --s-4:                16px;
+  --s-5:                20px;
+  --s-6:                24px;
+  --s-7:                32px;
+  --s-8:                40px;
+  --s-9:                56px;
+  --s-10:               72px;
+
+  /* ---------- Shadow / elevation ---------- */
+  /* No heavy shadows. Subtle lifts only. */
+  --shadow-1:           0 1px 0 rgba(255,255,255,0.04) inset;
+  --shadow-2:           0 8px 24px -12px rgba(0,0,0,0.5);
+  --shadow-hover:       0 12px 30px -14px rgba(0,0,0,0.6);
+
+  /* ---------- Motion ---------- */
+  --ease-out:           cubic-bezier(0.22, 1, 0.36, 1);  /* @kind other */
+  --ease-in-out:        cubic-bezier(0.65, 0, 0.35, 1);  /* @kind other */
+  --dur-fast:           120ms;  /* @kind other */
+  --dur:                180ms;  /* @kind other */
+  --dur-slow:           260ms;  /* @kind other */
+
+  /* ---------- Type families ---------- */
+  --font-display:       'Onest', system-ui, sans-serif;
+  --font-body:          'Work Sans', system-ui, sans-serif;
+  --font-mono:          'JetBrains Mono', 'Inter', ui-monospace, monospace;
+}
+
+/* ============================================================
+   Base
+   ============================================================ */
+*,*::before,*::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg-1);
+  font-family: var(--font-body);
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  background-image: var(--ambient);
+  background-attachment: fixed;
+  min-height: 100vh;
+}
+
+/* ============================================================
+   Semantic type
+   ============================================================ */
+.h1, h1 {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 56px;
+  line-height: 1.04;
+  letter-spacing: -0.03em;
+  color: var(--fg-1);
+  margin: 0;
+}
+.h2, h2 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 36px;
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+  color: var(--fg-1);
+  margin: 0;
+}
+.h3, h3 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 24px;
+  line-height: 1.18;
+  letter-spacing: -0.02em;
+  color: var(--fg-1);
+  margin: 0;
+}
+.h4, h4 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 18px;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  color: var(--fg-1);
+  margin: 0;
+}
+
+.body, p {
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--fg-2);
+  margin: 0;
+}
+.body-sm { font-size: 13px; line-height: 1.5; color: var(--fg-3); }
+.body-lg { font-size: 17px; line-height: 1.5; color: var(--fg-1); }
+
+/* Technical chrome — uppercase, wide tracking, mono */
+.mono, code, kbd {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.eyebrow {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+}
+.timestamp {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+  font-variant-numeric: tabular-nums;
+}
+.number {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ============================================================
+   Building blocks
+   ============================================================ */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-1);
+  transition: transform var(--dur) var(--ease-out),
+              background-color var(--dur) var(--ease-out),
+              border-color var(--dur) var(--ease-out),
+              box-shadow var(--dur) var(--ease-out);
+}
+.card.is-interactive:hover {
+  transform: translateY(-1px);
+  background: var(--surface-hover);
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-hover);
+}
+
+.hairline { border-top: 1px solid var(--border); }

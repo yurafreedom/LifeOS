@@ -1,0 +1,158 @@
+<!-- @dsCard group="Brand" name="Paradise theme" subtitle="Sprint 3.6 · living island scene — layer stack, day/night token sets, performance patterns" viewport="900x780" -->
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Paradise theme — living island scene</title>
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@700;800&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="_base.css">
+<style>
+  .frame { padding: 20px 24px; display: flex; flex-direction: column; gap: 14px; }
+  .pt-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  /* ── scene samples ── */
+  .pt-scene {
+    position: relative; border-radius: 12px; overflow: hidden;
+    height: 200px; background-size: cover; background-position: 38% 30%;
+    display: flex; flex-direction: column; justify-content: flex-end;
+    gap: 8px; padding: 12px;
+  }
+  .pt-scene-day   { background-image: url('../assets/scene/island-day.jpg'); }
+  .pt-scene-night { background-image: url('../assets/scene/island-night.jpg'); }
+  .pt-scene-tag {
+    position: absolute; top: 10px; left: 12px;
+    font: 500 10px 'Work Sans', sans-serif; color: #fff;
+    background: rgba(0,0,0,0.32); padding: 4px 8px; border-radius: 6px;
+  }
+  .pt-cards { display: flex; gap: 8px; }
+  .pt-card {
+    flex: 1; border-radius: 10px; padding: 9px 11px;
+    font-family: 'Work Sans', sans-serif;
+  }
+  /* day cards — reference values, verbatim */
+  .pt-scene-day .pt-card {
+    background: rgba(255,251,246,0.86);
+    border: 1px solid rgba(255,255,255,0.5);
+    box-shadow: 0 6px 22px rgba(10,20,40,0.18), 0 1px 3px rgba(10,20,40,0.12);
+    color: #1a1f29;
+  }
+  .pt-scene-day .pt-eyebrow { color: #6b7280; }
+  /* night cards */
+  .pt-scene-night .pt-card {
+    background: rgba(20,28,40,0.72);
+    border: 1px solid rgba(150,180,210,0.18);
+    box-shadow: 0 8px 26px rgba(0,0,0,0.4);
+    color: #eaf1f8;
+  }
+  .pt-scene-night .pt-eyebrow { color: #9fb2c6; }
+  /* stakes — same discipline in both scenes */
+  .pt-card.is-stakes {
+    border: 1.5px solid rgba(219,90,12,0.55);
+    box-shadow: 0 0 0 1px rgba(219,90,12,0.16), 0 8px 24px rgba(219,90,12,0.14);
+  }
+  .pt-card.is-stakes .pt-big { color: #DB5A0C; }
+  .pt-eyebrow { font-size: 9.5px; font-weight: 600; }
+  .pt-big { font: 800 22px 'Onest', sans-serif; letter-spacing: -0.02em; margin-top: 2px; font-variant-numeric: tabular-nums; }
+  .pt-sub { font-size: 10px; opacity: 0.75; margin-top: 1px; }
+
+  /* ── layer stack ── */
+  .pt-panel {
+    background: rgba(255,255,255,0.035); border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px; padding: 14px 16px;
+  }
+  .pt-h { font: 700 12px 'Work Sans', sans-serif; color: #F5F5F7; margin: 0 0 10px; }
+  .pt-layers { display: flex; flex-direction: column; gap: 4px; margin: 0; padding: 0; list-style: none; }
+  .pt-layer {
+    display: grid; grid-template-columns: 18px 132px 1fr; gap: 10px; align-items: baseline;
+    font: 400 10.5px 'Work Sans', sans-serif; color: #C7C7CC;
+    padding: 4px 6px; border-radius: 6px; background: rgba(255,255,255,0.025);
+  }
+  .pt-layer b { color: #F5F5F7; font-weight: 600; }
+  .pt-n { color: #8E8E93; font-variant-numeric: tabular-nums; }
+  .pt-anim { color: #5BB8E8; }
+
+  /* ── patterns ── */
+  .pt-patterns { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+  .pt-pattern {
+    background: rgba(255,255,255,0.025); border: 1px solid rgba(219,90,12,0.22);
+    border-radius: 10px; padding: 11px 12px;
+  }
+  .pt-pattern h4 { font: 600 11px 'Work Sans', sans-serif; color: #FFC066; margin: 0 0 5px; }
+  .pt-pattern p { font: 400 10px/1.5 'Work Sans', sans-serif; color: #C7C7CC; margin: 0; }
+  .pt-foot { font: 400 10px/1.55 'Work Sans', sans-serif; color: #8E8E93; }
+  .pt-foot b { color: #C7C7CC; font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="frame">
+
+  <div class="pt-grid">
+    <div class="pt-scene pt-scene-day">
+      <span class="pt-scene-tag">data-scene="day" · 06:00–19:59 Киев</span>
+      <div class="pt-cards">
+        <div class="pt-card is-stakes">
+          <div class="pt-eyebrow">бюджет месяца</div>
+          <div class="pt-big">85%</div>
+          <div class="pt-sub">$3 400 из $4 000</div>
+        </div>
+        <div class="pt-card">
+          <div class="pt-eyebrow">самая длинная серия</div>
+          <div class="pt-big">47</div>
+          <div class="pt-sub">медитация · дней</div>
+        </div>
+      </div>
+    </div>
+    <div class="pt-scene pt-scene-night">
+      <span class="pt-scene-tag">data-scene="night" · 20:00–05:59 Киев</span>
+      <div class="pt-cards">
+        <div class="pt-card is-stakes">
+          <div class="pt-eyebrow">бюджет месяца</div>
+          <div class="pt-big">85%</div>
+          <div class="pt-sub">$3 400 из $4 000</div>
+        </div>
+        <div class="pt-card">
+          <div class="pt-eyebrow">задачи эта неделя</div>
+          <div class="pt-big">23 / 30</div>
+          <div class="pt-sub">выполнено</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pt-panel">
+    <h3 class="pt-h">Слои сцены (снизу вверх) — components/ParadiseScene.jsx, монтируется только при data-theme="paradise"</h3>
+    <ol class="pt-layers">
+      <li class="pt-layer"><span class="pt-n">1</span><b>bg-day</b><span>статичный остров, всегда opacity 1 — непрозрачный «пол»</span></li>
+      <li class="pt-layer"><span class="pt-n">2</span><b>bg-night</b><span>ночная версия, opacity 0↔1, <span class="pt-anim">transition 1.4s</span> — проявляется поверх пола</span></li>
+      <li class="pt-layer"><span class="pt-n">3</span><b>#ps-sea</b><span>ЕДИНСТВЕННЫЙ слой с feTurbulence + feDisplacementMap, маска кольца моря; JS меняет картинку: fade 0 → swap → fade 1 <span class="pt-anim">(720ms)</span></span></li>
+      <li class="pt-layer"><span class="pt-n">4</span><b>glint</b><span>блики, mix-blend screen, <span class="pt-anim">drift 30s</span> · opacity .4 день / .25 ночь</span></li>
+      <li class="pt-layer"><span class="pt-n">5</span><b>patch-day</b><span>статичная заплатка над малым островом (ellipse 18% 22% at 77% 12%) — без фильтра</span></li>
+      <li class="pt-layer"><span class="pt-n">6</span><b>patch-night</b><span>ночная заплатка, opacity 0↔1, <span class="pt-anim">1.4s</span></span></li>
+      <li class="pt-layer"><span class="pt-n">7</span><b>clouds ×2</b><span>размытые эллипсы, <span class="pt-anim">90s / 120s</span> · opacity .45 день / .16 ночь</span></li>
+    </ol>
+  </div>
+
+  <div class="pt-patterns">
+    <div class="pt-pattern">
+      <h4>Непрозрачный дневной пол</h4>
+      <p>Кроссфейд двух слоёв пропускает тёмный фон страницы в середине перехода → тёмные мигающие полосы. День всегда opacity 1; ночь проявляется сверху.</p>
+    </div>
+    <div class="pt-pattern">
+      <h4>Одно море с фильтром</h4>
+      <p>Два одновременных displacement-слоя удваивают цену GPU → мерцание тайлов. Один слой; смена сцены = fade-out → подмена картинки → fade-in.</p>
+    </div>
+    <div class="pt-pattern">
+      <h4>Статичная заплатка острова</h4>
+      <p>Displacement поверх детального малого острова читается как «желе», не вода. Нефильтрованная пара день/ночь с маской лежит выше моря — дёшево и неподвижно.</p>
+    </div>
+  </div>
+
+  <div class="pt-foot">
+    <b>Деградация:</b> prefers-reduced-motion → статичная сцена (без breathe / моря / бликов / облаков); &lt;768px → без моря, бликов и заплатки.
+    <b>Ограничение:</b> под paradise запрещён backdrop-filter (карточки, сайдбар, модалки) — композитор Chromium роняет blur-поддеревья поверх анимированной сцены; «стекло» несёт полупрозрачность поверхностей (.86 день / .72 ночь). Входные keyframe-анимации оверлеев отключены (замерзают на кадре 0).
+    Сцена живёт только под data-theme="paradise" — в dark/light ноль DOM и ноль загрузок.
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,44 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Task row" subtitle="Routine vs stakes-tinted row" viewport="700x260" -->
+<html><head><meta charset="utf-8"><title>components · task row</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@700&family=Work+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="_base.css">
+<style>
+  .list { display: flex; flex-direction: column; gap: 1px; margin-top: 10px; background: rgba(255,255,255,0.06); border-radius: 14px; overflow: hidden; border: 1px solid rgba(255,255,255,0.08); }
+  .row { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: #0E1117; }
+  .row.stakes { background: linear-gradient(90deg, rgba(255,138,30,0.045), rgba(255,138,30,0) 60%); }
+  .check { width: 18px; height: 18px; border-radius: 6px; border: 1.5px solid rgba(255,255,255,0.2); flex: none; display: flex; align-items: center; justify-content: center; }
+  .check.done { background: #1D9E75; border-color: #1D9E75; }
+  .check.done::after { content: ''; width: 8px; height: 4px; border-left: 2px solid #fff; border-bottom: 2px solid #fff; transform: rotate(-45deg) translate(0px,-1px); }
+  .title { flex: 1; font-family: 'Work Sans', sans-serif; font-weight: 500; font-size: 14px; color: #F5F5F7; }
+  .title.done { color: #5C5C63; text-decoration: line-through; }
+  .meta { display: flex; align-items: center; gap: 8px; }
+  .ts { font-family: 'Work Sans', monospace; font-size: 10px; color: #8E8E93; font-variant-numeric: tabular-nums; }
+  .tag { font-family: 'Work Sans', monospace; font-size: 9.5px; padding: 3px 7px; border-radius: 5px; border: 1px solid rgba(255,255,255,0.1); color: #8E8E93; }
+  .tag.stakes { color: #FFC066; background: rgba(255,138,30,0.1); border-color: rgba(255,138,30,0.32); }
+</style></head>
+<body><div class="frame">
+  <div class="eyebrow">task row · routine vs stakes</div>
+  <div class="list">
+    <div class="row">
+      <div class="check"></div>
+      <div class="title">review pull requests</div>
+      <div class="meta"><span class="tag">work</span><span class="ts">14:00</span></div>
+    </div>
+    <div class="row stakes">
+      <div class="check"></div>
+      <div class="title">ship landing page</div>
+      <div class="meta"><span class="tag stakes">today</span><span class="ts">EOD</span></div>
+    </div>
+    <div class="row">
+      <div class="check done"></div>
+      <div class="title done">log october expenses</div>
+      <div class="meta"><span class="tag">money</span><span class="ts">09:12</span></div>
+    </div>
+    <div class="row">
+      <div class="check"></div>
+      <div class="title">read 30 pages</div>
+      <div class="meta"><span class="tag">habit</span><span class="ts">21:00</span></div>
+    </div>
+  </div>
+</div></body></html>

@@ -1,0 +1,95 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Calendar week view" subtitle="Week grid · stakes events orange, routine blue" viewport="700x540" -->
+<html><head><meta charset="utf-8"><title>screens · calendar week view</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@700;800&family=Work+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="_base.css">
+<style>
+  .frame { padding: 18px; }
+  .h-row { display: flex; align-items: center; gap: 14px; margin-bottom: 12px; }
+  .h { font-family: 'Onest'; font-weight: 800; font-size: 20px; letter-spacing: -0.02em; color: #F5F5F7; flex: 1; }
+  .nav { display: flex; gap: 4px; }
+  .nav-btn { padding: 6px 10px; border-radius: 6px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); color: #C7C7CC; font-size: 12px; }
+  .views { display: flex; gap: 2px; padding: 2px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; }
+  .v { padding: 6px 10px; border-radius: 5px; font-family: 'Work Sans'; font-size: 10px; color: #5C5C63; }
+  .v.on { background: rgba(34,158,217,0.12); color: #5BB8E8; }
+  .grid {
+    display: grid; grid-template-columns: 40px repeat(7, 1fr);
+    background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px; overflow: hidden;
+  }
+  .col-h { padding: 10px 4px 8px; text-align: center; border-left: 1px solid rgba(255,255,255,0.06); }
+  .col-h.today { background: rgba(34,158,217,0.05); }
+  .dow { font-family: 'Work Sans'; font-size: 9.5px; color: #5C5C63; }
+  .num { font-family: 'Onest'; font-weight: 700; font-size: 16px; color: #F5F5F7; margin-top: 2px; }
+  .num.today { display: inline-flex; min-width: 24px; height: 24px; align-items: center; justify-content: center; background: #229ED9; color: #fff; border-radius: 999px; padding: 0 6px; font-size: 12px; }
+  .time { padding: 4px 4px; font-family: 'Work Sans'; font-size: 9px; color: #5C5C63; text-align: right; border-top: 1px solid rgba(255,255,255,0.06); height: 36px; }
+  .cell { border-top: 1px solid rgba(255,255,255,0.06); border-left: 1px solid rgba(255,255,255,0.06); height: 36px; position: relative; }
+  .cell.today { background: rgba(34,158,217,0.03); }
+  .ev { position: absolute; left: 3px; right: 3px; top: 2px; padding: 3px 5px; border-radius: 4px; background: rgba(34,158,217,0.18); border-left: 2px solid #229ED9; font-size: 9.5px; color: #F5F5F7; line-height: 1.15; overflow: hidden; }
+  .ev.stakes { background: rgba(255,138,30,0.14); border-left-color: #FF8A1E; }
+  .ev .et { font-family: 'Work Sans'; font-size: 8px; color: #8E8E93; margin-top: 1px; }
+  .empty-cell {}
+</style></head>
+<body><div class="frame">
+  <div class="eyebrow" style="margin-bottom: 8px;">calendar · week view · stakes events orange · routine blue</div>
+  <div class="h-row">
+    <div class="h">май 2026 г.</div>
+    <div class="nav"><span class="nav-btn">‹</span><span class="nav-btn mono" style="font-family:'Work Sans'; font-size: 10px;">сегодня</span><span class="nav-btn">›</span></div>
+    <div class="views"><span class="v on">неделя</span><span class="v">день</span><span class="v">месяц</span></div>
+  </div>
+  <div class="grid">
+    <div></div>
+    <div class="col-h"><div class="dow">пн</div><div class="num">18</div></div>
+    <div class="col-h"><div class="dow">вт</div><div class="num">19</div></div>
+    <div class="col-h"><div class="dow">ср</div><div class="num">20</div></div>
+    <div class="col-h today"><div class="dow">чт</div><div class="num today">21</div></div>
+    <div class="col-h"><div class="dow">пт</div><div class="num">22</div></div>
+    <div class="col-h"><div class="dow">сб</div><div class="num">23</div></div>
+    <div class="col-h"><div class="dow">вс</div><div class="num">24</div></div>
+
+    <div class="time">09:00</div>
+    <div class="cell"><div class="ev">просмотр PR<div class="et">09:00 → 10:00</div></div></div>
+    <div class="cell"></div>
+    <div class="cell"></div>
+    <div class="cell today"></div>
+    <div class="cell"></div>
+    <div class="cell"></div>
+    <div class="cell"></div>
+
+    <div class="time">10:00</div>
+    <div class="cell"></div>
+    <div class="cell"></div>
+    <div class="cell"></div>
+    <div class="cell today"><div class="ev stakes">выпустить лендинг<div class="et">10:00 → 11:00</div></div></div>
+    <div class="cell"></div>
+    <div class="cell"></div>
+    <div class="cell"></div>
+
+    <div class="time">11:00</div>
+    <div class="cell"></div>
+    <div class="cell"><div class="ev">октябрьские расходы<div class="et">11:00 → 12:30</div></div></div>
+    <div class="cell"></div>
+    <div class="cell today"></div>
+    <div class="cell"></div>
+    <div class="cell"></div>
+    <div class="cell"></div>
+
+    <div class="time">15:00</div>
+    <div class="cell"></div>
+    <div class="cell"></div>
+    <div class="cell"><div class="ev stakes">выпустить Life·OS v1<div class="et">15:00 → 17:00</div></div></div>
+    <div class="cell today"></div>
+    <div class="cell"></div>
+    <div class="cell"></div>
+    <div class="cell"></div>
+
+    <div class="time">17:00</div>
+    <div class="cell"></div>
+    <div class="cell"></div>
+    <div class="cell"></div>
+    <div class="cell today"></div>
+    <div class="cell"><div class="ev stakes">подушка безопасности<div class="et">17:00 → 18:30</div></div></div>
+    <div class="cell"></div>
+    <div class="cell"></div>
+  </div>
+</div></body></html>

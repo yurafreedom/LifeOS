@@ -1,0 +1,40 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Cards" subtitle="Routine card vs stakes card" viewport="700x220" -->
+<html><head><meta charset="utf-8"><title>components · card anatomy</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@700;800&family=Work+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="_base.css">
+<style>
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 10px; }
+  .card {
+    background: rgba(255,255,255,0.035); border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px; padding: 18px; min-height: 130px;
+    box-shadow: 0 1px 0 rgba(255,255,255,0.04) inset;
+    display: flex; flex-direction: column; justify-content: space-between;
+  }
+  .head { display: flex; justify-content: space-between; align-items: center; }
+  .eb { font-family: 'Work Sans', monospace; font-size: 10px; color: #8E8E93; }
+  .ts { font-family: 'Work Sans', monospace; font-size: 10px; color: #8E8E93; }
+  .title { font-family: 'Onest', sans-serif; font-weight: 700; font-size: 18px; letter-spacing: -0.02em; color: #F5F5F7; margin-top: 10px; }
+  .num { font-family: 'Work Sans', monospace; font-weight: 500; font-size: 28px; color: #F5F5F7; font-variant-numeric: tabular-nums; }
+  .num.accent { background: linear-gradient(135deg, #FFC066 0%, #FF8A1E 48%, #FF6B0A 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .delta { font-family: 'Work Sans', monospace; font-size: 11px; color: #4FCAA0; }
+</style></head>
+<body><div class="frame">
+  <div class="eyebrow">card anatomy</div>
+  <div class="grid">
+    <div class="card">
+      <div class="head"><span class="eb">habits</span><span class="ts">14:32 · TODAY</span></div>
+      <div>
+        <div class="num">48<span style="color:#5C5C63;">/56</span></div>
+        <div class="title" style="font-size:14px; margin-top: 6px; color: #C7C7CC;">on track this week</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="head"><span class="eb" style="color:#FF8A1E;">goal · stakes</span><span class="ts">Q3</span></div>
+      <div>
+        <div class="num accent">$2,500</div>
+        <div class="title" style="font-size:14px; margin-top: 6px; color: #C7C7CC;">emergency fund · 62%</div>
+      </div>
+    </div>
+  </div>
+</div></body></html>

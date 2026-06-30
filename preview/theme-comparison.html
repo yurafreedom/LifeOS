@@ -1,0 +1,108 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Theme comparison" subtitle="Dark vs light · glow shadows vs drop shadows · stakes orange rethink" viewport="700x380" -->
+<html><head><meta charset="utf-8"><title>brand · theme comparison</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@700;800&family=Work+Sans:wght@400;500;600&display=swap">
+<style>
+  *,*::before,*::after { box-sizing: border-box; }
+  html, body { margin: 0; background: #0E1117; color: #F5F5F7; font-family: 'Work Sans', sans-serif; }
+  .frame { padding: 18px 22px; }
+  .eyebrow { font-family: 'Work Sans', monospace; font-size: 10px; color: #8E8E93; margin-bottom: 10px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .panel {
+    border-radius: 14px; padding: 18px;
+    position: relative; min-height: 280px;
+    border: 1px solid;
+  }
+  .panel.dark {
+    background: #0E1117;
+    background-image:
+      radial-gradient(400px 280px at 92% -10%, rgba(34,158,217,0.14), transparent 60%),
+      radial-gradient(300px 220px at -10% 110%, rgba(255,138,30,0.10), transparent 65%);
+    border-color: rgba(255,255,255,0.08);
+    color: #F5F5F7;
+  }
+  .panel.light {
+    background: #F7F7F4;
+    border-color: #E5E5E1;
+    color: #0F1419;
+  }
+  .panel-eyebrow {
+    font-family: 'Work Sans', monospace; font-size: 10px;
+  }
+  .dark .panel-eyebrow { color: #8E8E93; }
+  .light .panel-eyebrow { color: #6B7280; }
+  .t { font-family: 'Onest', sans-serif; font-weight: 800; font-size: 22px; letter-spacing: -0.025em; margin: 6px 0 14px; }
+  .card {
+    border-radius: 10px; padding: 12px 14px; margin-bottom: 8px;
+    border: 1px solid;
+  }
+  .dark .card { background: rgba(255,255,255,0.035); border-color: rgba(255,255,255,0.08); }
+  .light .card { background: #FFFFFF; border-color: #E5E5E1; box-shadow: 0 1px 2px rgba(15,20,25,0.04); }
+  .card-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .label { font-size: 13px; font-weight: 500; }
+  .dark .label { color: #F5F5F7; }
+  .light .label { color: #0F1419; }
+  .pill {
+    font-family: 'Work Sans', monospace; font-size: 9.5px;
+    padding: 3px 7px; border-radius: 5px; border: 1px solid;
+  }
+  .pill.stakes-dark  { background: rgba(255,138,30,0.10); color: #FFC066; border-color: rgba(255,138,30,0.32); }
+  .pill.stakes-light { background: #FFF1E3; color: #8A3806; border-color: #FFD1AC; }
+  .stakes-btn {
+    display: inline-block; padding: 8px 14px; border-radius: 8px;
+    font-weight: 600; font-size: 13px; margin-top: 6px;
+    color: #fff;
+  }
+  .stakes-btn.dark  {
+    background: linear-gradient(135deg, #FFC066, #FF8A1E, #FF6B0A); color: #1a0d04;
+    box-shadow: 0 10px 28px -10px rgba(255,107,10,0.55);
+  }
+  .stakes-btn.light {
+    background: linear-gradient(135deg, #FF7A0E, #DB5A0C, #B14808);
+    box-shadow: 0 4px 14px rgba(219,90,12,0.22);
+  }
+  .note { font-family: 'Work Sans', monospace; font-size: 9.5px; margin-top: 10px; }
+  .dark .note { color: #5C5C63; }
+  .light .note { color: #9CA3AF; }
+</style></head>
+<body><div class="frame">
+  <div class="eyebrow">v1.0 · light theme · stakes orange rethought for white</div>
+  <div class="grid">
+    <div class="panel dark">
+      <div class="panel-eyebrow">тёмная</div>
+      <div class="t">добрый вечер.</div>
+      <div class="card">
+        <div class="card-row">
+          <span class="label">выпустить лендинг</span>
+          <span class="pill stakes-dark">сегодня</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-row">
+          <span class="label">бюджет на октябрь</span>
+          <span class="pill stakes-dark">80%+</span>
+        </div>
+      </div>
+      <span class="stakes-btn dark">зафиксировать цель</span>
+      <div class="note">glow shadows · radial ambient · #FFC066 → #FF6B0A</div>
+    </div>
+    <div class="panel light">
+      <div class="panel-eyebrow">светлая</div>
+      <div class="t">доброе утро.</div>
+      <div class="card">
+        <div class="card-row">
+          <span class="label">выпустить лендинг</span>
+          <span class="pill stakes-light">сегодня</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-row">
+          <span class="label">бюджет на октябрь</span>
+          <span class="pill stakes-light">80%+</span>
+        </div>
+      </div>
+      <span class="stakes-btn light">зафиксировать цель</span>
+      <div class="note">drop shadows · flat warm white · #FF7A0E → #B14808</div>
+    </div>
+  </div>
+</div></body></html>

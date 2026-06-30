@@ -1,0 +1,64 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Stakes triggers & boundary" subtitle="Eight triggers + orange / yellow / red boundary" viewport="700x300" -->
+<html><head><meta charset="utf-8"><title>brand · stakes triggers + boundary</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@700;800&family=Work+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="_base.css">
+<style>
+  .frame { padding: 20px 24px 22px; }
+  .triggers { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 14px; margin-top: 6px; }
+  .trig { display: flex; align-items: center; gap: 8px; font-family: 'Work Sans', sans-serif; font-size: 13px; color: #F5F5F7; padding: 4px 0; }
+  .trig::before { content: ''; width: 6px; height: 6px; border-radius: 999px; background: linear-gradient(135deg,#FFC066,#FF6B0A); flex: none; }
+  .boundary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 14px; }
+  .b-card {
+    border-radius: 10px; padding: 10px 12px;
+    border: 1px solid transparent;
+  }
+  .b-card .ico {
+    width: 8px; height: 8px; border-radius: 999px; display: inline-block;
+    vertical-align: middle; margin-right: 6px;
+  }
+  .b-card .nm {
+    font-family: 'Work Sans', monospace; font-size: 10px;
+  }
+  .b-card .desc {
+    font-family: 'Work Sans', sans-serif; font-size: 12px;
+    color: #C7C7CC; margin-top: 5px; line-height: 1.4;
+  }
+  .b-orange { background: rgba(255,138,30,0.08); border-color: rgba(255,138,30,0.32); }
+  .b-orange .nm { color: #FFC066; }
+  .b-orange .ico { background: linear-gradient(135deg,#FFC066,#FF6B0A); }
+  .b-yellow { background: rgba(241,179,59,0.08); border-color: rgba(241,179,59,0.3); }
+  .b-yellow .nm { color: #F1B33B; }
+  .b-yellow .ico { background: #F1B33B; }
+  .b-red    { background: rgba(229,72,77,0.08); border-color: rgba(229,72,77,0.3); }
+  .b-red    .nm { color: #FF7479; }
+  .b-red    .ico { background: #E5484D; }
+</style></head>
+<body><div class="frame">
+  <div class="eyebrow">stakes triggers · 8 total</div>
+  <div class="triggers">
+    <div class="trig">goals</div>
+    <div class="trig">money</div>
+    <div class="trig">today</div>
+    <div class="trig">high-priority tasks</div>
+    <div class="trig">irreversible commits</div>
+    <div class="trig">telegram-bot notifications</div>
+    <div class="trig">budget at 80%+ utilization</div>
+    <div class="trig">streak milestones · 7 · 30 · 100</div>
+  </div>
+
+  <div class="boundary">
+    <div class="b-card b-orange">
+      <span class="ico"></span><span class="nm">orange</span>
+      <div class="desc">look at this. it matters.</div>
+    </div>
+    <div class="b-card b-yellow">
+      <span class="ico"></span><span class="nm">yellow</span>
+      <div class="desc">this is about to go wrong.</div>
+    </div>
+    <div class="b-card b-red">
+      <span class="ico"></span><span class="nm">red</span>
+      <div class="desc">this went wrong.</div>
+    </div>
+  </div>
+</div></body></html>

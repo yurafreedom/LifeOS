@@ -1,0 +1,79 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="stat-card" subtitle="Hero stat tile — 4 variants × 4 states" viewport="1100x720" -->
+<html><head><meta charset="utf-8"><title>components · stat card</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@500;700;800&family=Work+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="_base.css">
+<style>
+  body { background-image: none; background-color: #0E1117; }
+  .frame { padding: 22px; display: flex; flex-direction: column; gap: 22px; }
+  .label {
+    font-family: 'Work Sans', monospace;
+    font-size: 10px;
+    color: #8E8E93;
+  }
+  .grid {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+  .card {
+    display: flex; flex-direction: column; gap: 8px;
+    padding: 12px;
+    background: #14181F;
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 14px;
+    min-width: 0;
+    box-shadow: 0 1px 0 rgba(255,255,255,0.02) inset;
+  }
+  .eyebrow {
+    font: 500 9.5px 'Work Sans', monospace;
+    color: #8E8E93;
+  }
+  .value {
+    font: 500 32px 'Work Sans', monospace;
+    letter-spacing: -0.01em;
+    color: #F5F5F7;
+    line-height: 1.05;
+    white-space: nowrap;
+  }
+  .value.is-stakes {
+    background: linear-gradient(135deg, #FFC066 0%, #FF8A1E 48%, #FF6B0A 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .value.is-over { color: #E5484D; }
+  .value.is-empty { color: #5C5C63; }
+  .context { font-family: 'Work Sans', sans-serif; font-size: 12px; color: #C7C7CC; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .context.is-empty { color: #5C5C63; font-size: 11px; }
+</style></head>
+<body><div class="frame">
+
+  <div class="label">stat-card · 4 hero variants · normal state</div>
+  <div class="grid">
+    <div class="card"><span class="eyebrow">бюджет месяца</span><span class="value">62%</span><span class="context">$2,480 из $4,000</span></div>
+    <div class="card"><span class="eyebrow">самая длинная серия</span><span class="value">47</span><span class="context">писать каждый день · 47 дней</span></div>
+    <div class="card"><span class="eyebrow">ближайшая цель</span><span class="value">84%</span><span class="context">подушка безопасности</span></div>
+    <div class="card"><span class="eyebrow">задачи · эта неделя</span><span class="value">23 / 30</span><span class="context">выполнено</span></div>
+  </div>
+
+  <div class="label">stat-card · stakes state · ≥80% util on budget</div>
+  <div class="grid">
+    <div class="card"><span class="eyebrow">бюджет месяца</span><span class="value is-stakes">85%</span><span class="context">$3,400 из $4,000</span></div>
+    <div class="card"><span class="eyebrow">ближайшая цель</span><span class="value is-stakes">92%</span><span class="context">выпустить Life·OS v1</span></div>
+    <div class="card"><span class="eyebrow">самая длинная серия</span><span class="value is-stakes">99</span><span class="context">8 тысяч шагов · 99 дней</span></div>
+    <div class="card"><span class="eyebrow">задачи · эта неделя</span><span class="value is-stakes">28 / 30</span><span class="context">выполнено</span></div>
+  </div>
+
+  <div class="label">stat-card · over · budget exceeded</div>
+  <div class="grid" style="grid-template-columns: repeat(2, 1fr);">
+    <div class="card"><span class="eyebrow">бюджет месяца</span><span class="value is-over">118%</span><span class="context">$4,720 из $4,000</span></div>
+    <div class="card"><span class="eyebrow">бюджет месяца</span><span class="value is-over">103%</span><span class="context">$4,120 из $4,000</span></div>
+  </div>
+
+  <div class="label">stat-card · empty</div>
+  <div class="grid">
+    <div class="card"><span class="eyebrow">бюджет месяца</span><span class="value is-empty">—</span><span class="context is-empty">бюджет не задан · задать</span></div>
+    <div class="card"><span class="eyebrow">самая длинная серия</span><span class="value is-empty">—</span><span class="context is-empty">ни одной активной серии</span></div>
+    <div class="card"><span class="eyebrow">ближайшая цель</span><span class="value is-empty">—</span><span class="context is-empty">целей нет · добавить</span></div>
+    <div class="card"><span class="eyebrow">задачи · эта неделя</span><span class="value is-empty">—</span><span class="context is-empty">на эту неделю задач нет</span></div>
+  </div>
+
+</div></body></html>

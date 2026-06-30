@@ -1,0 +1,76 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="take-dose-modal" subtitle="Sprint 3A · 3 states (normal / late-early / PRN anti-stacking)" viewport="1100x420" -->
+<html><head><meta charset="utf-8"><title>components · take-dose modal</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@500;700&family=Work+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="_base.css">
+<style>
+  .frame { display: flex; flex-direction: column; gap: 20px; padding: 24px; }
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .modal {
+    background: #14181F; border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 16px; padding: 14px;
+    display: flex; flex-direction: column; gap: 10px;
+    box-shadow: 0 32px 80px -20px rgba(0,0,0,0.7);
+  }
+  .head { display: flex; justify-content: space-between; align-items: center; }
+  .head-title { font: 500 10px 'Work Sans', monospace; color: #8E8E93; }
+  .close { width: 24px; height: 24px; border-radius: 6px; background: transparent; color: #8E8E93; border: none; cursor: pointer; }
+  .row { display: flex; gap: 10px; }
+  .field { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+  .lab { font: 500 9.5px 'Work Sans', monospace; color: #5C5C63; }
+  input {
+    background: transparent; border: 1px solid rgba(255,255,255,0.08); border-radius: 6px;
+    padding: 0 10px; height: 30px; color: #F5F5F7; font: 500 12px 'Work Sans', sans-serif;
+    outline: none;
+  }
+  .indicator { font: 500 11px 'Work Sans', monospace; color: #8E8E93; text-transform: lowercase; }
+  .prn-warn {
+    font-size: 12px; color: #C7C7CC; padding: 8px 10px; border-radius: 6px;
+    background: rgba(241,179,59,0.14); border: 1px solid rgba(241,179,59,0.28);
+  }
+  .foot { display: flex; gap: 8px; justify-content: flex-end; }
+  .btn-ghost { padding: 0 12px; height: 30px; border-radius: 8px; background: transparent; color: #8E8E93; border: 1px solid rgba(255,255,255,0.08); font-size: 12px; }
+  .btn-save { padding: 0 12px; height: 30px; border-radius: 8px; background: #229ED9; color: #fff; font: 600 12px 'Work Sans', sans-serif; border: none; }
+</style></head>
+<body><div class="frame">
+
+  <div class="eyebrow">take-dose modal · 3 states</div>
+
+  <div class="grid">
+    <!-- STATE 1: normal · default ts = now -->
+    <div class="modal">
+      <div class="head"><span class="head-title">принять сертралин</span><button class="close">×</button></div>
+      <div class="row">
+        <label class="field"><span class="lab">когда</span><input type="datetime-local" value="2026-05-23T08:14"/></label>
+        <label class="field" style="max-width:90px"><span class="lab">доза, мг</span><input type="number" value="150"/></label>
+      </div>
+      <label class="field"><span class="lab">заметка</span><input type="text" placeholder="вместе с едой, тихо в голове…"/></label>
+      <div class="foot"><button class="btn-ghost">отмена</button><button class="btn-save">записать дозу</button></div>
+    </div>
+
+    <!-- STATE 2: late by 1h 30m -->
+    <div class="modal">
+      <div class="head"><span class="head-title">принять бупропион</span><button class="close">×</button></div>
+      <div class="row">
+        <label class="field"><span class="lab">когда</span><input type="datetime-local" value="2026-05-23T15:30"/></label>
+        <label class="field" style="max-width:90px"><span class="lab">доза, мг</span><input type="number" value="75"/></label>
+      </div>
+      <label class="field"><span class="lab">заметка</span><input type="text" placeholder="вместе с едой, тихо в голове…"/></label>
+      <div class="indicator">позже обычного на 1ч 30м</div>
+      <div class="foot"><button class="btn-ghost">отмена</button><button class="btn-save">записать дозу</button></div>
+    </div>
+
+    <!-- STATE 3: PRN anti-stacking -->
+    <div class="modal">
+      <div class="head"><span class="head-title">принять magtein</span><button class="close">×</button></div>
+      <div class="row">
+        <label class="field"><span class="lab">когда</span><input type="datetime-local" value="2026-05-23T21:42"/></label>
+        <label class="field" style="max-width:90px"><span class="lab">доза, кап</span><input type="number" value="3"/></label>
+      </div>
+      <label class="field"><span class="lab">заметка</span><input type="text" placeholder="вместе с едой, тихо в голове…"/></label>
+      <div class="prn-warn">предыдущая доза 3ч назад. обычный интервал — 24ч. продолжить?</div>
+      <div class="foot"><button class="btn-ghost">отмена</button><button class="btn-save">записать дозу</button></div>
+    </div>
+  </div>
+
+</div></body></html>

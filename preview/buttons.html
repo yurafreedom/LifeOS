@@ -1,0 +1,47 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Buttons" subtitle="Primary · stakes · ghost · danger · icon" viewport="700x260" -->
+<html><head><meta charset="utf-8"><title>components · buttons</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@700&family=Work+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="_base.css">
+<style>
+  .row { display: flex; gap: 10px; align-items: center; margin-top: 12px; flex-wrap: wrap; }
+  .btn {
+    font-family: 'Work Sans', sans-serif; font-weight: 600; font-size: 14px;
+    padding: 10px 16px; border-radius: 10px; border: 1px solid transparent; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 8px;
+    transition: transform 180ms cubic-bezier(.22,1,.36,1), background-color 180ms, border-color 180ms, box-shadow 180ms;
+  }
+  .btn-primary { background: #229ED9; color: #fff; }
+  .btn-primary:hover { background: #5BB8E8; transform: translateY(-1px); }
+  .btn-stakes {
+    background: linear-gradient(135deg, #FFC066 0%, #FF8A1E 48%, #FF6B0A 100%);
+    color: #1a0d04;
+    box-shadow: 0 10px 28px -10px rgba(255,107,10,0.55);
+  }
+  .btn-stakes:hover { transform: translateY(-2px); }
+  .btn-ghost { background: transparent; color: #C7C7CC; border-color: rgba(255,255,255,0.08); }
+  .btn-ghost:hover { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.14); }
+  .btn-danger { background: transparent; color: #E5484D; border-color: rgba(229,72,77,0.4); }
+  .btn-danger:hover { background: rgba(229,72,77,0.1); }
+  .btn-icon { padding: 9px; width: 36px; height: 36px; justify-content: center; background: rgba(255,255,255,0.035); border: 1px solid rgba(255,255,255,0.08); color: #C7C7CC; border-radius: 10px; }
+  .lab { font-family: 'Work Sans', monospace; font-size: 9.5px; color: #8E8E93; min-width: 60px; }
+</style></head>
+<body><div class="frame">
+  <div class="eyebrow">buttons</div>
+  <div class="row">
+    <span class="lab">primary</span>
+    <button class="btn btn-primary">log expense</button>
+    <button class="btn btn-primary">mark done</button>
+  </div>
+  <div class="row">
+    <span class="lab">stakes</span>
+    <button class="btn btn-stakes">commit goal</button>
+    <button class="btn btn-stakes">add to today</button>
+  </div>
+  <div class="row">
+    <span class="lab">ghost</span>
+    <button class="btn btn-ghost">cancel</button>
+    <button class="btn btn-danger">delete forever</button>
+    <button class="btn-icon" title="more">⋯</button>
+  </div>
+</div></body></html>

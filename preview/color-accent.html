@@ -1,0 +1,39 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Accent gradient" subtitle="Warm gradient · stakes only · never decorative" viewport="700x290" -->
+<html><head><meta charset="utf-8"><title>colors · accent</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@700;800&family=Work+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="_base.css">
+<style>
+  .stakes {
+    border-radius: 14px; padding: 18px 20px; min-height: 96px;
+    background: linear-gradient(135deg, #FFC066 0%, #FF8A1E 48%, #FF6B0A 100%);
+    border: 1px solid rgba(255,255,255,0.14);
+    display: flex; align-items: flex-end; justify-content: space-between;
+    box-shadow: 0 10px 28px -10px rgba(255,107,10,0.55);
+  }
+  .stakes .label { font-family: 'Onest', sans-serif; font-weight: 800; font-size: 18px; letter-spacing: -0.02em; color: #1a0d04; }
+  .stakes .stops { font-family: 'Work Sans', monospace; font-size: 10px; color: #1a0d04; opacity: 0.8; }
+  .stops-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 12px; }
+  .stop { border-radius: 10px; padding: 10px; border: 1px solid rgba(255,255,255,0.08); min-height: 64px; display: flex; flex-direction: column; justify-content: space-between; }
+  .stop .hex { font-family: 'Work Sans', monospace; font-size: 11px; color: #1a0d04; }
+  .stop .nm  { font-family: 'Work Sans', monospace; font-size: 9.5px; color: rgba(26,13,4,0.7); }
+  .s1 { background: #FFC066; }
+  .s2 { background: #FF8A1E; }
+  .s3 { background: #FF6B0A; }
+  .s3 .hex, .s3 .nm { color: #fff; }
+  .s3 .nm { color: rgba(255,255,255,0.7); }
+  .rule { font-family: 'Work Sans', monospace; font-size: 10px; color: #FF8A1E; margin-top: 12px; }
+</style></head>
+<body><div class="frame">
+  <div class="eyebrow" style="margin-bottom:10px;">accent · energy · stakes only</div>
+  <div class="stakes">
+    <div class="label">linear-gradient(135deg, …)</div>
+    <div class="stops">0% · 48% · 100%</div>
+  </div>
+  <div class="stops-row">
+    <div class="stop s1"><div class="nm">0%</div><div class="hex">#FFC066</div></div>
+    <div class="stop s2"><div class="nm">48%</div><div class="hex">#FF8A1E</div></div>
+    <div class="stop s3"><div class="nm">100%</div><div class="hex">#FF6B0A</div></div>
+  </div>
+  <div class="rule">goals · money · today · irreversible · never decorative</div>
+</div></body></html>

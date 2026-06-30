@@ -1,0 +1,138 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="med-config-drawer" subtitle="Sprint 3A · 5 sections expanded" viewport="1100x760" -->
+<html><head><meta charset="utf-8"><title>components · med-config-drawer</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@500;700&family=Work+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="_base.css">
+<style>
+  body { padding: 20px; }
+  .stage { position: relative; height: 720px; background: rgba(8,10,14,0.55); border-radius: 16px; overflow: hidden; }
+  .panel {
+    position: absolute; top: 0; right: 0; bottom: 0; width: 420px;
+    background: #14181F; border-left: 1px solid rgba(255,255,255,0.1);
+    display: flex; flex-direction: column;
+  }
+  .h { padding: 16px 16px 12px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+  .eyebrow { font: 500 9.5px 'Work Sans', monospace; color: #5C5C63; }
+  .name { font: 700 18px Onest, sans-serif; letter-spacing: -0.015em; color: #F5F5F7; margin-top: 2px; }
+  .body { flex: 1; overflow-y: auto; }
+  .sec { padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+  .sec.danger { background: rgba(229,72,77,0.04); }
+  .sec-head { font: 500 9.5px 'Work Sans', monospace; color: #5C5C63; margin-bottom: 12px; }
+  .row { display: flex; justify-content: space-between; align-items: center; gap: 12px; min-height: 34px; padding: 4px 0; }
+  .lab { color: #F5F5F7; font-size: 12px; }
+  input, select {
+    background: transparent; border: 1px solid rgba(255,255,255,0.08); border-radius: 6px;
+    padding: 0 10px; height: 30px; color: #F5F5F7; font: 500 12px 'Work Sans', sans-serif; outline: none;
+  }
+  .num { width: 100px; }
+  .sel { width: 160px; }
+  .sel-sm { width: 80px; }
+  .schedule { display: flex; flex-direction: column; gap: 6px; align-items: flex-end; }
+  .slot { display: inline-flex; gap: 4px; }
+  .x { width: 22px; height: 30px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.08); background: transparent; color: #5C5C63; }
+  .add-slot {
+    font: 500 10px 'Work Sans', monospace;
+    color: #8E8E93; background: transparent; border: 1px dashed rgba(255,255,255,0.1); border-radius: 6px;
+    padding: 5px 10px;
+  }
+  .warn {
+    font: 500 10.5px 'Work Sans', monospace; color: #F1B33B; text-transform: lowercase;
+    padding: 6px 8px; border-radius: 6px;
+    background: rgba(241,179,59,0.14); border: 1px solid rgba(241,179,59,0.28);
+    margin-top: 6px;
+  }
+  .radio { border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; margin-bottom: 4px; }
+  .radio.is-on { background: rgba(255,255,255,0.035); border-color: rgba(255,255,255,0.14); }
+  .radio-trigger {
+    width: 100%; text-align: left; padding: 10px 12px; background: transparent; border: none;
+    display: flex; align-items: baseline; gap: 10px; color: #C7C7CC; cursor: pointer;
+  }
+  .dot { width: 14px; height: 14px; border-radius: 999px; border: 1.5px solid rgba(255,255,255,0.18); position: relative; flex: none; transform: translateY(2px); }
+  .dot.is-on { border-color: #229ED9; }
+  .dot.is-on::after { content: ''; position: absolute; inset: 2px; background: #229ED9; border-radius: 999px; }
+  .radio-label { font-size: 13px; color: #F5F5F7; font-weight: 500; }
+  .radio-hint { font: 500 10px 'Work Sans', monospace; color: #5C5C63; margin-left: 8px; }
+  .radio-body { padding: 0 12px 14px; }
+  .tit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 8px; }
+  .tit-grid .num, .tit-grid .sel { width: 100%; }
+  .preview {
+    padding: 8px 10px; border-radius: 6px; background: rgba(255,255,255,0.035);
+    border: 1px solid rgba(255,255,255,0.08);
+    font: 500 11px 'Work Sans', monospace; line-height: 1.6; color: #C7C7CC;
+  }
+  .preview-lab { color: #5C5C63; font-size: 10px; margin-right: 6px; }
+  .target { color: #FFC066; }
+  .delete-msg { font-size: 12px; color: #C7C7CC; line-height: 1.5; margin-bottom: 8px; }
+  .btn-danger { height: 30px; padding: 0 14px; border-radius: 8px; background: #E5484D; color: #fff; font-weight: 600; font-size: 12px; border: none; }
+  .foot { display: flex; justify-content: flex-end; gap: 8px; padding: 12px 16px; border-top: 1px solid rgba(255,255,255,0.08); }
+  .btn-save { padding: 0 12px; height: 30px; border-radius: 8px; background: #229ED9; color: #fff; font-weight: 600; font-size: 12px; border: none; }
+  .btn-ghost { padding: 0 12px; height: 30px; border-radius: 8px; background: transparent; color: #8E8E93; border: 1px solid rgba(255,255,255,0.08); font-size: 12px; }
+</style></head>
+<body>
+<div class="eyebrow" style="padding: 0 4px 12px">med-config-drawer · all 5 sections expanded</div>
+<div class="stage"><aside class="panel">
+  <div class="h">
+    <div class="eyebrow">настройка</div>
+    <h3 class="name">Бупропион</h3>
+  </div>
+
+  <div class="body">
+    <div class="sec">
+      <div class="sec-head">основное</div>
+      <div class="row"><span class="lab">активность</span><select class="sel"><option>принимается</option></select></div>
+      <div class="row"><span class="lab">текущая доза</span><span style="display:inline-flex;gap:6px"><input class="num" value="225"/><select class="sel-sm"><option>мг</option></select></span></div>
+      <div class="row"><span class="lab">приёмов в день</span><input class="num" value="2"/></div>
+      <div class="row" style="align-items:flex-start"><span class="lab">расписание</span>
+        <div class="schedule">
+          <div class="slot"><input type="time" value="08:00" class="num"/><button class="x">×</button></div>
+          <div class="slot"><input type="time" value="13:00" class="num"/><button class="x">×</button></div>
+          <button class="add-slot">+ слот</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">интервал</div>
+      <div class="row"><span class="lab">интервал между дозами, ч</span><input class="num" value="6"/></div>
+      <div class="row"><span class="lab">полувыведение t½, ч</span><input class="num" value="14"/></div>
+      <div class="row"><span class="lab">t½ активного метаболита, ч</span><input class="num" value="24"/></div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">стратегия приёма</div>
+      <div class="radio"><button class="radio-trigger"><span class="dot"></span><span class="radio-label">долгосрочно ровная</span><span class="radio-hint">без доп. параметров</span></button></div>
+      <div class="radio is-on">
+        <button class="radio-trigger"><span class="dot is-on"></span><span class="radio-label">титрование вверх</span></button>
+        <div class="radio-body">
+          <div class="tit-grid">
+            <label><div class="lab">цель, мг</div><input class="num" value="300"/></label>
+            <label><div class="lab">тип шага</div><select class="sel"><option>линейный</option></select></label>
+            <label><div class="lab">размер шага, мг</div><input class="num" value="25"/></label>
+            <label><div class="lab">интервал шага, дней</div><input class="num" value="7"/></label>
+          </div>
+          <div class="preview"><span class="preview-lab">план:</span>225мг → 250мг (день 7) → 275мг (день 14) → <span class="target">300мг (день 21, цель)</span></div>
+        </div>
+      </div>
+      <div class="radio"><button class="radio-trigger"><span class="dot"></span><span class="radio-label">титрование вниз / отмена</span></button></div>
+      <div class="radio"><button class="radio-trigger"><span class="dot"></span><span class="radio-label">по требованию (PRN)</span><span class="radio-hint">без расписания · анти-стекинг</span></button></div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">запасы</div>
+      <div class="row"><span class="lab">количество в наличии</span><input class="num" value="24"/></div>
+      <div class="row"><span class="lab">порог «купить скоро», дней</span><input class="num" value="7"/></div>
+    </div>
+
+    <div class="sec danger">
+      <div class="sec-head">удалить препарат</div>
+      <div class="delete-msg">препарат перейдёт в архив. история доз сохранится.</div>
+      <button class="btn-danger">удалить</button>
+    </div>
+  </div>
+
+  <div class="foot">
+    <button class="btn-ghost">закрыть</button>
+    <button class="btn-save">сохранить</button>
+  </div>
+</aside></div>
+</body></html>

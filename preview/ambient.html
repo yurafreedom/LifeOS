@@ -1,0 +1,36 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Ambient lighting" subtitle="Dual radial gradient · cool + warm" viewport="700x340" -->
+<html><head><meta charset="utf-8"><title>brand · ambient lighting</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@700&family=Work+Sans:wght@400;500&display=swap">
+<link rel="stylesheet" href="_base.css">
+<style>
+  body { background-image: none; }
+  .stage {
+    position: relative; margin-top: 8px;
+    background: #0E1117;
+    background-image:
+      radial-gradient(900px 600px at 92% -10%, rgba(34,158,217,0.22), transparent 60%),
+      radial-gradient(700px 500px at -10% 110%, rgba(255,138,30,0.16), transparent 65%);
+    border-radius: 16px; border: 1px solid rgba(255,255,255,0.08);
+    height: 280px; padding: 22px;
+    overflow: hidden;
+  }
+  .pin { position: absolute; padding: 4px 8px; border-radius: 6px; font-family: 'Work Sans', monospace; font-size: 9.5px; }
+  .pin.blue   { top: 14px; right: 14px; background: rgba(34,158,217,0.15); color: #5BB8E8; border: 1px solid rgba(34,158,217,0.3); }
+  .pin.orange { bottom: 14px; left: 14px; background: rgba(255,138,30,0.12); color: #FFC066; border: 1px solid rgba(255,138,30,0.32); }
+  .center { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+  .center .body { text-align: center; }
+  .center .t { font-family: 'Onest', sans-serif; font-weight: 800; font-size: 22px; letter-spacing: -0.025em; color: #F5F5F7; }
+  .center .s { font-family: 'Work Sans', monospace; font-size: 10px; color: #8E8E93; margin-top: 6px; }
+</style></head>
+<body><div class="frame">
+  <div class="eyebrow">ambient lighting · background-attached</div>
+  <div class="stage">
+    <div class="pin blue">cool · 92% -10%</div>
+    <div class="pin orange">warm · -10% 110%</div>
+    <div class="center"><div class="body">
+      <div class="t">canvas is never flat.</div>
+      <div class="s">#0E1117 + dual radial glow</div>
+    </div></div>
+  </div>
+</div></body></html>

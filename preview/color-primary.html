@@ -1,0 +1,48 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Primary color" subtitle="Telegram blue · cool · default actions" viewport="700x240" -->
+<html><head><meta charset="utf-8"><title>colors · primary</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@700;800&family=Work+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="_base.css">
+<style>
+  .swatches { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 12px; }
+  .sw {
+    border-radius: 14px; padding: 16px; min-height: 120px;
+    display: flex; flex-direction: column; justify-content: space-between;
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  .sw .label { font-family: 'Onest', sans-serif; font-weight: 700; font-size: 14px; letter-spacing: -0.01em; color: #fff; }
+  .sw .hex   { font-family: 'Work Sans', monospace; font-size: 11px; color: rgba(255,255,255,0.7); }
+  .sw .role  { font-family: 'Work Sans', monospace; font-size: 9.5px; color: rgba(255,255,255,0.5); }
+  .primary { background: #229ED9; }
+  .light   { background: #5BB8E8; color: #0E1117; }
+  .deep    { background: #1577A8; }
+  .light .label, .light .hex, .light .role { color: #0E1117; }
+  .light .hex, .light .role { opacity: 0.7; }
+</style></head>
+<body><div class="frame">
+  <div class="eyebrow" style="margin-bottom:10px;">primary · cool</div>
+  <div class="swatches">
+    <div class="sw primary">
+      <div class="role">default · 100</div>
+      <div>
+        <div class="label">Telegram blue</div>
+        <div class="hex">#229ED9</div>
+      </div>
+    </div>
+    <div class="sw light">
+      <div class="role">hover · 60</div>
+      <div>
+        <div class="label">light</div>
+        <div class="hex">#5BB8E8</div>
+      </div>
+    </div>
+    <div class="sw deep">
+      <div class="role">pressed · 140</div>
+      <div>
+        <div class="label">deep</div>
+        <div class="hex">#1577A8</div>
+      </div>
+    </div>
+  </div>
+  <div class="muted mono" style="margin-top:14px; font-size:11px;">nav · default actions · links · neutral progress</div>
+</div></body></html>

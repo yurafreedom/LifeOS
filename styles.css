@@ -1,0 +1,11 @@
+/* ============================================================
+   Life OS — design system entry point.
+   Consumers link this one file; it pulls in foundation tokens
+   (colors_and_type.css) and the themed component kit
+   (ui_kits/life-os/styles.css — dark/light token sets + components).
+   preview/_base.css is intentionally NOT imported — it is
+   Design-System-tab card scaffolding only.
+   ============================================================ */
+
+@import url('colors_and_type.css');
+@import url('ui_kits/life-os/styles.css');
