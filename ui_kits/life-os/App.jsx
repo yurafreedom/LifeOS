@@ -6,6 +6,13 @@ const {
   useContext: useCtxApp,
 } = React;
 
+/* Batch 1: the demo/debug rail (tg test / sys test / cycle milestone / empty
+   states / D-L-P-S) is dev-only. Hidden unless the URL carries ?debug
+   (survives hash routing, e.g. index.html?debug#/home). Nothing removed;
+   real language/theme toggles remain in Settings. */
+const LIFE_DEBUG = typeof window !== 'undefined'
+  && new URLSearchParams(window.location.search).has('debug');
+
 /* ── Routes ────────────────────────────────────────────────
    v2 nav tree. Each route has an id used both as state key and as the
    URL hash (#/<id>). Add a new tab → drop an entry here + render it in
@@ -58,6 +65,18 @@ function useTheme() {
     window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'
   );
 
+  /* Manual paradise-scene override. localStorage.lifeOsScene =
+     'day' | 'night' forces that scene and disables the clock; absent /
+     any other value = 'auto' (clock-driven, the original behavior).
+     Kept in its own key like lifeOsTheme / lifeOsSidebar. */
+  const [scenePref, setScenePrefRaw] = useStateApp(() => {
+    try {
+      const v = localStorage.getItem('lifeOsScene');
+      if (v === 'day' || v === 'night') return v;
+    } catch (e) {}
+    return 'auto';
+  });
+
   useEffectApp(() => {
     if (!window.matchMedia) return;
     const mq = window.matchMedia('(prefers-color-scheme: light)');
@@ -86,13 +105,34 @@ function useTheme() {
 
   /* Sprint 3.6 · paradise scene clock — when paradise is active,
      data-scene="day"|"night" is resolved from Kyiv time (day 06:00–19:59)
-     and re-checked every 60s. Removed entirely under dark/light. */
+     and re-checked every 60s. Removed entirely under dark/light.
+     scenePref === 'day'|'night' overrides the clock: it forces that scene
+     and SKIPS the recompute + 60s interval so the next tick can't revert
+     it. scenePref === 'auto' keeps the clock behavior exactly as before. */
   useEffectApp(() => {
     const el = document.documentElement;
     if (effective !== 'paradise') {
       el.removeAttribute('data-scene');
       return;
     }
+    /* Swap data-scene with the var()-fed-transition freeze (Sprint 3.5):
+       kill .app transitions for one frame around the scene token swap so
+       cards/sidebar snap to the new scene's values instead of freezing
+       mid-transition. The scene layers sit outside .app, so their 1.4s
+       crossfade is unaffected. */
+    function setScene(next) {
+      if (el.getAttribute('data-scene') === next) return;
+      el.classList.add('scene-switching');
+      el.setAttribute('data-scene', next);
+      void el.offsetHeight;
+      requestAnimationFrame(() => el.classList.remove('scene-switching'));
+    }
+    /* Manual override — force the chosen scene, no clock, no interval. */
+    if (scenePref === 'day' || scenePref === 'night') {
+      setScene(scenePref);
+      return;
+    }
+    /* Auto — original clock behavior. */
     function kyivHour() {
       try {
         return parseInt(new Intl.DateTimeFormat('en-US',
@@ -102,22 +142,12 @@ function useTheme() {
     }
     function applyScene() {
       const h = kyivHour();
-      const next = (h >= 20 || h < 6) ? 'night' : 'day';
-      if (el.getAttribute('data-scene') === next) return;
-      /* Same var()-fed-transition freeze as the data-theme guard
-         (Sprint 3.5): kill .app transitions for one frame around the
-         scene token swap so cards/sidebar snap to the new scene's
-         values instead of freezing mid-transition. The scene layers
-         sit outside .app, so their 1.4s crossfade is unaffected. */
-      el.classList.add('scene-switching');
-      el.setAttribute('data-scene', next);
-      void el.offsetHeight;
-      requestAnimationFrame(() => el.classList.remove('scene-switching'));
+      setScene((h >= 20 || h < 6) ? 'night' : 'day');
     }
     applyScene();
     const id = setInterval(applyScene, 60000);
     return () => clearInterval(id);
-  }, [effective]);
+  }, [effective, scenePref]);
 
   function setTheme(next) {
     setPrefMode(next);
@@ -127,7 +157,15 @@ function useTheme() {
     } catch (e) {}
   }
 
-  return [prefMode, effective, setTheme];
+  function setScenePref(next) {
+    setScenePrefRaw(next);
+    try {
+      if (next === 'day' || next === 'night') localStorage.setItem('lifeOsScene', next);
+      else                                     localStorage.removeItem('lifeOsScene');
+    } catch (e) {}
+  }
+
+  return [prefMode, effective, setTheme, scenePref, setScenePref];
 }
 
 /* AppShell · all the existing chrome + routing. Lives inside the
@@ -140,7 +178,7 @@ function AppShell() {
   const persist = data.state;
 
   const [locale, setLocale]       = useStateApp('ru');
-  const [themeMode, themeEff, setTheme] = useTheme();
+  const [themeMode, themeEff, setTheme, scenePref, setScenePref] = useTheme();
   const [route, setRouteRaw]      = useStateApp(() => readRouteFromHash());
   const [collapsed, setCollapsed] = useSidebarCollapsed();
   const [toast, setToast]         = useStateApp(null);
@@ -169,8 +207,8 @@ function AppShell() {
   }, [route]);
 
   const t = useMemoApp(() => window.LifeMakeT(locale), [locale]);
-  const ctxValue = useMemoApp(() => ({ locale, setLocale, t, themeMode, themeEff, setTheme }),
-                              [locale, t, themeMode, themeEff]);
+  const ctxValue = useMemoApp(() => ({ locale, setLocale, t, themeMode, themeEff, setTheme, scenePref, setScenePref }),
+                              [locale, t, themeMode, themeEff, scenePref]);
 
   /* Seed tasks resolve titles through i18n; user-added tasks store
      literal title. Same logic as Sprint 2 — just sourced from the
@@ -382,7 +420,7 @@ function AppShell() {
           {renderRoute()}
         </main>
 
-        <div className="demo-rail">
+        {LIFE_DEBUG && <div className="demo-rail">
           <button className="demo-btn" onClick={fireBot}>tg test</button>
           <button className="demo-btn" onClick={() => showToast({ kind: 'sys', msg: t('toast_expense', '4.20', t('habit_read')), ts: new Date().toTimeString().slice(0,5) + ' · ' + t('nav_today') })}>sys test</button>
           <button className="demo-btn" onClick={fireMilestone}>cycle milestone</button>
@@ -406,7 +444,7 @@ function AppShell() {
             <button className={"demo-locale-btn mono" + (themeMode === 'system' ? " is-on" : "")}
                     onClick={() => setTheme('system')}>S</button>
           </div>
-        </div>
+        </div>}
 
         <window.QuickAddModal
           open={quickOpen}

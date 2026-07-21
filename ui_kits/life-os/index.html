@@ -17,16 +17,23 @@
           ? 'light' : 'dark';
       }
       document.documentElement.setAttribute('data-theme', t);
-      /* Sprint 3.6 · paradise: resolve day/night from Kyiv time before
-         first paint so the scene tokens never flash the wrong scene. */
+      /* Sprint 3.6 · paradise: resolve day/night before first paint so the
+         scene tokens never flash the wrong scene. A manual override
+         (localStorage.lifeOsScene = 'day'|'night') wins over the clock. */
       if (t === 'paradise') {
-        var h;
-        try {
-          h = parseInt(new Intl.DateTimeFormat('en-US',
-            { timeZone: 'Europe/Kiev', hour: 'numeric', hour12: false })
-            .format(new Date()), 10) % 24;
-        } catch (e) { h = new Date().getHours(); }
-        document.documentElement.setAttribute('data-scene', (h >= 20 || h < 6) ? 'night' : 'day');
+        var sp = null;
+        try { sp = localStorage.getItem('lifeOsScene'); } catch (e) {}
+        if (sp === 'day' || sp === 'night') {
+          document.documentElement.setAttribute('data-scene', sp);
+        } else {
+          var h;
+          try {
+            h = parseInt(new Intl.DateTimeFormat('en-US',
+              { timeZone: 'Europe/Kiev', hour: 'numeric', hour12: false })
+              .format(new Date()), 10) % 24;
+          } catch (e) { h = new Date().getHours(); }
+          document.documentElement.setAttribute('data-scene', (h >= 20 || h < 6) ? 'night' : 'day');
+        }
       }
     })();
   </script>
