@@ -10,7 +10,7 @@ const { useContext: useCtxSB, useEffect: useEffectSB } = React;
    Two states: expanded (220px) and collapsed (60px, icons only).
    Active state = orange icon glow (not a ring around the icon).
    Counts come from props.counts so each route can update its own. */
-function Sidebar({ route, onNav, collapsed, setCollapsed, counts = {} }) {
+function Sidebar({ route, onNav, collapsed, setCollapsed, counts = {}, user, syncPhase = 'saved' }) {
   const { t } = useCtxSB(LifeLocaleContext);
   const I = LIcons;
 
@@ -115,10 +115,10 @@ function Sidebar({ route, onNav, collapsed, setCollapsed, counts = {} }) {
         </button>
         {!collapsed && (
           <div className="sb-foot-row">
-            <div className="sb-avatar">d</div>
+            <div className="sb-avatar">{(user?.email || '?').slice(0, 1).toLowerCase()}</div>
             <div className="sb-foot-meta">
-              <div className="sb-foot-name">dogfood</div>
-              <div className="sb-foot-sub mono">v0.5 · {t('footer_local')}</div>
+              <div className="sb-foot-name">{user?.email || '—'}</div>
+              <div className="sb-foot-sub mono">{t(`sync_${syncPhase}`)}</div>
             </div>
           </div>
         )}

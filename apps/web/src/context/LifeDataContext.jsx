@@ -3,13 +3,18 @@ import { LifeDogSeed } from '../data/dog.js';
 import { LifeMeds } from '../data/medications.js';
 import { LifeProfileSeed } from '../data/profile.js';
 import { LifeActivity } from '../lib/activity.js';
-import { LifeStorage } from '../lib/storage.js';
+import { ApiError } from '../api/client.ts';
+import { StateImportPrompt } from '../components/StateImportPrompt.jsx';
+import { readLegacyLocalState, recordLegacyDecision } from '../repositories/legacyLocalImport.ts';
+import { ServerStateRepository } from '../repositories/serverStateRepository.ts';
+import { StateSyncCoordinator } from '../repositories/stateSyncCoordinator.ts';
+import { LifeLocaleContext } from './LocaleContext.jsx';
 
 /* global React */
 /* LifeDataProvider · central state tree
  *
  * Single React reducer-ish state container holding everything that
- * persists across reloads. Backed by lib/storage.js. Children get
+ * persists across reloads. Backed by the authenticated server snapshot. Children get
  * read/write access via LifeDataContext.
  *
  * Sprint 3A goal: hoist tasks / profile / dog / quickNotes out of
@@ -25,6 +30,16 @@ import { LifeStorage } from '../lib/storage.js';
 const { useState: useStateDP, useEffect: useEffectDP, useMemo: useMemoDP, useRef: useRefDP } = React;
 
 const LifeDataContext = React.createContext(null);
+const initialStateRequests = new Map();
+
+function buildDefaultHabits() {
+  return [
+    { id: 1, titleKey: 'habit_read',     week: [1,1,1,0,1,0,0], streak: 12, best: 28 },
+    { id: 2, titleKey: 'habit_no_phone', week: [1,1,0,1,1,0,0], streak: 30, best: 30 },
+    { id: 3, titleKey: 'habit_walk',     week: [1,1,1,1,0,0,0], streak: 4,  best: 16 },
+    { id: 4, titleKey: 'habit_write',    week: [1,0,1,1,0,0,0], streak: 2,  best: 41 },
+  ];
+}
 
 /* Build the initial state tree. Called once on mount when no
    localStorage snapshot exists. Falls back to the seed objects we
@@ -104,7 +119,7 @@ function buildInitialState() {
     transactions: seedTransactions(),
     categoryOverrides: {},
     goals: buildDefaultGoals(),
-    habits: {},
+    habits: buildDefaultHabits(),
     quickNotes: [
       { id: 101, text: 'спросить у врача про дозу',                    at: '08:14' },
       { id: 102, text: 'идея: разделить расходы на постоянные/перем.', at: '11:02' },
@@ -164,15 +179,33 @@ function defaultScheduleTimes(m) {
   return (m.schedule_default || []).map(s => map[s] || '08:00');
 }
 
-/* Migration shim for old snapshots. When we bump version, dispatch
-   keyed migrations from here. */
-function migrate(state) {
-  if (!state || typeof state !== 'object') return null;
+function isPlainObject(value) {
+  return value != null && typeof value === 'object' && !Array.isArray(value);
+}
+
+/* Pure migration/validation boundary. The input may be a server payload or
+   the read-only legacy import object; neither is ever mutated in place. */
+function migrateStateCopy(input) {
+  if (!isPlainObject(input)) throw new Error('State payload must be an object.');
+  let state;
+  try {
+    state = JSON.parse(JSON.stringify(input));
+  } catch {
+    throw new Error('State payload cannot be cloned.');
+  }
+  const knownVersionlessV1 = state.version == null
+    && Array.isArray(state.tasks)
+    && isPlainObject(state.profile);
+  if (state.version == null && !knownVersionlessV1) throw new Error('State version is missing.');
+  if (state.version != null && (typeof state.version !== 'number' || !Number.isFinite(state.version))) {
+    throw new Error('State version is invalid.');
+  }
+  if (state.version > 2) throw new Error('State version is newer than this app supports.');
   /* Sprint 3B · v1 → v2: seed transactions + categoryOverrides for
      flexible-finance. v1 snapshots had transactions:[] from Sprint 3A
      because no logger surface existed yet — reseed so the demo has
      content on first paint after upgrade. */
-  if (!state.version || state.version < 2) {
+  if (knownVersionlessV1 || state.version < 2) {
     if (!Array.isArray(state.transactions) || state.transactions.length === 0) {
       state.transactions = seedTransactions();
     }
@@ -184,20 +217,167 @@ function migrate(state) {
      Goals screen isn't empty after upgrade. Unconditional null-check, runs
      regardless of version gate. */
   if (!Array.isArray(state.goals)) state.goals = buildDefaultGoals();
+  if (!Array.isArray(state.habits)) {
+    state.habits = buildDefaultHabits();
+  } else {
+    state.habits = state.habits.map((habit, index) => {
+      if (!isPlainObject(habit)) throw new Error('Habit data is invalid.');
+      const fallback = buildDefaultHabits()[index];
+      const titleKey = typeof habit.titleKey === 'string' ? habit.titleKey : null;
+      const name = typeof habit.name === 'string' ? habit.name : null;
+      if (!titleKey && !name) throw new Error('Habit title is missing.');
+      return {
+        ...habit,
+        ...(titleKey ? { titleKey } : { name }),
+        week: Array.isArray(habit.week) && habit.week.length === 7
+          ? habit.week.map(value => value ? 1 : 0)
+          : (fallback ? fallback.week.slice() : [0,0,0,0,0,0,0]),
+      };
+    });
+  }
+  const arrays = ['medications', 'tasks', 'transactions', 'goals', 'quickNotes', 'activityLog'];
+  const objects = ['profile', 'dog', 'doseLogs', 'pharmNotes', 'modeStyles', 'categoryOverrides'];
+  arrays.forEach(key => {
+    if (!Array.isArray(state[key])) throw new Error(`State collection ${key} is invalid.`);
+  });
+  objects.forEach(key => {
+    if (!isPlainObject(state[key])) throw new Error(`State object ${key} is invalid.`);
+  });
   return state;
 }
 
-/* ── Provider ─────────────────────────────────────────── */
-function LifeDataProvider(props) {
-  const [state, setStateRaw] = useStateDP(() => {
-    const persisted = migrate(LifeStorage.load());
-    return persisted || buildInitialState();
-  });
+function buildLegacyPreview(state, raw) {
+  return {
+    version: state.version,
+    size: `${new Blob([raw]).size} B`,
+    tasks: state.tasks.length,
+    goals: state.goals.length,
+    transactions: state.transactions.length,
+    medications: state.medications.length,
+    notes: state.quickNotes.length,
+    activity: state.activityLog.length,
+  };
+}
 
-  /* Persist on every change. lib/storage.js throttles writes
-     internally, so we can fire on every state diff without
-     hammering localStorage. */
-  useEffectDP(() => { LifeStorage.save(state); }, [state]);
+/* ── Provider ─────────────────────────────────────────── */
+function LifeDataProvider({ user, onSessionExpired, onLogout, children }) {
+  const { t } = React.useContext(LifeLocaleContext);
+  const [state, setStateRaw] = useStateDP(null);
+  const [boot, setBoot] = useStateDP({ phase: 'loading', error: null, legacy: null, preview: null, raw: null });
+  const [sync, setSync] = useStateDP({ phase: 'saved', error: null, currentRevision: null, hasPending: false });
+  const [loadGeneration, setLoadGeneration] = useStateDP(0);
+  const repositoryRef = useRefDP(null);
+  const coordinatorRef = useRefDP(null);
+  const acknowledgedStateRef = useRefDP(null);
+
+  if (!repositoryRef.current) repositoryRef.current = new ServerStateRepository();
+
+  function attachAcknowledged(envelope, active) {
+    const migrated = migrateStateCopy(envelope.payload);
+    if (!active()) return;
+    acknowledgedStateRef.current = migrated;
+    setStateRaw(migrated);
+    coordinatorRef.current?.dispose();
+    coordinatorRef.current = new StateSyncCoordinator({
+      repository: repositoryRef.current,
+      initialRevision: envelope.revision,
+      onStatus: setSync,
+      onSessionExpired,
+    });
+    setBoot({ phase: 'ready', error: null, legacy: null, preview: null, raw: null });
+  }
+
+  useEffectDP(() => {
+    let alive = true;
+    const controller = new window.AbortController();
+    const isActive = () => alive;
+    setStateRaw(null);
+    setBoot({ phase: 'loading', error: null, legacy: null, preview: null, raw: null });
+    setSync({ phase: 'saved', error: null, currentRevision: null, hasPending: false });
+    coordinatorRef.current?.dispose();
+    coordinatorRef.current = null;
+
+    repositoryRef.current.load(controller.signal)
+      .then(async envelope => {
+        if (!alive) return;
+        if (envelope) {
+          try {
+            attachAcknowledged(envelope, isActive);
+          } catch (error) {
+            setBoot({ phase: 'error', error, legacy: null, preview: null, raw: envelope.payload });
+          }
+          return;
+        }
+        const legacy = readLegacyLocalState();
+        if (legacy.kind === 'absent') {
+          let request = initialStateRequests.get(user.id);
+          if (!request) {
+            const fresh = migrateStateCopy(buildInitialState());
+            request = repositoryRef.current.replace(fresh, 0)
+              .finally(() => initialStateRequests.delete(user.id));
+            initialStateRequests.set(user.id, request);
+          }
+          const created = await request;
+          attachAcknowledged(created, isActive);
+          return;
+        }
+        let nextLegacy = legacy;
+        let preview = null;
+        if (legacy.kind === 'valid') {
+          try {
+            const migrated = migrateStateCopy(legacy.payload);
+            preview = buildLegacyPreview(migrated, legacy.raw);
+          } catch (error) {
+            nextLegacy = { kind: 'invalid', raw: legacy.raw, reason: error.message };
+          }
+        }
+        if (alive) setBoot({ phase: 'import', error: null, legacy: nextLegacy, preview, raw: null });
+      })
+      .catch(error => {
+        if (!alive || error?.name === 'AbortError') return;
+        if (error instanceof ApiError && error.status === 401) onSessionExpired();
+        else setBoot({ phase: 'error', error, legacy: null, preview: null, raw: null });
+      });
+
+    return () => {
+      alive = false;
+      controller.abort();
+      coordinatorRef.current?.dispose();
+      coordinatorRef.current = null;
+    };
+  }, [user.id, loadGeneration]);
+
+  useEffectDP(() => {
+    if (!state || boot.phase !== 'ready' || !coordinatorRef.current) return;
+    if (state === acknowledgedStateRef.current) return;
+    coordinatorRef.current.enqueue(state);
+  }, [state, boot.phase]);
+
+  useEffectDP(() => {
+    function beforeUnload(event) {
+      if (sync.phase === 'saved') return;
+      event.preventDefault();
+      event.returnValue = '';
+    }
+    window.addEventListener('beforeunload', beforeUnload);
+    return () => window.removeEventListener('beforeunload', beforeUnload);
+  }, [sync.phase]);
+
+  async function initializeFromChoice(decision) {
+    if (!boot.legacy || boot.phase !== 'import') return;
+    setBoot(prev => ({ ...prev, phase: 'initializing', error: null }));
+    try {
+      const payload = decision === 'imported'
+        ? migrateStateCopy(boot.legacy.payload)
+        : migrateStateCopy(buildInitialState());
+      const envelope = await repositoryRef.current.replace(payload, 0);
+      recordLegacyDecision(user.id, decision, envelope.revision);
+      attachAcknowledged(envelope, () => true);
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 401) onSessionExpired();
+      else setBoot(prev => ({ ...prev, phase: 'import', error }));
+    }
+  }
 
   /* setState + activity append in a single transaction. updater is
      `(prev) => nextPartial` returning JUST the fields to merge;
@@ -319,6 +499,17 @@ function LifeDataProvider(props) {
     const goal = { id, title: clean, pct: 0, val: '', tag: 'Q' + q };
     mutate(prev => ({ goals: [...(prev.goals || []), goal] }),
       { entity_type: 'goal', entity_id: id, action: 'created', details: { title: clean } });
+  }
+
+  function toggleHabitToday(habitId, todayIndex) {
+    mutate(prev => ({
+      habits: (prev.habits || []).map(habit => {
+        if (habit.id !== habitId) return habit;
+        const week = habit.week.slice();
+        week[todayIndex] = week[todayIndex] ? 0 : 1;
+        return { ...habit, week };
+      }),
+    }), null);
   }
 
   /* ── Quick notes ───────────────────────── */
@@ -460,26 +651,93 @@ function LifeDataProvider(props) {
     setStateRaw(s => { snap = s; return s; });
     return JSON.stringify(snap || state, null, 2);
   }
-  function hardReset() {
-    LifeStorage.clear();
-    setStateRaw(buildInitialState());
+  function downloadState(payload, filename) {
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = filename;
+    document.body.appendChild(anchor);
+    anchor.click();
+    document.body.removeChild(anchor);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+  function exportUnsaved() {
+    const payload = coordinatorRef.current?.getPendingPayload() || state;
+    if (payload) downloadState(payload, 'lifeOsState-unsaved.json');
+  }
+  async function retrySync() {
+    await coordinatorRef.current?.retry();
+  }
+  async function reloadServerState() {
+    setBoot(prev => ({ ...prev, error: null }));
+    try {
+      const envelope = await repositoryRef.current.load();
+      if (!envelope) throw new Error('Server state is not initialized.');
+      const migrated = migrateStateCopy(envelope.payload);
+      acknowledgedStateRef.current = migrated;
+      setStateRaw(migrated);
+      coordinatorRef.current?.resetRevision(envelope.revision);
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 401) onSessionExpired();
+      else setSync(prev => ({ ...prev, phase: 'error', error }));
+    }
+  }
+  async function hardReset() {
+    if (!coordinatorRef.current || sync.phase === 'conflict') {
+      throw new Error('State cannot be reset while synchronization is unresolved.');
+    }
+    const fresh = migrateStateCopy(buildInitialState());
+    const envelope = await coordinatorRef.current.replaceNow(fresh);
+    acknowledgedStateRef.current = fresh;
+    setStateRaw(fresh);
+    return envelope;
   }
 
   const value = useMemoDP(() => ({
     state,
     /* tasks */ toggleTask, addTask, updateTask, deleteTask,
     /* transactions */ addTransaction, toggleTransactionInclusion, toggleCategoryInclusion,
-    /* goals */ addGoal,
+    /* goals + habits */ addGoal, toggleHabitToday,
     /* notes */ addQuickNote, deleteQuickNote,
     /* profile + dog */ updateProfile, updateDog,
     /* meds */ updateMedication, deleteMedication, setMedicationStatus,
               setMedicationInventory, takeDose, snoozeDose, skipDose,
     /* modes */ setModeStyle,
     /* pharm notes */ addPharmNote, editPharmNote, deletePharmNote,
-    /* maint */ clearActivityOlderThan, exportJSON, hardReset,
-  }), [state]);
+    /* maint */ clearActivityOlderThan, exportJSON, exportUnsaved, hardReset,
+    /* sync */ syncPhase: sync.phase, syncError: sync.error, retrySync, reloadServerState,
+  }), [state, sync]);
 
-  return React.createElement(LifeDataContext.Provider, { value }, props.children);
+  if (boot.phase === 'loading' || boot.phase === 'initializing') {
+    return <main className="auth-screen"><div className="boot-status mono">{t('boot_loading')}</div></main>;
+  }
+  if (boot.phase === 'import') {
+    return <StateImportPrompt
+      legacy={boot.legacy}
+      preview={boot.preview}
+      error={boot.error}
+      busy={false}
+      onImport={() => initializeFromChoice('imported')}
+      onFresh={() => initializeFromChoice('fresh')} />;
+  }
+  if (boot.phase === 'error' || !state) {
+    return (
+      <main className="auth-screen">
+        <section className="auth-card">
+          <h1>{t('boot_state_title')}</h1>
+          <p className="auth-copy">{String(boot.error?.message || t('boot_state_copy'))}</p>
+          <div className="import-actions">
+            <button className="auth-submit" onClick={() => setLoadGeneration(value => value + 1)}>{t('boot_retry')}</button>
+            {boot.raw && <button className="set-btn-ghost" onClick={() => downloadState(boot.raw, 'lifeOsState-server-raw.json')}>{t('boot_export_raw')}</button>}
+            <button className="set-btn-ghost" onClick={onLogout}>{t('auth_logout')}</button>
+          </div>
+        </section>
+      </main>
+    );
+  }
+
+  return React.createElement(LifeDataContext.Provider, { value }, children);
 }
 
-export { LifeDataContext, LifeDataProvider };
+export { LifeDataContext, LifeDataProvider, buildInitialState, migrateStateCopy };

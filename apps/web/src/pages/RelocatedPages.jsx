@@ -13,6 +13,7 @@ const { useContext: useCtxHP } = React;
    widget rendered full-width. */
 function HabitsPage({ emptyMode }) {
   const { t } = useCtxHP(LifeLocaleContext);
+  const data = useCtxHP(LifeDataContext);
   return (
     <div className="page">
       <header className="page-head">
@@ -20,7 +21,7 @@ function HabitsPage({ emptyMode }) {
           <h2 className="page-title">{t('habits_title')}</h2>
         </div>
       </header>
-      <HabitsGrid habits={emptyMode ? [] : undefined} />
+      <HabitsGrid habits={emptyMode ? [] : (data.state.habits || [])} onToggle={data.toggleHabitToday} />
     </div>
   );
 }

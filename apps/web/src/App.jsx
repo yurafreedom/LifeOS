@@ -6,16 +6,19 @@ import { ParadiseScene } from './components/ParadiseScene.jsx';
 import { QuickAddModal } from './components/QuickAddModal.jsx';
 import { SettingsPage } from './components/SettingsPage.jsx';
 import { Sidebar } from './components/Sidebar.jsx';
+import { SyncStatus } from './components/SyncStatus.jsx';
 import { TaskDetailModal } from './components/TaskDetailModal.jsx';
 import { Toast } from './components/Toast.jsx';
 import { TopBar } from './components/TopBar.jsx';
 import { LifeDataContext, LifeDataProvider } from './context/LifeDataContext.jsx';
+import { AuthProvider, useAuth } from './context/AuthContext.jsx';
 import { LifeLocaleContext, LifeLocales, LifeMakeT } from './context/LocaleContext.jsx';
 import { DogPage } from './pages/DogPage.jsx';
 import { FinancesPage } from './pages/FinancesPage.jsx';
 import { HealthPage } from './pages/HealthPage.jsx';
 import { HomePage } from './pages/HomePage.jsx';
 import { MedicationsPage } from './pages/MedicationsPage.jsx';
+import { LoginPage } from './pages/LoginPage.jsx';
 import { PlaceholderPage } from './pages/PlaceholderPage.jsx';
 import { ProfilePage } from './pages/ProfilePage.jsx';
 import { QuickNotesPage } from './pages/QuickNotesPage.jsx';
@@ -189,12 +192,11 @@ function useTheme() {
    the central tree and dispatch mutations through the same provider.
    UI-only state (toast, modal open flags, milestone, demo-rail
    empty-mode toggle) stays local — those are ephemeral, not persisted. */
-function AppShell() {
+function AppShell({ user }) {
   const data = useCtxApp(LifeDataContext);
   const persist = data.state;
 
-  const [locale, setLocale]       = useStateApp('ru');
-  const [themeMode, themeEff, setTheme, scenePref, setScenePref] = useTheme();
+  const { locale, setLocale, t, themeMode, themeEff, setTheme, scenePref, setScenePref } = useCtxApp(LifeLocaleContext);
   const [route, setRouteRaw]      = useStateApp(() => readRouteFromHash());
   const [collapsed, setCollapsed] = useSidebarCollapsed();
   const [toast, setToast]         = useStateApp(null);
@@ -220,10 +222,6 @@ function AppShell() {
   useEffectApp(() => {
     document.documentElement.setAttribute('data-route', route);
   }, [route]);
-
-  const t = useMemoApp(() => LifeMakeT(locale), [locale]);
-  const ctxValue = useMemoApp(() => ({ locale, setLocale, t, themeMode, themeEff, setTheme, scenePref, setScenePref }),
-                              [locale, t, themeMode, themeEff, scenePref]);
 
   /* Seed tasks resolve titles through i18n; user-added tasks store
      literal title. Same logic as Sprint 2 — just sourced from the
@@ -420,7 +418,7 @@ function AppShell() {
   }
 
   return (
-    <LifeLocaleContext.Provider value={ctxValue}>
+    <React.Fragment>
       {themeEff === 'paradise' && <ParadiseScene />}
       <div className="app" data-sb={collapsed ? 'collapsed' : 'expanded'}>
         <Sidebar
@@ -428,10 +426,13 @@ function AppShell() {
           onNav={setRoute}
           collapsed={collapsed}
           setCollapsed={setCollapsed}
-          counts={counts} />
+          counts={counts}
+          user={user}
+          syncPhase={data.syncPhase} />
 
         <main className="main">
           <TopBar onQuickAdd={() => openQuickAdd(false)} />
+          <div className="global-sync"><SyncStatus compact /></div>
           {renderRoute()}
         </main>
 
@@ -486,19 +487,48 @@ function AppShell() {
         <Toast toast={toast} />
         <MobileBottomNav active={route} onNav={setRoute} />
       </div>
-    </LifeLocaleContext.Provider>
+    </React.Fragment>
   );
 }
 
-/* App root · wraps the shell in the data provider so every nested
-   surface (med cards, drawers, history timelines) can read and
-   mutate the persisted tree via useContext(LifeDataContext). */
-function App() {
+function AuthGate() {
+  const auth = useAuth();
+  const { t } = useCtxApp(LifeLocaleContext);
+  if (auth.phase === 'booting' || auth.phase === 'logging_out') {
+    return <main className="auth-screen"><div className="boot-status mono">{t('boot_loading')}</div></main>;
+  }
+  if (auth.phase === 'error') {
+    return (
+      <main className="auth-screen">
+        <section className="auth-card">
+          <h1>{t('boot_server_title')}</h1>
+          <p className="auth-copy">{t('boot_server_copy')}</p>
+          <button className="auth-submit" onClick={auth.retryBoot}>{t('boot_retry')}</button>
+        </section>
+      </main>
+    );
+  }
+  if (auth.phase !== 'authenticated' || !auth.user) return <LoginPage />;
   return (
-    <LifeDataProvider>
-      <AppShell />
+    <LifeDataProvider user={auth.user} onSessionExpired={auth.expireSession} onLogout={auth.logout}>
+      <AppShell user={auth.user} />
     </LifeDataProvider>
   );
 }
 
+function App() {
+  const [locale, setLocale] = useStateApp('ru');
+  const [themeMode, themeEff, setTheme, scenePref, setScenePref] = useTheme();
+  const t = useMemoApp(() => LifeMakeT(locale), [locale]);
+  const localeValue = useMemoApp(() => ({
+    locale, setLocale, t, themeMode, themeEff, setTheme, scenePref, setScenePref,
+  }), [locale, t, themeMode, themeEff, scenePref]);
+  return (
+    <LifeLocaleContext.Provider value={localeValue}>
+      <AuthProvider><AuthGate /></AuthProvider>
+    </LifeLocaleContext.Provider>
+  );
+}
+
+export { AppShell };
 export default App;

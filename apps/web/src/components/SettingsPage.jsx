@@ -1,8 +1,10 @@
 import React from 'react';
+import { useAuth } from '../context/AuthContext.jsx';
 import { LifeDataContext } from '../context/LifeDataContext.jsx';
 import { LifeLocaleContext, LifeLocales } from '../context/LocaleContext.jsx';
 import { LifeCatTintClass, LifeCategories } from '../data/categories.js';
 import { EyeToggle } from './EyeToggle.jsx';
+import { SyncStatus } from './SyncStatus.jsx';
 import { LIcons } from './icons.jsx';
 
 /* global React */
@@ -63,10 +65,18 @@ function Row({ label, hint, children }) {
 }
 
 function AccountSection({ t }) {
+  const auth = useAuth();
+  const [error, setError] = useStateSet('');
+  async function logout() {
+    setError('');
+    try { await auth.logout(); }
+    catch { setError(t('auth_logout_error')); }
+  }
   return (
     <React.Fragment>
-      <Row label={t('set_account_name')}><input className="set-input" defaultValue="dogfood"/></Row>
-      <Row label={t('set_account_email')} hint="read-only"><input className="set-input is-readonly" readOnly defaultValue="me@life.os"/></Row>
+      <Row label={t('set_account_email')} hint="read-only"><input className="set-input is-readonly" readOnly value={auth.user?.email || ''}/></Row>
+      <Row label={t('sync_status')}><SyncStatus /></Row>
+      <Row label="" hint={error}><button className="set-btn-ghost" onClick={logout}>{t('auth_logout')}</button></Row>
     </React.Fragment>
   );
 }
@@ -232,9 +242,21 @@ function AppearanceSection({ t, locale, setLocale }) {
 }
 
 function ExportSection({ t }) {
+  const data = React.useContext(LifeDataContext);
+  function exportJson() {
+    const blob = new Blob([data.exportJSON()], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = 'lifeOsState-server.json';
+    document.body.appendChild(anchor);
+    anchor.click();
+    document.body.removeChild(anchor);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
   return (
     <React.Fragment>
-      <Row label={t('set_export_json')} hint=".json · 184 KB"><button className="set-btn-ghost">download</button></Row>
+      <Row label={t('set_export_json')} hint={t('set_export_server_hint')}><button className="set-btn-ghost" onClick={exportJson}>download</button></Row>
       <Row label={t('set_export_csv')}  hint=".csv · 12 KB"><button className="set-btn-ghost">download</button></Row>
       <Row label={t('set_export_md')}   hint=".md · 24 KB"><button className="set-btn-ghost">download</button></Row>
     </React.Fragment>
@@ -245,6 +267,8 @@ function DangerSection({ t }) {
   const data = React.useContext(LifeDataContext);
   const [confirmCount, setConfirmCount] = useStateSet(null);   // months -> shows confirm row
   const [feedback, setFeedback]         = useStateSet('');
+  const [resetConfirm, setResetConfirm] = useStateSet(false);
+  const [resetBusy, setResetBusy] = useStateSet(false);
 
   function exportJson() {
     if (!data) return;
@@ -270,16 +294,37 @@ function DangerSection({ t }) {
     setConfirmCount(null);
     setTimeout(() => setFeedback(''), 3000);
   }
+  async function resetServerState() {
+    setResetBusy(true);
+    setFeedback('');
+    try {
+      await data.hardReset();
+      setResetConfirm(false);
+      setFeedback(t('set_reset_done'));
+    } catch {
+      setFeedback(t('set_reset_failed'));
+    } finally {
+      setResetBusy(false);
+    }
+  }
 
   return (
     <React.Fragment>
       <div className="set-danger-card">
         <div className="set-danger-msg">{t('set_danger_msg')}</div>
-        <button className="set-btn-danger">{t('set_danger_btn')}</button>
+        {!resetConfirm ? (
+          <button className="set-btn-danger" disabled={data.syncPhase === 'conflict'} onClick={() => setResetConfirm(true)}>{t('set_danger_btn')}</button>
+        ) : (
+          <div className="set-clear-confirm">
+            <button className="set-btn-ghost" disabled={resetBusy} onClick={() => setResetConfirm(false)}>{t('qa_cancel')}</button>
+            <button className="set-btn-danger" disabled={resetBusy} onClick={resetServerState}>{t('set_reset_confirm')}</button>
+          </div>
+        )}
+        {feedback && <div className="set-row-hint mono">{feedback}</div>}
       </div>
 
       <div className="set-subhead mono">SPRINT 3A · STATE</div>
-      <Row label={t('set_export_state')} hint={t('set_export_state_hint')}>
+      <Row label={t('set_export_state')} hint={t('set_export_server_hint')}>
         <button className="set-btn-ghost" onClick={exportJson}>{t('set_export_json')} ↓</button>
       </Row>
       <Row label={t('set_clear_history')} hint={t('set_clear_history_hint')}>

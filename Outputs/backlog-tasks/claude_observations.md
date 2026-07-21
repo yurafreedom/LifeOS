@@ -19,3 +19,9 @@ No out-of-scope observations recorded during PF-01 Batch 0.
 **Issue:** HabitsGrid owns its mutable habit state locally, while the shared persisted snapshot only initializes `habits` at `apps/web/src/context/LifeDataContext.jsx:107`; server snapshot storage alone will not persist habit toggles.
 **Risk:** medium
 **Recommended action:** Move habits into the shared LifeDataContext contract in a separate Batch 3 frontend task with migration coverage.
+
+## [2026-07-21] During Task PF-01 Batch 3: foundation plan describes a retired empty-snapshot bootstrap
+**File:** Outputs/Plans/lifeos-production-foundation_plan_2026-07-21_011746.md:313
+**Issue:** The broad PF-01 foundation plan says bootstrap creates an empty snapshot, while the deliberate Batch 2 API contract creates no snapshot row and returns typed `404 state_not_initialized` until the first expected-revision-0 PUT.
+**Risk:** medium
+**Recommended action:** Re-anchor future frontend and deployment work to the live Batch 2 state API contract; correct the foundation plan in a dedicated documentation task instead of recreating an empty row.

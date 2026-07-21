@@ -35,3 +35,15 @@
 - **Phases used:** A+B+C
 - **Blockers / rework:** local pip-tools was absent; an isolated Python 3.11 tool environment generated both locks, and the import gate caught and resolved one FastAPI response-model annotation issue
 - **Summary:** Added a PostgreSQL-backed FastAPI service with one-time bootstrap, Argon2 authentication, hashed opaque sessions, same-origin protection, user-isolated JSONB snapshots, and atomic revision conflicts.
+
+## Task PF-01 Batch 3 — Per-account frontend state synchronization
+- **Date:** 2026-07-21
+- **Branch:** design-sync-setup
+- **Duration:** 3h 55m (estimated, includes Plan review waits)
+- **Tokens:** 75,000 in / 25,000 out / 100,000 total (estimated, multi-session)
+- **Files touched:** 33
+- **Net diff:** +2056 / -144
+- **Complexity:** heavy
+- **Phases used:** A+B+C
+- **Blockers / rework:** corrected the tracked tsconfig classification, added the approved Vitest TypeScript discovery path, and re-anchored three stale expected-count gates before commit
+- **Summary:** Replaced browser-local snapshot writes with authenticated server hydration, explicit legacy import, single-flight revision sync, conflict recovery, server reset/export, and persisted habits while preserving local appearance preferences.

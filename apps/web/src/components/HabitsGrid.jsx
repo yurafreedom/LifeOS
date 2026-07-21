@@ -11,7 +11,7 @@ function getTodayIdx() {
   return (new Date().getDay() + 6) % 7;
 }
 
-function HabitsGrid({ habits: habitsProp }) {
+function HabitsGrid({ habits: habitsProp, onToggle }) {
   const { t } = useCtxH(LifeLocaleContext);
   const I = LIcons;
   const todayIdx = getTodayIdx();
@@ -19,14 +19,18 @@ function HabitsGrid({ habits: habitsProp }) {
 
   /* Mon-first week: 1 = done, 0 = empty/missed/future */
   const [habitsState, setHabits] = useStateH([
-    { id: 1, name: t('habit_read'),     week: [1,1,1,0,1,0,0], streak: 12, best: 28 },
-    { id: 2, name: t('habit_no_phone'), week: [1,1,0,1,1,0,0], streak: 30, best: 30 },
-    { id: 3, name: t('habit_walk'),     week: [1,1,1,1,0,0,0], streak: 4,  best: 16 },
-    { id: 4, name: t('habit_write'),    week: [1,0,1,1,0,0,0], streak: 2,  best: 41 },
+    { id: 1, titleKey: 'habit_read',     week: [1,1,1,0,1,0,0], streak: 12, best: 28 },
+    { id: 2, titleKey: 'habit_no_phone', week: [1,1,0,1,1,0,0], streak: 30, best: 30 },
+    { id: 3, titleKey: 'habit_walk',     week: [1,1,1,1,0,0,0], streak: 4,  best: 16 },
+    { id: 4, titleKey: 'habit_write',    week: [1,0,1,1,0,0,0], streak: 2,  best: 41 },
   ]);
   const habits = habitsProp != null ? habitsProp : habitsState;
 
   function toggleToday(habitId) {
+    if (onToggle) {
+      onToggle(habitId, todayIdx);
+      return;
+    }
     setHabits(prev => prev.map(h => {
       if (h.id !== habitId) return h;
       const next = h.week.slice();
@@ -66,7 +70,7 @@ function HabitsGrid({ habits: habitsProp }) {
           {habits.map(h => (
             <React.Fragment key={h.id}>
               <div className="habits-row">
-                <div className="habits-name">{h.name}</div>
+                <div className="habits-name">{h.titleKey ? t(h.titleKey) : h.name}</div>
                 {h.week.map((v, i) => {
                   const isPast   = i < todayIdx;
                   const isToday  = i === todayIdx;

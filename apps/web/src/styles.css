@@ -4771,3 +4771,74 @@ html.scene-switching .app *::before, html.scene-switching .app *::after {
     animation: none;
   }
 }
+
+/* ── Server-backed auth, import and sync surfaces ───────── */
+.auth-screen {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 32px 18px;
+  color: var(--text);
+  background: var(--bg);
+}
+.auth-card {
+  width: min(100%, 440px);
+  padding: 30px;
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  background: var(--surface);
+  box-shadow: var(--shadow-lg);
+}
+.auth-brand { font-size: 25px; font-weight: 900; letter-spacing: -.04em; }
+.auth-brand span { color: var(--accent); }
+.auth-eyebrow { margin: 26px 0 8px; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .12em; }
+.auth-card h1 { margin: 0; font-size: 27px; letter-spacing: -.035em; }
+.auth-copy { margin: 10px 0 24px; color: var(--muted); line-height: 1.55; }
+.auth-form { display: grid; gap: 15px; }
+.auth-form label { display: grid; gap: 7px; color: var(--muted); font-size: 13px; }
+.auth-form input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  color: var(--text);
+  background: var(--surface-2);
+  font: inherit;
+}
+.auth-form input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.auth-submit {
+  border: 0;
+  border-radius: 11px;
+  padding: 12px 16px;
+  color: #fff;
+  background: var(--accent);
+  font: inherit;
+  font-weight: 750;
+  cursor: pointer;
+}
+.auth-submit:disabled { opacity: .55; cursor: wait; }
+.auth-error { padding: 10px 12px; border: 1px solid color-mix(in srgb, var(--danger) 45%, transparent); border-radius: 10px; color: var(--danger); font-size: 13px; line-height: 1.4; }
+.auth-link { display: inline-block; margin-top: 16px; color: var(--accent); font-size: 13px; }
+.auth-link-button { padding: 0; border: 0; background: none; cursor: pointer; }
+.boot-status { color: var(--muted); }
+.import-card { width: min(100%, 560px); }
+.import-preview { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; margin: 18px 0; overflow: hidden; border: 1px solid var(--border); border-radius: 12px; background: var(--border); }
+.import-preview div { display: flex; justify-content: space-between; gap: 12px; padding: 10px 12px; background: var(--surface-2); }
+.import-preview dt { color: var(--muted); }
+.import-preview dd { margin: 0; color: var(--text); }
+.import-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.global-sync { position: fixed; top: 10px; right: 14px; z-index: 30; }
+.sync-status { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; color: var(--muted); font-size: 12px; }
+.sync-status.is-compact { padding: 6px 9px; border: 1px solid var(--border); border-radius: 999px; background: color-mix(in srgb, var(--surface) 90%, transparent); backdrop-filter: blur(10px); }
+.sync-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--success); }
+.sync-saving .sync-dot { background: var(--accent); animation: sync-pulse 1s ease-in-out infinite; }
+.sync-offline .sync-dot, .sync-error .sync-dot { background: var(--danger); }
+.sync-conflict .sync-dot { background: var(--warning); }
+.sync-status button { padding: 4px 7px; border: 1px solid var(--border); border-radius: 7px; color: var(--text); background: var(--surface-2); cursor: pointer; }
+@keyframes sync-pulse { 50% { opacity: .35; } }
+
+@media (max-width: 560px) {
+  .auth-card { padding: 22px; border-radius: 17px; }
+  .import-preview { grid-template-columns: 1fr; }
+  .global-sync { top: 8px; right: 8px; }
+}

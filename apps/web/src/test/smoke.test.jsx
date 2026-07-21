@@ -14,6 +14,7 @@ function installBrowserStubs() {
   };
   globalThis.window = {
     addEventListener() {},
+    confirm() { return true; },
     location: { hash: '#/home', search: '' },
     matchMedia() {
       return {
@@ -48,10 +49,41 @@ describe('Life OS production module graph', () => {
     expect(LIFE_ROUTES.has('settings')).toBe(true);
   });
 
-  it('renders the provider-backed home route', async () => {
+  it('keeps private routes behind the auth boot gate', async () => {
     installBrowserStubs();
     const { default: App } = await import('../App.jsx');
     const html = renderToStaticMarkup(<App />);
+
+    expect(html).toContain('auth-screen');
+    expect(html).not.toContain('class="app"');
+  });
+
+  it('renders the provider-backed home route after hydration', async () => {
+    installBrowserStubs();
+    const [{ AppShell }, { LifeDataContext, buildInitialState }, { LifeLocaleContext, LifeMakeT }] = await Promise.all([
+      import('../App.jsx'),
+      import('../context/LifeDataContext.jsx'),
+      import('../context/LocaleContext.jsx'),
+    ]);
+    const noop = () => {};
+    const data = {
+      state: buildInitialState(),
+      syncPhase: 'saved',
+      addTask: noop, updateTask: noop, deleteTask: noop, toggleTask: noop,
+      addQuickNote: noop, deleteQuickNote: noop, updateProfile: noop, updateDog: noop,
+    };
+    const locale = {
+      locale: 'ru', setLocale: noop, t: LifeMakeT('ru'),
+      themeMode: 'dark', themeEff: 'dark', setTheme: noop,
+      scenePref: 'auto', setScenePref: noop,
+    };
+    const html = renderToStaticMarkup(
+      <LifeLocaleContext.Provider value={locale}>
+        <LifeDataContext.Provider value={data}>
+          <AppShell user={{ id: 'u1', email: 'owner@example.test', created_at: 'now' }} />
+        </LifeDataContext.Provider>
+      </LifeLocaleContext.Provider>,
+    );
 
     expect(html).toContain('class="app"');
     expect(html).toContain('class="home-hero"');
