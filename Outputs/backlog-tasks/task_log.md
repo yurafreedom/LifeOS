@@ -23,3 +23,15 @@
 - **Phases used:** A+B+C
 - **Blockers / rework:** corrected the stale 63-file plan count to the 61-file live HEAD inventory; no user-visible rework
 - **Summary:** Migrated the complete Life OS UI to a reproducible Vite ES-module build with pinned dependencies, static smoke tests, production assets, and browser parity verification.
+
+## Task PF-01 Batch 2 — Authenticated multi-account state service
+- **Date:** 2026-07-21
+- **Branch:** design-sync-setup
+- **Duration:** 7h 36m (estimated, includes Plan review wait)
+- **Tokens:** 65,000 in / 30,000 out / 95,000 total (estimated, multi-session)
+- **Files touched:** 45
+- **Net diff:** +3555 / -0
+- **Complexity:** heavy
+- **Phases used:** A+B+C
+- **Blockers / rework:** local pip-tools was absent; an isolated Python 3.11 tool environment generated both locks, and the import gate caught and resolved one FastAPI response-model annotation issue
+- **Summary:** Added a PostgreSQL-backed FastAPI service with one-time bootstrap, Argon2 authentication, hashed opaque sessions, same-origin protection, user-isolated JSONB snapshots, and atomic revision conflicts.
