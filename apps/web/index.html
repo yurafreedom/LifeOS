@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0e1117" />
+    <title>Life OS</title>
+    <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
+    <script>
+      (function () {
+        var theme = null;
+        try { theme = localStorage.getItem('lifeOsTheme'); } catch (error) {}
+        if (theme !== 'dark' && theme !== 'light' && theme !== 'paradise') {
+          theme = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches
+            ? 'light'
+            : 'dark';
+        }
+        document.documentElement.setAttribute('data-theme', theme);
+        if (theme !== 'paradise') return;
+
+        var scene = null;
+        try { scene = localStorage.getItem('lifeOsScene'); } catch (error) {}
+        if (scene !== 'day' && scene !== 'night') {
+          var hour;
+          try {
+            hour = parseInt(new Intl.DateTimeFormat('en-US', {
+              timeZone: 'Europe/Kiev',
+              hour: 'numeric',
+              hour12: false
+            }).format(new Date()), 10) % 24;
+          } catch (error) {
+            hour = new Date().getHours();
+          }
+          scene = hour >= 20 || hour < 6 ? 'night' : 'day';
+        }
+        document.documentElement.setAttribute('data-scene', scene);
+      })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800;900&family=Work+Sans:wght@400;500;600;700&display=swap&subset=cyrillic,cyrillic-ext,latin,latin-ext"
+    />
+  </head>
+  <body>
+    <div id="root" data-screen-label="01 Dashboard"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

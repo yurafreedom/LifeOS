@@ -1,0 +1,17 @@
+export const LIFE_ROUTES = new Set([
+  'home',
+  'calendar',
+  'notes',
+  'me',
+  'tasks',
+  'habits',
+  'goals',
+  'health',
+  'dog',
+  'finances',
+  'monthly',
+  'annual',
+  'investments',
+  'medications',
+  'settings',
+]);

@@ -1,0 +1,11 @@
+
+<svg xmlns="http://www.w3.org/2000/svg" width="124" height="40" viewBox="0 0 124 40" fill="none">
+  <defs>
+    <linearGradient id="lifeOsDot" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FFC066"></stop>
+      <stop offset="48%" stop-color="#FF8A1E"></stop>
+      <stop offset="100%" stop-color="#FF6B0A"></stop>
+    </linearGradient>
+  </defs>
+  <text x="0" y="29" font-family="Onest, system-ui, sans-serif" font-weight="900" font-size="28" letter-spacing="-0.03em"><tspan fill="#F5F5F7">Life</tspan><tspan fill="url(#lifeOsDot)">·</tspan><tspan fill="#F5F5F7">OS</tspan></text>
+</svg>

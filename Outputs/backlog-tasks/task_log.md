@@ -11,3 +11,15 @@
 - **Phases used:** A+B+C
 - **Blockers / rework:** two pre-commit sign-offs for preserved visual decisions; one approved neutral CategoryChart capsule exception
 - **Summary:** Completed and browser-verified the existing Batch 1 density, readability, scene, capsule, debug-gate, and add-goal work across four theme/scene modes and RU/UK.
+
+## Task PF-01 Batch 1 — Reproducible React production build
+- **Date:** 2026-07-21
+- **Branch:** design-sync-setup
+- **Duration:** 45m (estimated)
+- **Tokens:** 29,000 in / 15,000 out / 44,000 total (estimated)
+- **Files touched:** 79
+- **Net diff:** +16204 / -0
+- **Complexity:** heavy
+- **Phases used:** A+B+C
+- **Blockers / rework:** corrected the stale 63-file plan count to the 61-file live HEAD inventory; no user-visible rework
+- **Summary:** Migrated the complete Life OS UI to a reproducible Vite ES-module build with pinned dependencies, static smoke tests, production assets, and browser parity verification.
