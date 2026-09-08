@@ -358,10 +358,10 @@ function AADeltaStates({ narrow }) {
       { label: 'факт', value: '₴61,200', sub: '28 из 31 дня' },
       { label: 'разница', value: '−₴800', delta: true, desire: 'neutral', sub: 'ниже ожидания · цель не задавалась' }
     ]],
-    ['деньги · выше первоначального ожидания', [
+    ['деньги · выше первоначального ожидания → тоже нейтрально', [
       { label: 'сначала ожидалось', value: '₴50,000', sub: '1 авг' },
       { label: 'факт', value: '₴61,200' },
-      { label: 'разница', value: '+₴11,200', delta: true, desire: 'unfavorable', sub: 'к первой оценке' }
+      { label: 'разница', value: '+₴11,200', delta: true, desire: 'neutral', sub: 'выше первой оценки · цель не задавалась' }
     ]],
     ['дата · к первой оценке', [
       { label: 'первая оценка', value: '20 авг', sub: 'записана 12 авг' },
@@ -381,7 +381,7 @@ function AADeltaStates({ narrow }) {
     ['вместо факта — прогноз', [
       { label: 'ожидалось', value: '₴62,000' },
       { label: 'прогноз', value: '₴67,800', sub: 'выведено Life OS', estimate: true },
-      { label: 'разница', value: '+₴5,800', delta: true, desire: 'unfavorable', sub: 'если тренд сохранится' }
+      { label: 'разница', value: '+₴5,800', delta: true, desire: 'neutral', sub: 'прогноз выше ожидания · если тренд сохранится' }
     ]],
     ['нет данных', [
       { label: 'ожидалось', value: '—', empty: true, sub: 'не задавалось' },

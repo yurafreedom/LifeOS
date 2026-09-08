@@ -165,11 +165,48 @@ A future Experiment maps onto the same primitives with no new UX: baseline = del
 
 ## Status
 
-F · Finance, G · Project and the mobile provenance sheet are **source-reviewed; visual acceptance pending** — the preview harness was unavailable (even static, JS-free cards timed out), so these four checks are still owed:
+**The A–J design package is complete and accepted.** Nothing in this layer is outstanding.
 
-1. F · Финансы, desktop
-2. G · Проект, desktop
-3. G · Проект, mobile — the two `AADelta` rows collapsing to six stacked cells
-4. Mobile provenance sheet opened from «источник» — must stay inside the 390px frame, scrim must not cover the rail
+| Area | State |
+| --- | --- |
+| A · Home | accepted |
+| B · Signal Card | accepted |
+| C · Expected / Actual / Delta | accepted |
+| D · Metric history / Forecast history | accepted |
+| E · Review / Debrief | accepted |
+| F · Finance domain | accepted · visually verified |
+| G · Project domain (desktop + mobile) | accepted · visually verified |
+| H · Subjective + objective | accepted |
+| I · Experiment | accepted |
+| J · Trade-off | accepted |
+| J · System Review | accepted |
+| Mobile provenance sheet | accepted · visually verified |
 
-I · Experiment and J · Trade-off / System Review are **not started**, pending owner approval.
+The four checks previously owed for F/G/mobile have all been run and **pass**:
+
+1. F · Финансы, desktop — `−₴800` renders neutral; «цель на месяц … не задавалась» explicit; forecast neutral grey
+2. G · Проект, desktop — two deltas side by side, both neutral; «версий прогноза 3 · факт отдельно»
+3. G · Проект, mobile — the two `AADelta` rows collapse cleanly to six stacked cells inside the 390px frame, no overflow
+4. Mobile provenance sheet from «источник» — stays inside the 390px frame, scrim does not cover the rail
+
+Desktop and mobile visual verification passed across the rail with no console errors.
+
+### Final semantic guardrails applied at freeze
+
+The rule that **an expectation or a forecast never establishes desirability** was enforced
+across every surface and specimen, not only where it was already documented:
+
+- `preview/aa-delta.html` — the money specimen previously carried `data-desire="favorable"`
+  on `−₴800` under the eyebrow «ниже ожидания (желательно)», deriving desirability from an
+  expectation alone. It is now `neutral` with «ниже ожидания · цель не задавалась», and its
+  date specimen now follows the accepted Project timeline (`+5 дней` to the first estimate,
+  `−1 день` to the last forecast, both neutral) instead of an ungrounded «нежелательно».
+- C · gallery (`screens.jsx`) — the two specimens that encoded `unfavorable` from a
+  reference value alone (`+₴11,200` vs the first expectation, `+₴5,800` vs a forecast) are
+  now `neutral`, with the factual direction carried in the sub-line. Every specimen in the
+  gallery now obeys the rule its own intro states.
+
+`desire` therefore appears as `favorable` / `unfavorable` **only** where an explicit Target,
+a user Preference/ориентир, or a user Decision names a desired direction. Where no such
+source exists the delta is `neutral` and the sub-line carries the meaning. Materiality
+(stakes) remains a separate, independent dimension.

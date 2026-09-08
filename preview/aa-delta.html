@@ -1,0 +1,60 @@
+<!doctype html>
+<!-- @dsCard group="Adaptive Analytics" name="Ожидалось / факт / разница" subtitle="Деньги · дата · длительность · неполный факт · прогноз · нет данных" viewport="700x560" -->
+<html lang="ru" data-theme="light"><head><meta charset="utf-8"><title>aa · delta</title>
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@600;700;800&family=Work+Sans:wght@400;500;600&display=swap&subset=cyrillic,latin" rel="stylesheet">
+<link rel="stylesheet" href="../styles.css">
+<link rel="stylesheet" href="../ui_kits/life-os-analytics/analytics.css">
+<style>body{margin:0;padding:18px;background:var(--bg-2);font-family:var(--font-body)}.aa-col{display:grid;gap:12px}a{color:var(--primary)}a:hover{color:var(--primary-l)}</style>
+</head><body>
+<div class="aa-col">
+  <div class="aa-help" style="margin-bottom:2px">Знак, желательность и серьёзность — разные вещи. Ожидание и прогноз предсказывают, а не предписывают: «ниже ожидания» само по себе не «лучше», «выше прогноза» само по себе не «хуже». Желательность появляется только при цели, ориентире или решении.</div>
+  <div>
+    <div class="aa-eyebrow" style="margin-bottom:6px">деньги · ниже ожидания · цель не задавалась</div>
+    <div class="aa-delta">
+      <div class="aa-delta-cell"><span class="aa-delta-lab">ожидалось</span><span class="aa-delta-val">₴62,000</span><span class="aa-delta-sub">изменено 20 авг</span></div>
+      <div class="aa-delta-cell"><span class="aa-delta-lab">факт</span><span class="aa-delta-val">₴61,200</span><span class="aa-delta-sub">28 из 31 дня</span></div>
+      <div class="aa-delta-cell is-delta" data-desire="neutral"><span class="aa-delta-lab">разница</span><span class="aa-delta-val">−₴800</span><span class="aa-delta-sub">ниже ожидания · цель не задавалась</span></div>
+    </div>
+  </div>
+  <div>
+    <div class="aa-eyebrow" style="margin-bottom:6px">дата · к первой оценке</div>
+    <div class="aa-delta">
+      <div class="aa-delta-cell"><span class="aa-delta-lab">первая оценка</span><span class="aa-delta-val">20 авг</span><span class="aa-delta-sub">записана 12 авг</span></div>
+      <div class="aa-delta-cell"><span class="aa-delta-lab">факт</span><span class="aa-delta-val">25 авг</span></div>
+      <div class="aa-delta-cell is-delta" data-desire="neutral"><span class="aa-delta-lab">разница</span><span class="aa-delta-val">+5 дней</span><span class="aa-delta-sub">позже первой оценки</span></div>
+    </div>
+  </div>
+  <div>
+    <div class="aa-eyebrow" style="margin-bottom:6px">дата · к последнему прогнозу</div>
+    <div class="aa-delta">
+      <div class="aa-delta-cell"><span class="aa-delta-lab">последний прогноз</span><span class="aa-delta-val">26 авг</span><span class="aa-delta-sub">записан 20 авг</span></div>
+      <div class="aa-delta-cell"><span class="aa-delta-lab">факт</span><span class="aa-delta-val">25 авг</span></div>
+      <div class="aa-delta-cell is-delta" data-desire="neutral"><span class="aa-delta-lab">разница</span><span class="aa-delta-val">−1 день</span><span class="aa-delta-sub">на день раньше прогноза</span></div>
+    </div>
+  </div>
+  <div>
+    <div class="aa-eyebrow" style="margin-bottom:6px">длительность · желательность не определена</div>
+    <div class="aa-delta">
+      <div class="aa-delta-cell"><span class="aa-delta-lab">типично</span><span class="aa-delta-val">6 ч 18 м</span></div>
+      <div class="aa-delta-cell"><span class="aa-delta-lab">наблюдение</span><span class="aa-delta-val">6 ч 42 м</span></div>
+      <div class="aa-delta-cell is-delta" data-desire="neutral"><span class="aa-delta-lab">разница</span><span class="aa-delta-val">+24 м</span><span class="aa-delta-sub">направление ≠ оценка</span></div>
+    </div>
+  </div>
+  <div>
+    <div class="aa-eyebrow" style="margin-bottom:6px">неполный факт · прогноз вместо факта</div>
+    <div class="aa-delta">
+      <div class="aa-delta-cell"><span class="aa-delta-lab">ожидалось</span><span class="aa-delta-val">₴62,000</span></div>
+      <div class="aa-delta-cell is-estimate"><span class="aa-delta-lab">прогноз</span><span class="aa-delta-val">₴67,800</span><span class="aa-delta-sub">выведено life os</span></div>
+      <div class="aa-delta-cell is-delta" data-desire="unknown"><span class="aa-delta-lab">разница</span><span class="aa-delta-val">рано судить</span><span class="aa-delta-sub">21 из 31 дня</span></div>
+    </div>
+  </div>
+  <div>
+    <div class="aa-eyebrow" style="margin-bottom:6px">нет данных · никогда не ноль</div>
+    <div class="aa-delta">
+      <div class="aa-delta-cell is-empty"><span class="aa-delta-lab">ожидалось</span><span class="aa-delta-val">—</span><span class="aa-delta-sub">не задавалось</span></div>
+      <div class="aa-delta-cell is-empty"><span class="aa-delta-lab">факт</span><span class="aa-delta-val">нет данных</span></div>
+      <div class="aa-delta-cell is-empty is-delta" data-desire="unknown"><span class="aa-delta-lab">разница</span><span class="aa-delta-val">—</span></div>
+    </div>
+  </div>
+</div>
+</body></html>

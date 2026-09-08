@@ -2,7 +2,13 @@
 
 **Date:** 2026-09-08
 **Task:** Reconcile the accepted Claude Design A–J export into the existing LifeOS repository, verify, and freeze if safe.
-**Status:** `DESIGN_IMPORT_STATUS=BLOCKED` — import applied and committed; **design-freeze tag withheld** due to one unresolved semantic regression in the export (`preview/aa-delta.html`).
+**Status at commit `d99da15`:** `DESIGN_IMPORT_STATUS=BLOCKED` — import applied and committed; **design-freeze tag withheld** due to one unresolved semantic regression in the export (`preview/aa-delta.html`).
+
+> **Superseded — see §13 "FINAL RESOLUTION" at the end of this document.** The blocker above
+> was real; it was resolved in a follow-up commit, together with two C-gallery cases promoted
+> from observation to required fix and a refresh of the AA README status. Final status:
+> `DESIGN_IMPORT_STATUS=PASS`, `SEMANTIC_FREEZE=PASS`. §1–§12 are preserved unchanged as the
+> accurate record of the state at `d99da15`.
 
 ---
 
@@ -281,3 +287,136 @@ Exact-path staging was used (never `git add .`). The staged set contains only th
 6. Once 1 is resolved and the tag exists, proceed to the Adaptive Analytics technical architecture Discovery (explicitly out of scope for this task).
 
 The integration worktree is **left in place** for owner inspection and the next phase.
+
+---
+
+# 13. FINAL RESOLUTION — semantic freeze (appended 2026-09-08)
+
+This section is appended, not rewritten. The blocker recorded in §7 and §11 was real; what
+follows is how it was resolved. Everything above remains an accurate record of the state at
+commit `d99da15`.
+
+## 13.1 What was outstanding
+
+| # | Item | Status at `d99da15` |
+| --- | --- | --- |
+| 1 | `preview/aa-delta.html` — `favorable` on `−₴800` from expectation alone | **BLOCKER** — card excluded from the import |
+| 2 | C gallery: `+₴11,200` and `+₴5,800` encoded `unfavorable` from expectation/forecast alone | reported as an *observation* — **promoted by the owner to a required fix** |
+| 3 | AA `README.md` Status block claiming I/J not started and four checks owed | stale, factually false at the intended freeze commit |
+
+Item 2 is the substantive change of scope in this pass. In the first report these two
+specimens were flagged but not treated as violations, on the reasoning that they were gallery
+specimens and that the *binding* Finance case was correct. The owner ruled that the semantic
+model governs specimens too — **visual specimen requirements do not override semantic
+correctness** — and that expectation and forecast are both predictive/reference semantics
+that cannot establish desirability. That ruling is correct and is now enforced.
+
+## 13.2 Corrections applied
+
+### `preview/aa-delta.html` — recreated, corrected (now imported)
+
+The excluded export card was not imported as-is. A corrected card was written in its place:
+
+| Specimen | Before (export) | After |
+| --- | --- | --- |
+| money | eyebrow «деньги · ниже ожидания **(желательно)**»; `data-desire="favorable"`; sub «ниже ожидания» | eyebrow «деньги · ниже ожидания · цель не задавалась»; `data-desire="neutral"`; sub «ниже ожидания · цель не задавалась» |
+| date | eyebrow «дата · **нежелательно**»; `18 авг` vs `25 авг` → `+7 дней` `unfavorable` | split into the two accepted Project comparisons: «дата · к первой оценке» (`20 авг` → `25 авг` = `+5 дней`) and «дата · к последнему прогнозу» (`26 авг` → `25 авг` = `−1 день`), **both `neutral`** |
+| duration | `+24 м` `neutral` | unchanged |
+| incomplete / forecast | `рано судить` `unknown` | unchanged |
+| no data | `—` `unknown` | unchanged |
+
+A rule line was added at the head of the card, mirroring the C gallery's own intro, so the
+card is self-documenting about why every delta is neutral:
+
+> Знак, желательность и серьёзность — разные вещи. Ожидание и прогноз предсказывают, а не
+> предписывают: «ниже ожидания» само по себе не «лучше», «выше прогноза» само по себе не
+> «хуже». Желательность появляется только при цели, ориентире или решении.
+
+The `@dsCard` marker, group, name and subtitle are preserved from the export; `viewport` was
+widened `700x480` → `700x560` to fit the added sixth row.
+
+### C gallery (`ui_kits/life-os-analytics/screens.jsx`) — the **Preferred** resolution
+
+The owner offered two routes. The **Preferred** route (keep the analytical meaning, make the
+state neutral) was taken for both, because neither specimen has any normative source to
+represent — inventing a Target purely to justify a colour would have been the weaker fix.
+
+```
+'деньги · выше первоначального ожидания'           →  '… → тоже нейтрально'
+  +₴11,200  desire: 'unfavorable'  sub: 'к первой оценке'
+  →  desire: 'neutral'  sub: 'выше первой оценки · цель не задавалась'
+
+'вместо факта — прогноз'
+  +₴5,800   desire: 'unfavorable'  sub: 'если тренд сохранится'
+  →  desire: 'neutral'  sub: 'прогноз выше ожидания · если тренд сохранится'
+```
+
+Two points worth recording:
+
+1. **This is a genuine semantic fix with almost no visual delta.** `analytics.css:82-83`
+   styles `unfavorable` as `--fg1` / `--fg2` — i.e. already visually neutral, per design
+   decision #3 («+»/«−» neutral by default, the sub-line carries the meaning). Only
+   `favorable` (`--green-2`) encodes tone. So the *rendered* regression was confined to
+   `aa-delta.html`; the C gallery's fault was in the data model, which is exactly where it
+   would have propagated into implementation.
+2. **The gallery previously contradicted its own header.** `screens.jsx:397` already read
+   «Ожидание предсказывает, а не предписывает… Желательность появляется только при цели,
+   ориентире или решении» while two of its seven specimens did the opposite. All seven now
+   obey it.
+
+**Consequence, stated explicitly:** no specimen in the kit now demonstrates the `favorable`
+or `unfavorable` visual states. That is the correct outcome under the accepted model — those
+states require a Target / Preference / Decision, and no seeded scenario currently has one for
+a delta. The `AADelta` pattern-inventory row (README §Pattern inventory) still correctly
+documents the states the *primitive* supports; it does not claim the gallery specimens them.
+No specimen was invented to fill the gap, per the binding rule.
+
+### AA `README.md` — Status block refreshed
+
+Only the `## Status` section was replaced. All accepted semantic rules, the pattern
+inventory, the flow map, the F/G comparison table, the `AADelta`/`AAFacts` ownership rule and
+the preview-only-techniques section are untouched.
+
+The new Status block records: an area-by-area accepted table for A–J (11 rows + mobile
+provenance), the four formerly-owed F/G/mobile checks marked run and passing with their
+results, desktop/mobile visual verification passed with no console errors, and a new
+**Final semantic guardrails applied at freeze** subsection documenting both corrections
+above so the README carries its own history.
+
+## 13.3 Re-verification — all PASS
+
+| Invariant | Evidence |
+| --- | --- |
+| No `favorable`/`unfavorable` anywhere in kit or AA cards | grep across `ui_kits/life-os-analytics/**` + `preview/aa-*.html` returns **zero** value assignments; only `analytics.css:81-83` (state definitions, must remain) and the README history note |
+| Expectation never establishes desirability | C gallery desire values now: **5 × `neutral`, 2 × `unknown`** |
+| Forecast never establishes desirability | `+₴5,800` (forecast-vs-expectation) now `neutral` |
+| `−₴800` neutral everywhere | `domains.jsx:42`, `screens.jsx:89`, `screens.jsx:359`, `preview/aa-delta.html:16` — all `neutral` with «цель не задавалась» |
+| Project deltas neutral | `+5 дней` / `−1 день` neutral in `domains.jsx:132-133`, `screens.jsx:369`, `screens.jsx:210`, `preview/aa-delta.html:24,32` |
+| `ухудшался` absent | zero hits |
+| Expectation excluded as a desirability ground | `system.jsx:177` on-screen; README «An Expectation does not qualify» |
+| System Review Finance item under «Что менялось» | `−₴800` present in `changed`, **absent** from `improved` (verified by parsing the `systemReview` block) |
+| «Что улучшилось» grounded only | exactly 1 item, carrying `basis` «по вашему ориентиру: не работать после 00:30» |
+| Materiality independent of desirability | `primitives.jsx:43-50` — warmth driven by `signal.stakes`, never by `desire` |
+
+### Render re-verification (affected surfaces only)
+
+Served the integration worktree on `127.0.0.1:8778`; no dependencies installed.
+
+| Surface | Result |
+| --- | --- |
+| `preview/aa-delta.html` | `−₴800` renders **neutral dark**, no green anywhere on the card; `+5 дней` and `−1 день` both neutral; rule line renders; 6 rows, no overflow |
+| C · Expected/Actual/Delta | all 7 specimens neutral/unknown; «→ тоже нейтрально» label and «выше первой оценки · цель не задавалась» sub-line correct |
+| F · Finance | unchanged and correct — `−₴800` neutral, «Цель на месяц задаёт желательность · не задавалась», warm strip only from the budget ≥80% stakes trigger |
+| J · System Review | unchanged and correct — «Это не вердикт»; `−₴800` under «Что менялось»; «Что улучшилось» holds only the ориентир-grounded sleep rule with its grounding printed |
+| Console | no errors or exceptions (verified after a fresh load) |
+
+**No unintended green or warm desirability encoding from expectation or forecast alone
+remains on any surface.** No `unfavorable` specimen remains in C, so no normative source
+needs to be proven.
+
+## 13.4 Decisions carried forward unchanged
+
+`components/core/**`, `components/patterns/**`, `github.md` — still **deferred**, owner-reviewed
+decision, does not block the A–J freeze. Stale `ui_kits/life-os/**` — still **not imported**.
+`_ds_bundle.js` — still **not replaced**. Root `SKILL.md` — **not modified** in this task.
+No application, backend, database, package or migration code touched.
