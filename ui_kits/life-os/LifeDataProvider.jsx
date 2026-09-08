@@ -97,6 +97,7 @@ function buildInitialState() {
     ],
     transactions: seedTransactions(),
     categoryOverrides: {},
+    goals: buildDefaultGoals(),
     habits: {},
     quickNotes: [
       { id: 101, text: 'спросить у врача про дозу',                    at: '08:14' },
@@ -110,6 +111,17 @@ function buildInitialState() {
 
 function isoDaysAgo(d) {
   return new Date(Date.now() - d * 86400000).toISOString();
+}
+
+/* Seed goals. Shipped defaults carry a titleKey/tagKey so they localise
+   through i18n; user-added goals (see addGoal) carry a literal `title`
+   and `tag`. GoalsWidget renders `title || t(titleKey)`. */
+function buildDefaultGoals() {
+  return [
+    { id: 'g_emergency', titleKey: 'goal_emergency',     pct: 62, val: '$1,550 / $2,500', tagKey: 'goal_tag_q3'  },
+    { id: 'g_shipv1',    titleKey: 'goal_ship_v1',       pct: 81, val: '13 / 16',         tagKey: 'goal_tag_q4'  },
+    { id: 'g_marathon',  titleKey: 'goal_half_marathon', pct: 34, val: '7 / 20',          tagKey: 'goal_tag_jan' },
+  ];
 }
 
 /* Sprint 3B · seed transactions for the flexible-finance demo.
@@ -161,6 +173,11 @@ function migrate(state) {
     if (state.categoryOverrides == null) state.categoryOverrides = {};
     state.version = 2;
   }
+  /* Goals hoisted into persisted state (Batch 1 rev · FIX 7). Older
+     snapshots (v1/v2) predate the field — seed the shipped defaults so the
+     Goals screen isn't empty after upgrade. Unconditional null-check, runs
+     regardless of version gate. */
+  if (!Array.isArray(state.goals)) state.goals = buildDefaultGoals();
   return state;
 }
 
@@ -282,6 +299,20 @@ function LifeDataProvider(props) {
       };
       return { ...prev, categoryOverrides, activityLog: window.LifeActivity.append(prev.activityLog, log) };
     });
+  }
+
+  /* ── Goals · Batch 1 rev · FIX 7 ──────────────────── */
+  /* Minimal add-goal path: a new goal starts at 0% with a default
+     timeframe tag (current quarter). Batch 4 (Clarify "project" outcome)
+     reuses this same entry point — keep it lean and additive. */
+  function addGoal(title) {
+    const clean = (title || '').trim();
+    if (!clean) return;
+    const id = 'g' + Date.now();
+    const q  = Math.floor(new Date().getMonth() / 3) + 1;
+    const goal = { id, title: clean, pct: 0, val: '', tag: 'Q' + q };
+    mutate(prev => ({ goals: [...(prev.goals || []), goal] }),
+      { entity_type: 'goal', entity_id: id, action: 'created', details: { title: clean } });
   }
 
   /* ── Quick notes ───────────────────────── */
@@ -432,6 +463,7 @@ function LifeDataProvider(props) {
     state,
     /* tasks */ toggleTask, addTask, updateTask, deleteTask,
     /* transactions */ addTransaction, toggleTransactionInclusion, toggleCategoryInclusion,
+    /* goals */ addGoal,
     /* notes */ addQuickNote, deleteQuickNote,
     /* profile + dog */ updateProfile, updateDog,
     /* meds */ updateMedication, deleteMedication, setMedicationStatus,

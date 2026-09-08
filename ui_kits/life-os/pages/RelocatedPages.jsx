@@ -21,6 +21,8 @@ function HabitsPage({ emptyMode }) {
 
 function GoalsPage({ emptyMode }) {
   const { t } = useCtxHP(window.LifeLocaleContext);
+  const data = useCtxHP(window.LifeDataContext);
+  const goals = emptyMode ? [] : (data.state.goals || []);
   return (
     <div className="page">
       <header className="page-head">
@@ -28,7 +30,7 @@ function GoalsPage({ emptyMode }) {
           <h2 className="page-title">{t('goals_title')}</h2>
         </div>
       </header>
-      <window.GoalsWidget goals={emptyMode ? [] : undefined} />
+      <window.GoalsWidget goals={goals} onAddGoal={data.addGoal} />
     </div>
   );
 }

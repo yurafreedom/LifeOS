@@ -156,7 +156,16 @@ function NotificationsSection({ t }) {
 }
 
 function AppearanceSection({ t, locale, setLocale }) {
-  const { themeMode, themeEff, setTheme } = React.useContext(window.LifeLocaleContext);
+  const { themeMode, themeEff, setTheme, scenePref, setScenePref } = React.useContext(window.LifeLocaleContext);
+  /* Scene override is meaningful only under paradise (dark/light have no
+     day/night). When the effective theme isn't paradise, render the
+     control disabled — same shape/size, just greyed + non-interactive. */
+  const sceneOn = themeEff === 'paradise';
+  const scenes = [
+    ['auto',  t('set_scene_auto')],
+    ['day',   t('set_scene_day')],
+    ['night', t('set_scene_night')],
+  ];
   return (
     <React.Fragment>
       <Row label={t('set_theme')}>
@@ -183,6 +192,16 @@ function AppearanceSection({ t, locale, setLocale }) {
             <span>{t('set_theme_system')}</span>
             <span className="set-seg-auto mono">AUTO</span>
           </button>
+        </div>
+      </Row>
+      <Row label={t('set_scene')} hint={sceneOn ? null : t('set_scene_paradise_only')}>
+        <div className={"set-seg" + (sceneOn ? "" : " is-disabled")}>
+          {scenes.map(([val, lbl]) => (
+            <button key={val}
+                    className={"set-seg-btn" + (scenePref === val ? " is-on" : "") + (sceneOn ? "" : " is-disabled")}
+                    disabled={!sceneOn}
+                    onClick={() => sceneOn && setScenePref(val)}>{lbl}</button>
+          ))}
         </div>
       </Row>
       <Row label={t('set_lang')}>

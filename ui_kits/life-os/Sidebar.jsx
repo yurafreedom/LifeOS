@@ -65,9 +65,9 @@ function Sidebar({ route, onNav, collapsed, setCollapsed, counts = {} }) {
                 </linearGradient>
               </defs>
               <text x="0" y="29" fontFamily="Onest, system-ui, sans-serif" fontWeight="900" fontSize="28" letterSpacing="-0.03em">
-                <tspan fill="#F5F5F7">Life</tspan>
+                <tspan className="logo-word" fill="#F5F5F7">Life</tspan>
                 <tspan fill="url(#sbDot)">·</tspan>
-                <tspan fill="#F5F5F7">OS</tspan>
+                <tspan className="logo-word" fill="#F5F5F7">OS</tspan>
               </text>
             </svg>
           )}
