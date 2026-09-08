@@ -27,6 +27,11 @@ class Settings(BaseSettings):
     session_ttl_seconds: int = Field(default=2_592_000, gt=0)
     session_touch_interval_seconds: int = Field(default=900, gt=0)
     max_snapshot_bytes: int = Field(default=5_242_880, gt=0)
+    # Adaptive Analytics write gate. Personal semantic history must not begin
+    # accumulating before the export and erasure foundation (Slice 0b) exists,
+    # so every AA write path is closed unless a deployment opts in explicitly.
+    # Tests enable it deliberately; production may not enable it at all yet.
+    aa_write_enabled: bool = False
 
     @field_validator("database_url")
     @classmethod
@@ -64,6 +69,11 @@ class Settings(BaseSettings):
                 raise ValueError("cookie_secure must be true in production")
             if "*" in self.allowed_hosts or "*" in self.allowed_origins:
                 raise ValueError("wildcard hosts and origins are forbidden in production")
+            if self.aa_write_enabled:
+                raise ValueError(
+                    "aa_write_enabled must stay false in production until account export "
+                    "and erasure exist"
+                )
         return self
 
     @property
