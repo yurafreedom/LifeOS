@@ -56,9 +56,29 @@ def session_factory(engine: Engine) -> sessionmaker[Session]:
     return sessionmaker(bind=engine, class_=Session, expire_on_commit=False)
 
 
+# Every table holding per-test state must appear here, or state leaks between
+# tests and the suite becomes order-dependent. `test_aa_schema_guards.py`
+# introspects `Base.metadata` against this list so a table added by a future
+# migration cannot be silently omitted.
+#
+# `aa_metric_definitions` is deliberately absent: it is reference data seeded by
+# the migration, not per-test state, and truncating it would break every test
+# that records against a metric.
+TRUNCATED_TABLES: tuple[str, ...] = (
+    "aa_source_coverage",
+    "aa_measurements",
+    "user_snapshots",
+    "sessions",
+    "users",
+)
+
+# Reference data owned by a migration rather than by a test.
+SEEDED_TABLES: frozenset[str] = frozenset({"aa_metric_definitions", "alembic_version"})
+
+
 @pytest.fixture(autouse=True)
 def clean_database(engine: Engine) -> Generator[None, None, None]:
-    statement = text("TRUNCATE TABLE user_snapshots, sessions, users CASCADE")
+    statement = text(f"TRUNCATE TABLE {', '.join(TRUNCATED_TABLES)} CASCADE")
     with engine.begin() as connection:
         connection.execute(statement)
     yield
@@ -75,6 +95,10 @@ def settings(test_database_url: str) -> Settings:
         allowed_hosts=["testserver"],
         allowed_origins=["http://testserver"],
         cookie_secure=False,
+        # The AA write gate is closed by default everywhere. Tests open it
+        # deliberately so that the closed default stays testable in
+        # `test_aa_write_gate.py`.
+        aa_write_enabled=True,
     )
 
 
