@@ -46,6 +46,10 @@ class AASourceCoverage(
         CheckConstraint("window_end_date >= window_start_date", name=f"ck_{_TABLE}_window_order"),
         CheckConstraint("timezone <> ''", name=f"ck_{_TABLE}_timezone"),
         CheckConstraint("source_id <> ''", name=f"ck_{_TABLE}_source_id"),
+        CheckConstraint(
+            "status = 'tombstoned' OR (source_id IS NOT NULL AND coverage_state IS NOT NULL)",
+            name=f"ck_{_TABLE}_present_claim",
+        ),
         # A source that cannot say what it covered cannot also vouch for
         # completeness; 'unknown' and completeness_known are mutually exclusive.
         CheckConstraint(
@@ -73,14 +77,14 @@ class AASourceCoverage(
         ),
     )
 
-    source_id: Mapped[str] = mapped_column(Text, nullable=False)
+    source_id: Mapped[str | None] = mapped_column(Text, nullable=True)
     metric_key: Mapped[str | None] = mapped_column(
         Text, ForeignKey("aa_metric_definitions.metric_key"), nullable=True
     )
     window_start_date: Mapped[date] = mapped_column(Date, nullable=False)
     window_end_date: Mapped[date] = mapped_column(Date, nullable=False)
     timezone: Mapped[str] = mapped_column(Text, nullable=False)
-    coverage_state: Mapped[str] = mapped_column(Text, nullable=False)
+    coverage_state: Mapped[str | None] = mapped_column(Text, nullable=True)
     completeness_known: Mapped[bool] = mapped_column(nullable=False)
     observed_units: Mapped[int | None] = mapped_column(Integer, nullable=True)
     expected_units: Mapped[int | None] = mapped_column(Integer, nullable=True)

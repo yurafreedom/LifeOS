@@ -187,7 +187,12 @@ def aa_integrity_constraints(table: str) -> tuple[Any, ...]:
 
 def aa_value_constraint(table: str) -> CheckConstraint:
     """The per-``value_type`` legality constraint, rendered from the contract."""
-    return CheckConstraint(value_check_sql(), name=f"ck_{table}_value_shape")
+    erased = (
+        "status = 'tombstoned' AND unit_code IS NULL AND value_num IS NULL"
+        " AND value_date IS NULL AND value_text IS NULL AND scale_min IS NULL"
+        " AND scale_max IS NULL"
+    )
+    return CheckConstraint(f"({erased}) OR ({value_check_sql()})", name=f"ck_{table}_value_shape")
 
 
 def aa_value_type_constraint(table: str) -> CheckConstraint:
