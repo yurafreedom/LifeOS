@@ -12,8 +12,9 @@ how many rows happen to exist.
 
 import logging
 from dataclasses import dataclass
-from datetime import date, datetime
+from datetime import date, datetime, time, timedelta
 from uuid import UUID
+from zoneinfo import ZoneInfo
 
 from sqlalchemy import func, select, update
 from sqlalchemy.exc import IntegrityError
@@ -237,12 +238,20 @@ def coverage_report_for_window(
     ]
 
     # Fact statistics colour the report, but never establish coverage.
+    at = as_of or now
+    zone = ZoneInfo(timezone)
+    window_from = datetime.combine(window_start, time.min, tzinfo=zone)
+    window_to = datetime.combine(window_end + timedelta(days=1), time.min, tzinfo=zone)
+    visible = AAMeasurement.superseded_at.is_(None) | (AAMeasurement.superseded_at > at)
     stats = db.execute(
         select(
-            func.count(AAMeasurement.id).filter(AAMeasurement.status == FactStatus.SUPERSEDED),
+            func.count(AAMeasurement.id).filter(
+                AAMeasurement.supersede_kind == SupersedeKind.CORRECTION,
+                AAMeasurement.superseded_at <= at,
+            ),
             func.count(AAMeasurement.id).filter(
                 AAMeasurement.source_kind == SourceKind.ESTIMATED,
-                AAMeasurement.status == FactStatus.ACTIVE,
+                visible,
             ),
             func.count(AAMeasurement.id).filter(
                 AAMeasurement.method == "LEGACY_IMPORT",
@@ -251,6 +260,10 @@ def coverage_report_for_window(
         ).where(
             AAMeasurement.user_id == user_id,
             AAMeasurement.subject_key == subject_key,
+            AAMeasurement.recorded_at <= at,
+            AAMeasurement.occurred_at >= window_from,
+            AAMeasurement.occurred_at < window_to,
+            AAMeasurement.status != FactStatus.TOMBSTONED,
         )
     ).one()
     corrected_count, estimated_count, legacy_count, freshest_recorded_at = stats

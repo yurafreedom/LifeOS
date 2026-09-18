@@ -6,7 +6,18 @@ from starlette.middleware.trustedhost import TrustedHostMiddleware
 from app.config import Settings, get_settings
 from app.db import create_engine_from_settings, create_session_factory
 from app.middleware.body_limit import SnapshotBodyLimitMiddleware
-from app.routes import aa_facts, aa_history, aa_measurements, account, auth, export, health, state
+from app.routes import (
+    aa_comparison,
+    aa_facts,
+    aa_history,
+    aa_measurements,
+    aa_subjects,
+    account,
+    auth,
+    export,
+    health,
+    state,
+)
 
 
 def create_app(
@@ -48,4 +59,6 @@ def create_app(
     app.include_router(export.router)
     app.include_router(account.router)
     app.include_router(aa_facts.router)
+    app.include_router(aa_comparison.router)
+    app.include_router(aa_subjects.router)
     return app

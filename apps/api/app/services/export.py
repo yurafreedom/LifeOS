@@ -19,10 +19,18 @@ from sqlalchemy import select, text
 from sqlalchemy.orm import Session, sessionmaker
 
 from app.models import (
+    AABaseline,
     AADeletionReceipt,
+    AAExpectationVersion,
+    AAForecastVersion,
     AAMeasurement,
     AAMetricDefinition,
+    AAMetricMembershipOverride,
+    AAMetricPolicyVersion,
+    AAObservation,
+    AAPreference,
     AASourceCoverage,
+    AATarget,
     Base,
     User,
     UserSession,
@@ -36,6 +44,14 @@ EXPORT_TABLES = {
     "aa_measurements": AAMeasurement.__table__,
     "aa_source_coverage": AASourceCoverage.__table__,
     "aa_deletion_receipts": AADeletionReceipt.__table__,
+    "aa_expectation_versions": AAExpectationVersion.__table__,
+    "aa_forecast_versions": AAForecastVersion.__table__,
+    "aa_baselines": AABaseline.__table__,
+    "aa_targets": AATarget.__table__,
+    "aa_preferences": AAPreference.__table__,
+    "aa_observations": AAObservation.__table__,
+    "aa_metric_policy_versions": AAMetricPolicyVersion.__table__,
+    "aa_metric_membership_overrides": AAMetricMembershipOverride.__table__,
 }
 
 

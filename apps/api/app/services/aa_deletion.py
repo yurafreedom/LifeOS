@@ -14,11 +14,18 @@ from sqlalchemy import or_, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from app.models import AADeletionReceipt, AAMeasurement, AASourceCoverage
+from app.models import (
+    AADeletionReceipt,
+    AAMeasurement,
+    AAMetricMembershipOverride,
+    AASourceCoverage,
+)
+from app.services.aa_comparison import SEMANTIC_TABLES
 from app.services.aa_facts import AAServiceError, FactNotFoundError
 
 logger = logging.getLogger(__name__)
 FACT_TABLES = {
+    **SEMANTIC_TABLES,
     "aa_measurements": AAMeasurement,
     "aa_source_coverage": AASourceCoverage,
 }
@@ -111,6 +118,17 @@ def delete_fact(
             if linked or row.supersedes_id or row.superseded_by_id:
                 raise DeletionConflictError
             redacted = _redact_provenance(db, user_id, fact_id)
+            if table_name == "aa_measurements":
+                # Typed membership dependencies cascade; redact references to
+                # those IDs too, before the database removes them.
+                dependents = db.scalars(
+                    select(AAMetricMembershipOverride.id).where(
+                        AAMetricMembershipOverride.user_id == user_id,
+                        AAMetricMembershipOverride.source_fact_id == fact_id,
+                    )
+                )
+                for dependent_id in dependents:
+                    redacted += _redact_provenance(db, user_id, dependent_id)
             redact_source_context(db, user_id, table_name, fact_id)
             db.delete(row)
             receipt = AADeletionReceipt(
@@ -129,13 +147,16 @@ def delete_fact(
             row.status = "tombstoned"
             row.tombstoned_at = row.tombstoned_at or now
             row.basis = row.method = row.source_ref = row.supersede_reason = None
-            if isinstance(row, AAMeasurement):
+            if hasattr(row, "value_type"):
                 row.unit_code = row.value_num = row.value_date = row.value_text = None
                 row.scale_min = row.scale_max = row.dimensions = None
-            else:
+            elif isinstance(row, AASourceCoverage):
                 row.source_id = row.coverage_state = None
                 row.observed_units = row.expected_units = None
                 row.completeness_known = False
+            for field in ("statement", "desired_direction", "policy", "included"):
+                if hasattr(row, field):
+                    setattr(row, field, None)
             result = {
                 "table_name": table_name,
                 "fact_id": str(fact_id),
