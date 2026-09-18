@@ -13,7 +13,7 @@ from dataclasses import dataclass
 from decimal import Decimal
 
 from app.analytics.enums import ValueType
-from app.analytics.values import CANONICAL_DURATION_UNIT, FactValue
+from app.analytics.values import CANONICAL_DURATION_UNIT, FactValue, validate_value
 
 MINUTES_PER_DAY = Decimal(24 * 60)
 
@@ -50,6 +50,9 @@ def compute_delta(current: FactValue | None, reference: FactValue | None) -> Del
     """Subtract ``reference`` from ``current`` when the pair is legal."""
     if current is None or reference is None:
         return DeltaUnknown(reason="operand_absent")
+
+    validate_value(current)
+    validate_value(reference)
 
     current_type = ValueType(current.value_type)
     reference_type = ValueType(reference.value_type)

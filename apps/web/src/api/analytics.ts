@@ -1,4 +1,5 @@
 import { requestJson } from './client';
+import type { DerivedDelta } from '../analytics/delta';
 
 export type AAValueType = 'money' | 'date' | 'duration' | 'count' | 'scale' | 'categorical';
 
@@ -104,12 +105,13 @@ export type AAMetricHistory = {
   range_to: string;
   as_of: string | null;
   actual: AAMeasurement[];
-  expectations: AAMeasurement[];
-  forecasts: AAMeasurement[];
-  baselines: AAMeasurement[];
+  expectations: AASemanticFact[];
+  forecasts: AASemanticFact[];
+  baselines: AASemanticFact[];
   events: AAMeasurement[];
   coverage: AACoverageReport | null;
   next_cursor: string | null;
+  layer_cursors: Record<string, string | null>;
 };
 
 export type AAFactProvenance = {
@@ -152,6 +154,10 @@ export type MetricHistoryQuery = {
   timezone?: string;
   cursor?: string;
   limit?: number;
+  expectationCursor?: string;
+  forecastCursor?: string;
+  baselineCursor?: string;
+  layers?: Array<'actual' | 'expectations' | 'forecasts' | 'baselines' | 'events'>;
 };
 
 export function recordMeasurement(input: RecordMeasurementInput): Promise<AAMeasurement> {
@@ -184,6 +190,10 @@ export function getMetricHistory(
   if (query.timezone != null) params.set('timezone', query.timezone);
   if (query.cursor != null) params.set('cursor', query.cursor);
   if (query.limit != null) params.set('limit', String(query.limit));
+  if (query.expectationCursor != null) params.set('expectation_cursor', query.expectationCursor);
+  if (query.forecastCursor != null) params.set('forecast_cursor', query.forecastCursor);
+  if (query.baselineCursor != null) params.set('baseline_cursor', query.baselineCursor);
+  if (query.layers != null) params.set('layers', query.layers.join(','));
   return requestJson<AAMetricHistory>(
     `/api/v1/aa/metrics/${encodeURIComponent(metricKey)}/history?${params.toString()}`,
     { signal },
@@ -199,4 +209,70 @@ export function getFactProvenance(
     `/api/v1/aa/facts/${encodeURIComponent(factTable)}/${encodeURIComponent(factId)}/provenance`,
     { signal },
   );
+}
+
+export type SemanticConcept = 'expectation' | 'forecast' | 'baseline' | 'target' | 'preference' | 'observation';
+export type DesiredDirection = 'higher' | 'lower';
+export type EpistemicKind = 'observed' | 'mine' | 'maybe' | 'unknown';
+export type AASemanticFact = {
+  id: string; concept: SemanticConcept; fact_table: string; subject_key: string;
+  metric_key: string | null; value: AAValue | null; value_type: AAValueType | null;
+  dimensions: Record<string, unknown> | null; provenance: AAProvenance; status: AAFactStatus;
+  supersedes_id: string | null; superseded_by_id: string | null;
+  superseded_at: string | null; supersede_kind: 'CORRECTION' | 'REVISION' | null;
+  supersede_reason: string | null; effective_from: string | null; horizon_at: string | null;
+  window_start: string | null; window_end: string | null; timezone: string | null;
+  occurred_at: string | null; occurred_tz: string | null;
+  is_explicitly_absent: boolean | null; desired_direction: DesiredDirection | null;
+  statement: string | null; epistemic_kind: EpistemicKind | null;
+  value_availability: 'present' | 'explicitly_unknown' | null;
+};
+export type AAComparison = {
+  metric_key: string | null; current_concept: 'actual' | 'forecast' | 'observation' | null;
+  current_id: string | null; reference_concept: 'expectation' | 'baseline' | null;
+  reference_id: string | null; availability: 'present' | 'no_data' | 'insufficient_data';
+  delta: DerivedDelta; desire: 'neutral' | 'favorable' | 'unfavorable' | 'unknown';
+  grounding_id: string | null; grounding_kind: 'target' | 'preference' | 'decision' | null;
+  coverage: AACoverageReport | null;
+};
+export type AASubjectSummary = {
+  subject_key: string; as_of: string; truncated: boolean; actual: AAMeasurement[];
+  expectations: AASemanticFact[]; forecasts: AASemanticFact[]; baselines: AASemanticFact[];
+  targets: AASemanticFact[]; preferences: AASemanticFact[]; observations: AASemanticFact[];
+  comparisons: AAComparison[];
+};
+type SemanticInput = { subject: AASubject; metric_key?: string | null; provenance: AAProvenanceInput; idempotency_key: string };
+type ValueInput = SemanticInput & { value: AAValue; dimensions?: Record<string, unknown> | null };
+type WindowInput = { window_start: string; window_end: string; timezone: string };
+export type RecordExpectationInput = ValueInput & WindowInput & { effective_from: string };
+export type RecordForecastInput = ValueInput & { horizon_at: string };
+export type RecordBaselineInput = ValueInput & WindowInput;
+export type RecordTargetInput = SemanticInput & WindowInput & { desired_direction: DesiredDirection; declared_value_type?: AAValueType; dimensions?: Record<string, unknown> | null } & (
+  { value: AAValue; is_explicitly_absent?: false } | { value?: null; is_explicitly_absent: true }
+);
+export type RecordPreferenceInput = SemanticInput & { statement: string; desired_direction: DesiredDirection; effective_from: string };
+export type RecordObservationInput = SemanticInput & { epistemic_kind?: EpistemicKind; occurred_at: string; occurred_tz: string; dimensions?: Record<string, unknown> | null; declared_value_type?: AAValueType } & (
+  { value: AAValue; value_availability?: 'present' } | { value?: null; value_availability: 'explicitly_unknown' }
+);
+
+function postSemantic(path: string, input: object): Promise<AASemanticFact> {
+  return requestJson<AASemanticFact>(`/api/v1/aa/${path}`, { method: 'POST', body: JSON.stringify(input) });
+}
+export const recordExpectation = (input: RecordExpectationInput) => postSemantic('expectations', input);
+export const recordForecast = (input: RecordForecastInput) => postSemantic('forecasts', input);
+export const recordBaseline = (input: RecordBaselineInput) => postSemantic('baselines', input);
+export const recordTarget = (input: RecordTargetInput) => postSemantic('targets', input);
+export const recordPreference = (input: RecordPreferenceInput) => postSemantic('preferences', input);
+export const recordObservation = (input: RecordObservationInput) => postSemantic('observations', input);
+
+export function getSubjectSummary(key: string, query: { asOf?: string; metricKey?: string } = {}, signal?: AbortSignal): Promise<AASubjectSummary> {
+  const params = new URLSearchParams();
+  if (query.asOf) params.set('as_of', query.asOf);
+  if (query.metricKey) params.set('metric_key', query.metricKey);
+  return requestJson<AASubjectSummary>(`/api/v1/aa/subjects/${encodeURIComponent(key)}/summary?${params}`, { signal });
+}
+export function getSubjectCoverage(key: string, query: { from: string; to: string; timezone: string; asOf?: string }, signal?: AbortSignal): Promise<AACoverageReport> {
+  const params = new URLSearchParams({ from: query.from, to: query.to, timezone: query.timezone });
+  if (query.asOf) params.set('as_of', query.asOf);
+  return requestJson<AACoverageReport>(`/api/v1/aa/subjects/${encodeURIComponent(key)}/coverage?${params}`, { signal });
 }

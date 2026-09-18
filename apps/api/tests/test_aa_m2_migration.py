@@ -26,6 +26,8 @@ def protected_schema(engine):
 
 
 def test_m2_empty_disposable_roundtrip_preserves_pre_aa_schema(engine, test_database_url):
+    with engine.connect() as connection:
+        original_head = connection.scalar(text("SELECT version_num FROM alembic_version"))
     with engine.begin() as connection:
         for name in ("aa_measurements", "aa_source_coverage", "aa_deletion_receipts"):
             assert connection.scalar(text(f"SELECT count(*) FROM {name}")) == 0
@@ -42,8 +44,8 @@ def test_m2_empty_disposable_roundtrip_preserves_pre_aa_schema(engine, test_data
                 == "20260909_0002"
             )
     finally:
-        command.upgrade(config, "20260909_0003")
+        command.upgrade(config, original_head)
     assert protected_schema(engine) == before
     with engine.begin() as connection:
-        assert connection.scalar(text("SELECT version_num FROM alembic_version")) == "20260909_0003"
+        assert connection.scalar(text("SELECT version_num FROM alembic_version")) == original_head
     assert "aa_deletion_receipts" in inspect(engine).get_table_names()

@@ -68,7 +68,7 @@ def test_export_all_statuses_chains_snapshot_receipts_and_coverage(
     response = client.get("/api/v1/export")
     manifest, tables = read_export(response)
     assert set(EXPORT_TABLES) <= tables.keys()
-    assert manifest["alembic_revision"] == "20260909_0003"
+    assert manifest["alembic_revision"] == "20260910_0004"
     assert manifest["snapshot_schema_version"] == 2
     assert tables["user_snapshots"][0]["revision"] == 3
     assert tables["user_snapshots"][0]["payload"]["private"] == "current snapshot"

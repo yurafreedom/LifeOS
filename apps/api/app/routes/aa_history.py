@@ -20,25 +20,29 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query, status
 from fastapi.responses import JSONResponse
+from sqlalchemy import select, tuple_
 from sqlalchemy.orm import Session
 
+from app.analytics.asof import apply_as_of
 from app.analytics.subjects import InvalidSubjectError, parse_subject_key
 from app.db import get_db
 from app.dependencies import get_current_user
 from app.models import User
 from app.schemas.aa_common import ProvenanceOut
+from app.schemas.aa_comparison import SemanticOut
 from app.schemas.aa_measurement import (
     CoverageReportOut,
     FactProvenanceOut,
     MeasurementOut,
     MetricHistoryOut,
 )
+from app.services.aa_comparison import CONCEPT_MODELS
 from app.services.aa_coverage_claims import coverage_report_for_window
+from app.services.aa_deletion import FACT_TABLES
 from app.services.aa_facts import (
     DEFAULT_HISTORY_LIMIT,
     MAX_HISTORY_LIMIT,
     AAServiceError,
-    get_measurement,
     read_history,
 )
 
@@ -47,7 +51,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/v1/aa", tags=["adaptive-analytics"])
 
 # Only tables that exist in this slice may be addressed by name.
-PROVENANCE_TABLES = frozenset({"aa_measurements"})
+PROVENANCE_TABLES = frozenset(FACT_TABLES)
 
 
 def _bad_request(code: str, message: str) -> JSONResponse:
@@ -65,16 +69,21 @@ def _not_found() -> JSONResponse:
     )
 
 
-def encode_cursor(occurred_at: datetime, fact_id: UUID) -> str:
-    payload = json.dumps({"occurred_at": occurred_at.isoformat(), "id": str(fact_id)})
+def encode_cursor(time: datetime, fact_id: UUID, *, time_field: str = "occurred_at") -> str:
+    payload = json.dumps({time_field: time.isoformat(), "id": str(fact_id)})
     return base64.urlsafe_b64encode(payload.encode()).decode()
 
 
-def decode_cursor(cursor: str) -> tuple[datetime, UUID]:
+def decode_cursor(cursor: str, *, time_field: str = "occurred_at") -> tuple[datetime, UUID]:
     try:
         payload = json.loads(base64.urlsafe_b64decode(cursor.encode()))
-        return datetime.fromisoformat(payload["occurred_at"]), UUID(payload["id"])
-    except (ValueError, KeyError, binascii.Error) as error:
+        if not isinstance(payload, dict) or set(payload) != {time_field, "id"}:
+            raise ValueError("invalid cursor fields")
+        time = datetime.fromisoformat(payload[time_field])
+        if time.tzinfo is None:
+            raise ValueError("cursor time requires an offset")
+        return time, UUID(payload["id"])
+    except (ValueError, KeyError, TypeError, AttributeError, binascii.Error) as error:
         raise ValueError("invalid cursor") from error
 
 
@@ -92,11 +101,24 @@ def read_metric_history(
     timezone: Annotated[str, Query()] = "UTC",
     cursor: Annotated[str | None, Query()] = None,
     limit: Annotated[int, Query(ge=1, le=MAX_HISTORY_LIMIT)] = DEFAULT_HISTORY_LIMIT,
+    expectation_cursor: str | None = None,
+    forecast_cursor: str | None = None,
+    baseline_cursor: str | None = None,
+    layers: str | None = None,
 ):
     if range_from is None or range_to is None:
         return _bad_request("range_required", "Both 'from' and 'to' are required.")
+    if any(time is not None and time.tzinfo is None for time in (range_from, range_to, as_of)):
+        return _bad_request("invalid_time", "History timestamps require offsets.")
     if range_to < range_from:
         return _bad_request("range_required", "'to' must not precede 'from'.")
+    wanted = (
+        {"actual", "expectations", "forecasts", "baselines", "events"}
+        if layers is None
+        else set(layers.split(","))
+    )
+    if not wanted <= {"actual", "expectations", "forecasts", "baselines", "events"}:
+        return _bad_request("invalid_layers", "Unknown history layer.")
 
     subject_key: str | None = None
     if subject is not None:
@@ -154,18 +176,66 @@ def read_metric_history(
             reason=report.reason,
         )
 
-    next_cursor = (
-        encode_cursor(rows[-1].occurred_at, rows[-1].id) if len(rows) == limit else None
-    )
+    next_cursor = encode_cursor(rows[-1].occurred_at, rows[-1].id) if len(rows) == limit else None
+    semantic_layers = {}
+    layer_cursors = {}
+    for concept, raw_cursor in (
+        ("expectation", expectation_cursor),
+        ("forecast", forecast_cursor),
+        ("baseline", baseline_cursor),
+    ):
+        name = {"expectation": "expectations", "forecast": "forecasts", "baseline": "baselines"}[
+            concept
+        ]
+        if name not in wanted:
+            semantic_layers[name] = []
+            layer_cursors[name] = None
+            continue
+        model = CONCEPT_MODELS[concept]
+        query = select(model).where(
+            model.user_id == user.id,
+            model.metric_key == metric_key,
+            model.recorded_at >= range_from,
+            model.recorded_at <= range_to,
+            model.status != "tombstoned",
+        )
+        if subject_key:
+            query = query.where(model.subject_key == subject_key)
+        if as_of is not None:
+            query = apply_as_of(query, model, as_of)
+            if hasattr(model, "effective_from"):
+                query = query.where(model.effective_from <= as_of)
+        if raw_cursor:
+            try:
+                time, fact_id = decode_cursor(raw_cursor, time_field="recorded_at")
+                query = query.where(tuple_(model.recorded_at, model.id) < tuple_(time, fact_id))
+            except ValueError:
+                return _bad_request("invalid_cursor", "Layer cursor is not readable.")
+        versions = db.scalars(
+            query.order_by(model.recorded_at.desc(), model.id.desc()).limit(limit + 1)
+        ).all()
+        name = {"expectation": "expectations", "forecast": "forecasts", "baseline": "baselines"}[
+            concept
+        ]
+        semantic_layers[name] = [SemanticOut.from_row(row, concept) for row in versions[:limit]]
+        layer_cursors[name] = (
+            encode_cursor(
+                versions[limit - 1].recorded_at, versions[limit - 1].id, time_field="recorded_at"
+            )
+            if len(versions) > limit
+            else None
+        )
     return MetricHistoryOut(
         metric_key=metric_key,
         subject_key=subject_key,
         range_from=range_from,
         range_to=range_to,
         as_of=as_of,
-        actual=[MeasurementOut.from_row(row) for row in rows],
+        actual=[MeasurementOut.from_row(row) for row in rows] if "actual" in wanted else [],
         coverage=coverage,
-        next_cursor=next_cursor,
+        next_cursor=next_cursor if "actual" in wanted else None,
+        **semantic_layers,
+        layer_cursors=layer_cursors,
     )
 
 
@@ -179,7 +249,10 @@ def read_fact_provenance(
     if fact_table not in PROVENANCE_TABLES:
         return _not_found()
     try:
-        row = get_measurement(db, user_id=user.id, measurement_id=fact_id)
+        model = FACT_TABLES[fact_table]
+        row = db.scalar(select(model).where(model.user_id == user.id, model.id == fact_id))
+        if row is None:
+            return _not_found()
     except AAServiceError:
         return _not_found()
 

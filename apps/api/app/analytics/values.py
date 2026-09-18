@@ -79,14 +79,25 @@ def validate_value(value: FactValue) -> FactValue:
 
     for column in REQUIRED_COLUMNS[value_type]:
         if present[column] is None:
-            raise InvalidValueError(
-                value_type, column, f"{value_type} requires {column}"
-            )
+            raise InvalidValueError(value_type, column, f"{value_type} requires {column}")
     for column in FORBIDDEN_COLUMNS[value_type]:
         if present[column] is not None:
-            raise InvalidValueError(
-                value_type, column, f"{value_type} must not carry {column}"
-            )
+            raise InvalidValueError(value_type, column, f"{value_type} must not carry {column}")
+
+    # Reject lossy storage rounding/overflow at the shared boundary, before SQL.
+    # Frontend mirrors this fixed-point numeric(20,6) domain.
+    for column in ("value_num", "scale_min", "scale_max"):
+        number = present[column]
+        if number is not None:
+            if not isinstance(number, Decimal) or not number.is_finite():
+                raise InvalidValueError(value_type, column, "requires a finite Decimal")
+            if (
+                abs(number) >= Decimal("100000000000000")
+                or number.normalize().as_tuple().exponent < -6
+            ):
+                raise InvalidValueError(
+                    value_type, column, "must fit numeric(20,6) without rounding"
+                )
 
     if value_type is ValueType.MONEY:
         if not CURRENCY_PATTERN.match(value.unit_code or ""):

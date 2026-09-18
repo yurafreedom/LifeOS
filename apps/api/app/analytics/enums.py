@@ -30,6 +30,23 @@ class ValueType(StrEnum):
     CATEGORICAL = "categorical"
 
 
+class DesiredDirection(StrEnum):
+    HIGHER = "higher"
+    LOWER = "lower"
+
+
+class EpistemicKind(StrEnum):
+    OBSERVED = "observed"
+    MINE = "mine"
+    MAYBE = "maybe"
+    UNKNOWN = "unknown"
+
+
+class ObservationAvailability(StrEnum):
+    PRESENT = "present"
+    EXPLICITLY_UNKNOWN = "explicitly_unknown"
+
+
 class SourceKind(StrEnum):
     """Value provenance — where the value came from.
 

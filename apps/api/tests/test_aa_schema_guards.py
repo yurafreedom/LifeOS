@@ -26,7 +26,7 @@ from app.analytics.enums import (
 from app.models import Base
 from tests.conftest import SEEDED_TABLES, TRUNCATED_TABLES
 
-AA_TABLES = ("aa_metric_definitions", "aa_measurements", "aa_source_coverage")
+AA_TABLES = tuple(name for name in Base.metadata.tables if name.startswith("aa_"))
 
 QUOTED = re.compile(r"'([^']*)'")
 
@@ -88,7 +88,7 @@ def test_all_analytics_tables_exist_with_a_cascade_from_users(engine: Engine) ->
         }
     assert set(AA_TABLES) <= present
     # The metric catalogue is reference data and is not account-owned.
-    assert {"aa_measurements", "aa_source_coverage"} <= cascading
+    assert set(AA_TABLES) - {"aa_metric_definitions"} <= cascading
 
 
 @pytest.mark.parametrize(

@@ -20,6 +20,7 @@ from app.schemas.aa_common import (
     ValueOut,
     validate_timezone,
 )
+from app.schemas.aa_comparison import SemanticOut
 
 TimezoneName = Annotated[str, Field(min_length=1, max_length=64)]
 
@@ -138,8 +139,8 @@ class MetricHistoryOut(BaseModel):
 
     Each layer is its own array. An Actual is never mixed into the forecast
     list, so "how many forecast versions" needs no filter to be correct. The
-    layers beyond ``actual`` have no storage yet and are always empty here;
-    their tables arrive with the semantic-comparison slice.
+    semantic layers use their own storage and keyset cursors. ``events`` remains
+    empty until its later slice; it is never used for fabricated history.
     """
 
     model_config = ConfigDict(extra="forbid")
@@ -150,12 +151,13 @@ class MetricHistoryOut(BaseModel):
     range_to: datetime
     as_of: datetime | None
     actual: list[MeasurementOut]
-    expectations: list[MeasurementOut] = Field(default_factory=list)
-    forecasts: list[MeasurementOut] = Field(default_factory=list)
-    baselines: list[MeasurementOut] = Field(default_factory=list)
+    expectations: list[SemanticOut] = Field(default_factory=list)
+    forecasts: list[SemanticOut] = Field(default_factory=list)
+    baselines: list[SemanticOut] = Field(default_factory=list)
     events: list[MeasurementOut] = Field(default_factory=list)
     coverage: CoverageReportOut | None
     next_cursor: str | None
+    layer_cursors: dict[str, str | None] = Field(default_factory=dict)
 
 
 class FactProvenanceOut(BaseModel):
