@@ -1,6 +1,7 @@
 import React from 'react';
 import { GoalsWidget } from '../components/GoalsWidget.jsx';
 import { HabitsGrid } from '../components/HabitsGrid.jsx';
+import { PageHeader } from '../components/HeroVignette.jsx';
 import { LifeDataContext } from '../context/LifeDataContext.jsx';
 import { LifeLocaleContext } from '../context/LocaleContext.jsx';
 
@@ -16,11 +17,7 @@ function HabitsPage({ emptyMode }) {
   const data = useCtxHP(LifeDataContext);
   return (
     <div className="page">
-      <header className="page-head">
-        <div className="page-head-left">
-          <h2 className="page-title">{t('habits_title')}</h2>
-        </div>
-      </header>
+      <PageHeader title={t('habits_title')} />
       <HabitsGrid habits={emptyMode ? [] : (data.state.habits || [])} onToggle={data.toggleHabitToday} />
     </div>
   );
@@ -32,11 +29,7 @@ function GoalsPage({ emptyMode }) {
   const goals = emptyMode ? [] : (data.state.goals || []);
   return (
     <div className="page">
-      <header className="page-head">
-        <div className="page-head-left">
-          <h2 className="page-title">{t('goals_title')}</h2>
-        </div>
-      </header>
+      <PageHeader title={t('goals_title')} />
       <GoalsWidget goals={goals} onAddGoal={data.addGoal} />
     </div>
   );

@@ -1,5 +1,6 @@
 import React from 'react';
 import { ActivityTimeline } from '../components/ActivityTimeline.jsx';
+import { PageHeader } from '../components/HeroVignette.jsx';
 import { LIcons } from '../components/icons.jsx';
 import { LifeDataContext } from '../context/LifeDataContext.jsx';
 import { LifeLocaleContext } from '../context/LocaleContext.jsx';
@@ -88,12 +89,10 @@ function MedicationsPage() {
 
   return (
     <div className="page meds-page">
-      <header className="page-head">
-        <div className="page-head-left">
-          <h2 className="page-title">{t('meds_title')}</h2>
-          <div className="page-sub mono">{filtered.length} · {viewLabel(view, t)}</div>
-        </div>
-        <div className="meds-view-tabs">
+      <PageHeader
+        title={t('meds_title')}
+        subtitle={<>{filtered.length} · {viewLabel(view, t)}</>}
+        aside={<div className="meds-view-tabs">
           {['list','journal','history'].map(v => (
             <button key={v}
               className={"meds-view-tab mono" + (view === v ? " is-on" : "")}
@@ -101,8 +100,8 @@ function MedicationsPage() {
               {viewLabel(v, t)}
             </button>
           ))}
-        </div>
-      </header>
+        </div>}
+      />
 
       {view === 'list' && (
         <React.Fragment>

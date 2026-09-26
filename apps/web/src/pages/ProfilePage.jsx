@@ -1,4 +1,5 @@
 import React from 'react';
+import { PageHeader } from '../components/HeroVignette.jsx';
 import { LifeLocaleContext } from '../context/LocaleContext.jsx';
 import { BodyMetricsCard } from '../profile/cards/BodyMetricsCard.jsx';
 import { ClothingSizesCard } from '../profile/cards/ClothingSizesCard.jsx';
@@ -27,12 +28,7 @@ function ProfilePage({ profile, onUpdate }) {
 
   return (
     <div className="page profile-page">
-      <header className="page-head">
-        <div className="page-head-left">
-          <h2 className="page-title">{t('profile_title')}</h2>
-          <div className="page-sub mono">{t('profile_subtitle')}</div>
-        </div>
-      </header>
+      <PageHeader title={t('profile_title')} subtitle={t('profile_subtitle')} />
 
       <div className="profile-cards">
         {CARDS.map(c => {

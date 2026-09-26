@@ -1,5 +1,6 @@
 import React from 'react';
 import { EyeToggle } from '../components/EyeToggle.jsx';
+import { PageHeader } from '../components/HeroVignette.jsx';
 import { LIcons } from '../components/icons.jsx';
 import { LifeDataContext } from '../context/LifeDataContext.jsx';
 import { LifeLocaleContext, LifeStrings } from '../context/LocaleContext.jsx';
@@ -103,14 +104,10 @@ function FinancesPage({ emptyMode }) {
 
   return (
     <div className="page fin-page">
-      <header className="page-head">
-        <div className="page-head-left">
-          <h2 className="page-title">{t('money_title')}</h2>
-          <div className="page-sub mono">
-            {t('fin_subtitle', txList.length, '$' + fmt(inTotals))} · {t('fin_period', monthShort)}
-          </div>
-        </div>
-      </header>
+      <PageHeader
+        title={t('money_title')}
+        subtitle={<>{t('fin_subtitle', txList.length, '$' + fmt(inTotals))} · {t('fin_period', monthShort)}</>}
+      />
 
       {/* budget summary */}
       <section className={"card panel fin-summary" + (over ? ' is-over' : warn ? ' is-warn' : '')}>
