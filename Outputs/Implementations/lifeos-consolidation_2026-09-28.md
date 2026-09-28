@@ -141,8 +141,58 @@ top-level packages. Validation therefore installed the exact declared runtime
 and dev dependency versions directly. No packaging or dependency manifest was
 changed in this consolidation.
 
-## Post-push cleanup checkpoint
+## Post-push cleanup completed
 
-Obsolete linked worktrees and fully merged local/remote branches are removed
-only after this preservation commit is pushed. Their final inventory is added
-to this report in a follow-up consolidation commit on the same PR.
+The preservation commit was pushed and PR #8 was opened before linked-worktree
+removal.
+
+Registered LifeOS worktrees changed from 10 to 1. Removed after individual
+cleanliness and `origin/main` ancestry checks:
+
+- `LifeOS-adaptive-analytics-slice-0`;
+- `LifeOS-adaptive-analytics-slice-0b`;
+- `LifeOS-adaptive-analytics-slice-1`;
+- `LifeOS-adaptive-analytics-slice-2`;
+- `LifeOS-adaptive-analytics-slice-p`;
+- `LifeOS-design-handoff-clarify-hero`;
+- `LifeOS-design-handoff-clarify-panel`;
+- `LifeOS-design-handoff-hero-vignette`;
+- `LifeOS_DesignSystem-adaptive-analytics-import`.
+
+The Slice P master context was byte-compared with its preservation copy before
+its untracked source was removed. The import worktree had only the authorized
+`.DS_Store` modification; that file alone was restored before removal.
+
+Fully merged local branches removed with `git branch -d`:
+
+- `design-sync-setup`;
+- `design/adaptive-analytics-import`;
+- `feat/adaptive-analytics-slice-0`;
+- `feat/adaptive-analytics-slice-0b`;
+- `feat/adaptive-analytics-slice-1`;
+- `feat/adaptive-analytics-slice-2`;
+- `feat/adaptive-analytics-slice-p`;
+- `feat/design-handoff-clarify-hero`;
+- `feat/design-handoff-clarify-panel`;
+- `feat/design-handoff-hero-vignette`.
+
+Remote branches removed only after each branch had zero commits outside
+`origin/main` and zero open PRs:
+
+- `design-sync-setup`;
+- `design/adaptive-analytics-import`;
+- `feat/adaptive-analytics-slice-0`;
+- `feat/adaptive-analytics-slice-0b`;
+- `feat/adaptive-analytics-slice-1`;
+- `feat/adaptive-analytics-slice-2`;
+- `feat/adaptive-analytics-slice-p`;
+- `feat/design-handoff-hero-vignette`.
+
+Local `main` was fast-forwarded to `3570426a80988f2715f48bb9a12261d3ee122056`.
+No tag was moved. No force push, squash, rebase, deployment, application code,
+runtime database schema, or production data change occurred.
+
+After validation, regenerated venv, `node_modules`, build output and caches were
+removed again. The final canonical checkout is approximately 107,216 KB. The
+nine retired worktrees accounted for 1,904,540 KB; together with classified
+generated cleanup, approximate reclaimed disk space is 2,150,320 KB (2.05 GiB).

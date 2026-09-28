@@ -80,4 +80,4 @@
 - **Complexity:** heavy
 - **Phases used:** discovery, owner-decision resolution, implementation, full verification
 - **Blockers / rework:** backend editable install remains unsupported by existing setuptools package discovery; exact declared dependencies were installed directly for validation
-- **Summary:** Preserved and classified 1,138 untracked paths, separated Consensu and archival exports, consolidated project context and agent instructions, removed only verified generated material and Finder metadata, validated the full backend/frontend suite, and prepared retirement of obsolete worktrees and merged branches after remote preservation.
+- **Summary:** Preserved and classified 1,138 untracked paths, separated Consensu and archival exports, consolidated project context and agent instructions, removed only verified generated material and Finder metadata, validated the full backend/frontend suite, then retired nine obsolete worktrees plus fully merged local/remote branches after remote preservation.
