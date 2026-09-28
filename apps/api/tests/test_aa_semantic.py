@@ -547,7 +547,12 @@ def test_m3_empty_roundtrip_and_registry_schema_parity(engine, test_database_url
             assert connection.scalar(text(f"SELECT count(*) FROM {name}")) == 0
     config = Config(str(Path(__file__).parents[1] / "alembic.ini"))
     config.set_main_option("sqlalchemy.url", test_database_url)
-    assert ScriptDirectory.from_config(config).get_heads() == ["20260910_0004"]
+    # M3 is no longer the newest migration, so this asserts its position in the
+    # chain rather than that it is head: what matters to M3 is that it still sits
+    # directly on M2 and still downgrades cleanly off it.
+    assert ScriptDirectory.from_config(config).get_revision(
+        "20260910_0004"
+    ).down_revision == "20260909_0003"
     command.downgrade(config, "20260909_0003")
     try:
         assert not (set(SEMANTIC_TABLES) & set(inspect(engine).get_table_names()))
@@ -642,7 +647,7 @@ def test_export_account_delete_and_all_eight_new_tables(
         seed_policy_and_override(db, other.user_id, UUID(other_fact["id"]))
     authenticate(client, settings, owner)
     manifest, tables = read_export(client.get("/api/v1/export"))
-    assert manifest["alembic_revision"] == "20260910_0004"
+    assert manifest["alembic_revision"] == "20260928_0005"
     for name in SEMANTIC_TABLES:
         assert len(tables[name]) == 1 and tables[name][0]["user_id"] == str(owner.user_id)
     assert (

@@ -27,6 +27,12 @@ function AnalyticsProvider({ user, children }) {
     phase: 'idle', pending: 0, failed: 0, last_error: null, failures: [],
   });
   const [finance, setFinance] = React.useState({ data: null, loading: false, error: null });
+  /* Signals are a read of derived state, not part of the durable write queue: a
+     dismissal that cannot reach the server must fail visibly rather than queue
+     silently, because the card staying put is the honest outcome. */
+  const [signals, setSignals] = React.useState({
+    data: null, loading: false, error: null, dismissing: null,
+  });
   const [ready, setReady] = React.useState(false);
   const queueRef = React.useRef(null);
   const repositoryRef = React.useRef(null);
@@ -174,6 +180,36 @@ function AnalyticsProvider({ user, children }) {
     }
   }
 
+  async function loadSignals(signal) {
+    if (!repositoryRef.current) return null;
+    setSignals(previous => ({ ...previous, loading: true, error: null }));
+    try {
+      const data = await repositoryRef.current.readSignals({ timezone: 'Europe/Kyiv' }, signal);
+      setSignals({ data, loading: false, error: null, dismissing: null });
+      return data;
+    } catch (error) {
+      if (error?.name !== 'AbortError') {
+        setSignals(previous => ({ ...previous, loading: false, error }));
+      }
+      throw error;
+    }
+  }
+
+  /* Acknowledgement is recorded against the episode, then the list is re-read so
+     what the user sees is the server's state and not an optimistic guess. */
+  async function acknowledgeSignal(episodeKey, inputFingerprint) {
+    if (!repositoryRef.current) throw new Error('Analytics repository is unavailable.');
+    setSignals(previous => ({ ...previous, dismissing: episodeKey, error: null }));
+    try {
+      const episode = await repositoryRef.current.acknowledgeSignal(episodeKey, inputFingerprint);
+      await loadSignals();
+      return episode;
+    } catch (error) {
+      setSignals(previous => ({ ...previous, dismissing: null, error }));
+      throw error;
+    }
+  }
+
   async function importLegacy() {
     if (!repositoryRef.current) throw new Error('Analytics repository is unavailable.');
     const result = await repositoryRef.current.importLegacyTransactions('Europe/Kyiv');
@@ -200,6 +236,7 @@ function AnalyticsProvider({ user, children }) {
     ready,
     sync,
     finance,
+    signals,
     enqueueTransaction,
     enqueueProjectForecast,
     enqueueProjectCompletion,
@@ -209,12 +246,14 @@ function AnalyticsProvider({ user, children }) {
     enqueueExpectation,
     enqueueAbsentTarget,
     loadFinance,
+    loadSignals,
+    acknowledgeSignal,
     importLegacy,
     discardQueueFailure,
     exportQueueFailure,
     flush: () => coordinatorRef.current?.flush(),
     currentPeriod,
-  }), [sync, finance, ready, user.id]);
+  }), [sync, finance, signals, ready, user.id]);
 
   return <AnalyticsContext.Provider value={value}>{children}</AnalyticsContext.Provider>;
 }

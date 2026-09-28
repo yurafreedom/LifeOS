@@ -642,7 +642,8 @@ AA semantic comparison
 
 Current single Alembic head:
 
-20260910_0004
+20260928_0005
+(M4 · aa_signal_episodes · Slice 3; down_revision 20260910_0004)
 
 M3 added concept tables including:
 
@@ -1243,7 +1244,17 @@ If checking it, prefer the object SHA rather than assuming stash numbering.
 Only remove it after explicit owner authorization.
 
 ====================================================================
-31. CLARIFY DESIGN HANDOFF — NEXT MAJOR TASK
+31. CLARIFY DESIGN HANDOFF — COMPLETED (PR #9)
+====================================================================
+
+Clarify was implemented, validated and merged. It introduced waitingItems[] and
+references[] inside snapshot v2 with no backend/schema change. Those decisions
+are settled; the section below is retained as the accepted design context.
+
+Implementation report:
+
+Outputs/Implementations/
+lifeos-design-handoff-clarify-panel_20260928-120853.md
 ====================================================================
 
 Raw design source:
@@ -1488,15 +1499,16 @@ PRE-0 ✅
 Hero integration ✅
 2 ✅
 P ✅
+Clarify Panel ✅
+3 ✅
 
-NEXT PRODUCT INTEGRATION:
+NEXT SLICE:
 
-Clarify Panel
+Slice 4 — Adaptive Review / Debrief
 
 Then, unless the owner changes priorities:
 
-Slice 3
-→ Slice 4
+Slice 4
 → Slice 5
 → Slice 6
 → Slice 7
@@ -1505,35 +1517,59 @@ Slice 3
 Do not implement a later slice merely because its prerequisites exist.
 
 ====================================================================
-37. SLICE 3 — FUTURE, NOT STARTED
+37. SLICE 3 — SIGNALS + HOME — COMPLETED
 ====================================================================
 
-Slice 3 introduces Signals.
+Slice 3 introduced Signals and Home's quiet 0–3 signal section.
 
-Expected M4 belongs here.
+Implementation report:
 
-Concepts include:
+Outputs/Implementations/
+lifeos-adaptive-analytics-slice-3_20260928-151155.md
+
+Migration M4 landed here:
+
+20260928_0005_aa_signal_episodes   (down_revision 20260910_0004)
+
+Table:
 
 aa_signal_episodes
+UNIQUE (user_id, episode_key)
+users ON DELETE CASCADE
+in the account export registry and the test TRUNCATE registry
 
-Home:
-0–3 meaningful signals
+The two identities are stored separately and must stay that way:
 
-Signal rules
+episode_key
+rule-defined user-facing occurrence identity;
+drives acknowledgement, dedup and reappearance
 
-episode_key:
-user-facing occurrence identity
+input_fingerprint
+sha256(sorted(input_version_ids));
+drives audit, reproducibility and correction re-evaluation;
+may change without creating a new episode
 
-input_fingerprint:
-exact input versions used to derive the signal
+EXACTLY four canonical rules exist. Do not add a fifth without an owner
+decision:
 
-Acknowledgement / resolved behavior
+finance.monthly_spend.threshold   v1   bands 80 / 100 / 120
+project.forecast.revision         v1
+data.source.stale                 v1   >7d info, >14d material
+coverage.window.partial           v1   <90% info, <50% material
 
-Materiality
+Rule modules live in apps/api/app/analytics/rules/ with a registry in
+rules/__init__.py. No rule may reference desirability; a test asserts it.
 
-Freshness / stale / partial states
+API surface is exactly two endpoints:
 
-Do not implement Slice 3 inside Clarify work.
+GET  /api/v1/aa/signals
+POST /api/v1/aa/signal-episodes/{episode_key}/ack
+
+Home shows at most 3 signals, ranked by materiality, BELOW the first ordinary
+panel row. The zero state is coverage-aware: zero cards over data whose
+completeness is unverified reports unknown coverage, never reassurance.
+
+There is no notification centre, no polling and no Life Score.
 
 ====================================================================
 38. SLICE 4 — FUTURE
