@@ -210,6 +210,28 @@ function AnalyticsProvider({ user, children }) {
     }
   }
 
+  /* Review / Debrief. Reads go straight to the server; a save or revision is
+     one durable queue record → one POST → one server transaction, so nothing the
+     user wrote is lost offline and a partial Review can never be stored. */
+  function readReviewContext(query, signal) {
+    if (!repositoryRef.current) return Promise.reject(new Error('Analytics repository is unavailable.'));
+    return repositoryRef.current.readReviewContext({ timezone: 'Europe/Kyiv', ...query }, signal);
+  }
+
+  function readReview(reviewId, signal) {
+    if (!repositoryRef.current) return Promise.reject(new Error('Analytics repository is unavailable.'));
+    return repositoryRef.current.readReview(reviewId, signal);
+  }
+
+  function listReviews(subject, signal) {
+    if (!repositoryRef.current) return Promise.reject(new Error('Analytics repository is unavailable.'));
+    return repositoryRef.current.listReviews(subject, signal);
+  }
+
+  async function enqueueReview(request) {
+    return enqueue(request.operation_type, request.route, request.payload);
+  }
+
   async function importLegacy() {
     if (!repositoryRef.current) throw new Error('Analytics repository is unavailable.');
     const result = await repositoryRef.current.importLegacyTransactions('Europe/Kyiv');
@@ -248,6 +270,10 @@ function AnalyticsProvider({ user, children }) {
     loadFinance,
     loadSignals,
     acknowledgeSignal,
+    readReviewContext,
+    readReview,
+    listReviews,
+    enqueueReview,
     importLegacy,
     discardQueueFailure,
     exportQueueFailure,

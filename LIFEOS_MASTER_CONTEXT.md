@@ -569,6 +569,14 @@ Slice P:
 Outputs/Implementations/
 lifeos-adaptive-analytics-slice-p_20260928-090144.md
 
+Slice 3:
+Outputs/Implementations/
+lifeos-adaptive-analytics-slice-3_20260928-151155.md
+
+Slice 4:
+Outputs/Implementations/
+lifeos-adaptive-analytics-slice-4_20260928-171500.md
+
 Before implementing a relevant slice:
 
 READ the current plan/report/code directly.
@@ -642,8 +650,8 @@ AA semantic comparison
 
 Current single Alembic head:
 
-20260928_0005
-(M4 · aa_signal_episodes · Slice 3; down_revision 20260910_0004)
+20260928_0006
+(M5 · Review / Debrief · Slice 4; down_revision 20260928_0005)
 
 M3 added concept tables including:
 
@@ -661,6 +669,10 @@ Current state:
 ONE Alembic head.
 
 M4 (20260928_0005 · aa_signal_episodes) implemented and merged in Slice 3.
+
+M5 (20260928_0006 · aa_reviews, aa_review_revisions, aa_review_context_items,
+aa_review_context_sources, aa_review_factors, aa_decisions) implemented in
+Slice 4.
 
 ====================================================================
 16. METRIC CATALOGUE CURRENTLY RELEVANT
@@ -1501,15 +1513,15 @@ Hero integration ✅
 P ✅
 Clarify Panel ✅
 3 ✅
+4 ✅
 
 NEXT SLICE:
 
-Slice 4 — Adaptive Review / Debrief
+Slice 5 — Project Analytics
 
 Then, unless the owner changes priorities:
 
-Slice 4
-→ Slice 5
+Slice 5
 → Slice 6
 → Slice 7
 → Slice 8
@@ -1572,23 +1584,45 @@ completeness is unverified reports unknown coverage, never reassurance.
 There is no notification centre, no polling and no Life Score.
 
 ====================================================================
-38. SLICE 4 — FUTURE
+38. SLICE 4 — REVIEW / DEBRIEF — COMPLETED
 ====================================================================
 
-Adaptive Review / Debrief.
+Implementation report:
 
-Review is separate from GTD.
+Outputs/Implementations/
+lifeos-adaptive-analytics-slice-4_20260928-171500.md
 
-Expected concepts include:
+Migration M5: 20260928_0006_aa_reviews (down_revision 20260928_0005).
 
-- frozen Expected/Actual/Delta context;
-- observations;
-- factors;
-- uncertainty;
-- decision;
-- revisability.
+Six tables (all users ON DELETE CASCADE, all in the export and TRUNCATE
+registries):
 
-Do not fake causal certainty.
+aa_reviews                   header, window, context_as_of, values-free manifest
+aa_review_revisions          one row per save/revise; appended note text
+aa_review_context_items      frozen value + provenance as displayed; redactable
+aa_review_context_sources    item → fact links (derived items have many sources)
+aa_review_factors            user factor + epistemic kind (observed/mine/maybe/unknown)
+aa_decisions                 nullable choice: keep/adjust/later/inconclusive
+
+Settled semantics:
+
+- context is derived server-side AS OF an instant; a save carries only user
+  content + context_as_of + fingerprint, never frozen values; an irreproducible
+  context is 409 review_context_changed;
+- reopening returns exactly the saved values; later corrections are flagged
+  beside them (corrected ≠ revised ≠ withdrawn);
+- HARD delete redacts every item derived from the fact inside the deletion
+  transaction («источник удалён»); tombstone does not redact;
+- user note/factors/decision survive redaction;
+- NULL decision («Пока без решения») ≠ inconclusive ≠ skipped (no row);
+- no review-available signal (would be a fifth rule); entry points are
+  ProjectCard (completed) and FinanceAnalytics.
+
+API: GET /api/v1/aa/reviews/context, GET /api/v1/aa/reviews?subject=,
+POST /api/v1/aa/reviews, GET /api/v1/aa/reviews/{id},
+POST /api/v1/aa/reviews/{id}/revise.
+
+Validation at completion: 380 pytest, 242 Vitest (25 files).
 
 ====================================================================
 39. SLICE 5 — FUTURE PROJECT ANALYTICS
@@ -1930,9 +1964,10 @@ Only create a migration when the planned slice explicitly requires one.
 
 Current Alembic head:
 
-20260928_0005
+20260928_0006
 
 M4 (aa_signal_episodes) was created by Slice 3 and is merged.
+M5 (Review / Debrief) was created by Slice 4.
 
 Clarify currently should not need an Alembic migration if its operational state
 is added to the snapshot.
@@ -2297,31 +2332,15 @@ A BLOCKED result is better than silently corrupting product semantics.
 65. CURRENT NEXT STEP
 ====================================================================
 
-As of the latest verified GitHub state:
-
-Slice P is MERGED.
-
-Current main:
-
-3570426a80988f2715f48bb9a12261d3ee122056
+Slice P, Clarify, Slice 3 and Slice 4 (Review / Debrief) are complete.
+Verify the exact current main SHA live; do not trust a SHA written here.
 
 The next major product task is:
 
-Clarify Panel production integration
+Adaptive Analytics Slice 5 — Project Analytics (see §39)
 
-But BEFORE implementation:
-
-finish and review the repository consolidation, then verify the canonical
-checkout is clean and current.
-
-The intended ordinary feature branch is:
-
-feat/design-handoff-clarify-panel
-
-Create or switch to it in the canonical checkout only after the checkout is
-clean and local `main` has been fast-forwarded to current `origin/main`.
-
-Do not create a dedicated Clarify worktree unless the owner explicitly asks.
+Follow the Discovery → Plan → Implementation gates on an ordinary feature
+branch in the canonical checkout after fast-forwarding local `main`.
 
 ====================================================================
 66. CLARIFY IMPLEMENTATION EXPECTATIONS

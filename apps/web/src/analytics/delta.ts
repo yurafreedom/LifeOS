@@ -1,6 +1,6 @@
 /** Difference only: this module has no desirability or materiality inputs. */
-import { dateMillis, decimalText, decimalUnits, grouped, validateValue } from './values';
-import type { FactValue, Numeric, ValueType } from './values';
+import { dateMillis, decimalText, decimalUnits, grouped, aaText, validateValue } from './values';
+import type { AAText, FactValue, Numeric, ValueType } from './values';
 
 export class IncompatibleUnitsError extends Error {
   readonly code: string = 'incompatible_units';
@@ -36,15 +36,18 @@ export function computeDelta(current: FactValue | null, reference: FactValue | n
     unit_code: current.unit_code ?? null, scale_min: current.scale_min ?? null, scale_max: current.scale_max ?? null };
 }
 
-export function formatDelta(delta: DerivedDelta, dateComparison = false): string {
-  if (delta.state !== 'known') return delta.reason === 'insufficient_data' ? 'рано судить' : '—';
+const RU_DELTA: Record<string, string> = { aa_pr_too_early: 'рано судить', aa_pr_days: 'дней', aa_pr_minutes_short: 'м' };
+const say = (t: AAText | undefined, key: string): string => (t ? aaText(t, key) : RU_DELTA[key] ?? key);
+
+export function formatDelta(delta: DerivedDelta, dateComparison = false, t?: AAText): string {
+  if (delta.state !== 'known') return delta.reason === 'insufficient_data' ? say(t, 'aa_pr_too_early') : '—';
   const units = decimalUnits(delta.num!);
   const absolute = units < 0 ? -units : units;
   const sign = units < 0 ? '−' : units > 0 ? '+' : '';
-  if (dateComparison) return `${sign}${decimalText(absolute / 1440n)} дней`;
+  if (dateComparison) return `${sign}${decimalText(absolute / 1440n)} ${say(t, 'aa_pr_days')}`;
   if (delta.type === 'scale') return `${sign}${decimalText(absolute)}`;
   const number = grouped(decimalText(absolute));
   if (delta.type === 'money') return `${sign}${delta.unit_code === 'UAH' ? '₴' : delta.unit_code === 'USD' ? '$' : `${delta.unit_code} `}${number}`;
-  if (delta.type === 'duration') return `${sign}${number} м`;
+  if (delta.type === 'duration') return `${sign}${number} ${say(t, 'aa_pr_minutes_short')}`;
   return sign + number;
 }
