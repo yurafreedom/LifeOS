@@ -23,7 +23,7 @@ const { useState: useStateFin, useContext: useCtxFin, useMemo: useMemoFin } = Re
      logger row       amount + category select + log
      filter chips     all · visible · hidden
      transaction list grouped by date, each row with EyeToggle */
-function FinancesPage({ emptyMode }) {
+function FinancesPage({ emptyMode, onAnalytics }) {
   const { t, locale } = useCtxFin(LifeLocaleContext);
   const data = useCtxFin(LifeDataContext);
   const I = LIcons;
@@ -59,11 +59,11 @@ function FinancesPage({ emptyMode }) {
   /* ── logger form ──────────────────────────────────────── */
   const [amount, setAmount] = useStateFin('');
   const [catId, setCatId]   = useStateFin('groceries');
-  function logIt(e) {
+  async function logIt(e) {
     e.preventDefault();
     const n = parseFloat(amount);
     if (!n || n <= 0) return;
-    data.addTransaction({
+    await data.addTransaction({
       amount: n,
       category_id: catId,
       date: new Date().toISOString().slice(0, 10),
@@ -107,6 +107,9 @@ function FinancesPage({ emptyMode }) {
       <PageHeader
         title={t('money_title')}
         subtitle={<>{t('fin_subtitle', txList.length, '$' + fmt(inTotals))} · {t('fin_period', monthShort)}</>}
+        aside={onAnalytics ? (
+          <button type="button" className="set-btn-ghost" onClick={onAnalytics}>Аналитика</button>
+        ) : null}
       />
 
       {/* budget summary */}
@@ -217,6 +220,11 @@ function FinancesPage({ emptyMode }) {
                     ariaLabel={eyeTitle}
                     size={14}
                   />
+                  <button type="button" className="set-btn-ghost" onClick={async () => {
+                    const raw = window.prompt('Исправленная сумма', String(tx.amount));
+                    if (raw == null || !/^\d+(?:\.\d{1,2})?$/.test(raw)) return;
+                    await data.correctTransaction(tx.id, { amount: Number(raw) }, 'Исправление суммы');
+                  }}>Исправить</button>
                   <span className="fin-tx-amt mono">${fmt(tx.amount)}</span>
                   <span className="fin-tx-meta mono">{(tx.source || '')} · {fmtDate(tx.date)}</span>
                 </li>

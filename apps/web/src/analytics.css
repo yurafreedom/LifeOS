@@ -45,3 +45,8 @@
   .aa-delta, .aa-facts { grid-template-columns: 1fr; }
   .aa-hist-row { grid-template-columns: 1fr; gap: 3px; }
 }
+.fin-aa { display: grid; gap: 14px; }
+.aa-chart { margin: 12px 0 0; color: var(--primary); }
+.aa-chart svg { display: block; width: 100%; max-height: 220px; }
+.aa-chart figcaption, .aa-note { color: var(--fg3); font-size: var(--text-sm); }
+.aa-source-line { margin-top: 10px; }

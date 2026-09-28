@@ -25,12 +25,9 @@ def record_override(db, *, user_id, request):
     return append_version(db, user_id=user_id, model=AAMetricMembershipOverride, request=request)
 
 
-def membership_as_of(db, *, user_id, metric_key, fact_id, as_of):
-    fact = get_measurement(db, user_id=user_id, measurement_id=fact_id)
-    if fact.recorded_at > as_of or fact.status == "tombstoned":
-        return Membership(None, False, "fact_not_known")
+def _override_as_of(db, *, user_id, metric_key, fact_id, as_of):
     model = AAMetricMembershipOverride
-    override = db.scalar(
+    return db.scalar(
         apply_as_of(
             select(model).where(
                 model.user_id == user_id,
@@ -42,6 +39,51 @@ def membership_as_of(db, *, user_id, metric_key, fact_id, as_of):
         )
         .order_by(model.recorded_at.desc(), model.id.desc())
         .limit(1)
+    )
+
+
+def _inherited_override_as_of(db, *, user_id, metric_key, fact, as_of):
+    """Resolve an override through a correction chain without rewriting it.
+
+    A correction changes the value, not the user's inclusion decision. An
+    override attached to the original therefore remains in force for its
+    replacement until the replacement receives its own override. Ancestor
+    lookups are capped at the correction's recorded time so a later write
+    against an obsolete fact cannot retroactively change its replacement.
+    """
+    current = fact
+    cutoff = as_of
+    seen = set()
+    while current.id not in seen:
+        seen.add(current.id)
+        override = _override_as_of(
+            db,
+            user_id=user_id,
+            metric_key=metric_key,
+            fact_id=current.id,
+            as_of=cutoff,
+        )
+        if override is not None:
+            return override
+        if current.supersedes_id is None:
+            break
+        cutoff = min(cutoff, current.recorded_at)
+        current = get_measurement(
+            db, user_id=user_id, measurement_id=current.supersedes_id
+        )
+    return None
+
+
+def membership_as_of(db, *, user_id, metric_key, fact_id, as_of):
+    fact = get_measurement(db, user_id=user_id, measurement_id=fact_id)
+    if fact.recorded_at > as_of or fact.status == "tombstoned":
+        return Membership(None, False, "fact_not_known")
+    override = _inherited_override_as_of(
+        db,
+        user_id=user_id,
+        metric_key=metric_key,
+        fact=fact,
+        as_of=as_of,
     )
     if override:
         return Membership(override.included, True, "override")

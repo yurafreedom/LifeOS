@@ -1,14 +1,14 @@
 import React from 'react';
 import { LifeLocaleContext, LifeStrings } from '../context/LocaleContext.jsx';
 import { LifeExpenseCats } from '../data/categories.js';
-import { LIcons } from './icons.jsx';
+import { AnalyticsContext } from '../context/AnalyticsContext.jsx';
 
 /* global React */
 const { useState: useStateMW, useContext: useCtxMW } = React;
 
 function MoneyWidget({ logged: loggedProp }) {
   const { t, locale } = useCtxMW(LifeLocaleContext);
-  const I = LIcons;
+  const analytics = useCtxMW(AnalyticsContext);
   const cats = LifeExpenseCats;
 
   const [amount, setAmount] = useStateMW('42.00');
@@ -26,18 +26,18 @@ function MoneyWidget({ logged: loggedProp }) {
 
   const isEmpty = logged.length === 0;
 
-  const spent  = logged.reduce((s, l) => s + l.amount, 0);
-  const budget = 300;
-  const pct    = Math.min(100, (spent / budget) * 100);
-  const warn   = pct >= 80;
-  const over   = spent > budget;
+  const finance = analytics?.finance?.data;
+  const expectation = finance?.current_expectation?.value ?? null;
+  const target = finance?.current_target ?? null;
+  const actual = finance?.actual ?? null;
+  const expectedAmount = expectation?.type === 'money' ? Number(expectation.num) : null;
+  const actualAmount = actual?.type === 'money' ? Number(actual.num) : null;
+  const comparisonPct = expectedAmount > 0 && actualAmount != null
+    ? Math.min(100, (actualAmount / expectedAmount) * 100)
+    : 0;
 
   const intlLoc = LifeStrings[locale]._intl_locale;
   const monthShort = new Date().toLocaleDateString(intlLoc, { month: 'short' }).replace('.', '');
-
-  /* days left in current month */
-  const today = new Date();
-  const daysLeft = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate() - today.getDate();
 
   function catName(id) {
     const c = cats.find(x => x.id === id);
@@ -53,19 +53,11 @@ function MoneyWidget({ logged: loggedProp }) {
     setAmount('');
   }
 
-  const trackedCat = 'restaurants';
-  const trackedSpent = logged.filter(l => l.cat === trackedCat).reduce((s, l) => s + l.amount, 0);
-  const trackedPct = Math.min(100, (trackedSpent / budget) * 100);
-  const trackedWarn = trackedPct >= 80;
-  const trackedOver = trackedSpent > budget;
-
   return (
-    <section className={"card panel" + (trackedWarn ? " is-stakes" : "")}>
+    <section className="card panel">
       <div className="panel-head">
         <h3 className="panel-title">{t('money_title')}</h3>
         <div className="panel-head-right">
-          {trackedWarn && !trackedOver && <span className="mono money-warn-badge">{t('money_warn_badge')}</span>}
-          {trackedOver &&                  <span className="mono money-over-badge">{t('money_over_badge')}</span>}
           <span className="mono panel-meta">{t('money_period_currency', monthShort)}</span>
         </div>
       </div>
@@ -96,23 +88,18 @@ function MoneyWidget({ logged: loggedProp }) {
         <React.Fragment>
           <div className="money-budget">
         <div className="money-budget-head">
-          <span className={"mono money-budget-lab" + (trackedWarn ? " is-stakes" : "")}>
-            {t('money_budget_pre', catName(trackedCat), monthShort.toLowerCase())}
+          <span className="mono money-budget-lab">Факт / ожидание · {monthShort.toLowerCase()}</span>
+          <span className="mono money-budget-val">
+            {actualAmount == null ? 'нет данных' : `₴${actualAmount.toLocaleString()}`} / {expectedAmount == null ? 'ожидание не задавалось' : `₴${expectedAmount.toLocaleString()}`}
           </span>
-          <span className="mono money-budget-val">${trackedSpent.toFixed(2)} / ${budget}.00</span>
         </div>
         <div className="money-budget-track">
-          <div className={"money-budget-fill" + (trackedOver ? " is-over" : trackedWarn ? " is-warn" : "")}
-               style={{ width: trackedPct + '%' }} />
+          <div className="money-budget-fill" style={{ width: comparisonPct + '%' }} />
         </div>
-        {trackedWarn && !trackedOver && (
-          <div className="mono money-budget-hint">{t('money_warn_hint', daysLeft, t.pl('pl_day', daysLeft))}</div>
-        )}
-        {trackedOver && (
-          <div className="mono money-budget-hint is-over">
-            {t('money_over_hint', (trackedSpent - budget).toFixed(2))}
-          </div>
-        )}
+        <div className="mono money-budget-hint">Ожидание не является целью.</div>
+        <div className="mono money-budget-hint">
+          {target?.is_explicitly_absent ? 'цель на месяц не задавалась' : target ? 'цель хранится отдельно' : 'факт цели отсутствует'}
+        </div>
       </div>
 
       <ul className="money-list">

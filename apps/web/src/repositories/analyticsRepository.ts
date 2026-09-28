@@ -1,8 +1,11 @@
 import {
   correctMeasurement,
+  correctMeasurementByIdempotencyKey,
+  getFinanceMonth,
   getFactProvenance,
   getMetricHistory,
   recordMeasurement,
+  importLegacyTransactions,
 } from '../api/analytics';
 import type {
   AACorrection,
@@ -14,7 +17,11 @@ import type {
   CorrectMeasurementInput,
   MetricHistoryQuery,
   RecordMeasurementInput,
+  AAFinanceMonth,
+  LegacyImportResult,
 } from '../api/analytics';
+import { requestJson } from '../api/client';
+import type { AnalyticsWriteRecord } from './analyticsWriteQueue';
 
 /**
  * The HTTP boundary for Adaptive Analytics facts.
@@ -116,6 +123,38 @@ export class AnalyticsRepository {
       ...request,
       idempotency_key: request.idempotency_key ?? this.newIdempotencyKey(),
     });
+  }
+
+  async correctMeasurementByKey(
+    measurementKey: string,
+    request: CorrectMeasurementRequest,
+  ): Promise<AACorrection> {
+    assertValueIsWellShaped(request.value);
+    return correctMeasurementByIdempotencyKey(measurementKey, {
+      ...request,
+      idempotency_key: request.idempotency_key ?? this.newIdempotencyKey(),
+    });
+  }
+
+  replayQueuedWrite(record: AnalyticsWriteRecord): Promise<unknown> {
+    if (record.payload_schema_version !== 1) {
+      throw new TypeError(`Unsupported analytics payload schema ${record.payload_schema_version}.`);
+    }
+    if (!record.route.startsWith('/api/v1/aa/') || record.route.includes('..')) {
+      throw new TypeError('Queued analytics route is outside the AA API boundary.');
+    }
+    if (record.payload.idempotency_key !== record.idempotency_key) {
+      throw new TypeError('Queued analytics idempotency identity changed.');
+    }
+    return requestJson(record.route, { method: 'POST', body: JSON.stringify(record.payload) });
+  }
+
+  readFinanceMonth(period: string, timezone: string, signal?: AbortSignal): Promise<AAFinanceMonth> {
+    return getFinanceMonth(period, timezone, signal);
+  }
+
+  importLegacyTransactions(timezone: string): Promise<LegacyImportResult> {
+    return importLegacyTransactions(timezone);
   }
 
   readMetricHistory(

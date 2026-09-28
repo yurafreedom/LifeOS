@@ -9,6 +9,7 @@ import { readLegacyLocalState, recordLegacyDecision } from '../repositories/lega
 import { ServerStateRepository } from '../repositories/serverStateRepository.ts';
 import { StateSyncCoordinator } from '../repositories/stateSyncCoordinator.ts';
 import { LifeLocaleContext } from './LocaleContext.jsx';
+import { AnalyticsContext } from './AnalyticsContext.jsx';
 
 /* global React */
 /* LifeDataProvider · central state tree
@@ -262,6 +263,7 @@ function buildLegacyPreview(state, raw) {
 /* ── Provider ─────────────────────────────────────────── */
 function LifeDataProvider({ user, onSessionExpired, onLogout, children }) {
   const { t } = React.useContext(LifeLocaleContext);
+  const analytics = React.useContext(AnalyticsContext);
   const [state, setStateRaw] = useStateDP(null);
   const [boot, setBoot] = useStateDP({ phase: 'loading', error: null, legacy: null, preview: null, raw: null });
   const [sync, setSync] = useStateDP({ phase: 'saved', error: null, currentRevision: null, hasPending: false });
@@ -438,7 +440,7 @@ function LifeDataProvider({ user, onSessionExpired, onLogout, children }) {
   /* Flexible-finance toggles. A transaction counts toward totals only
      when its own flag is on AND its category isn't blanket-excluded.
      Both gates persisted; both append to activityLog. */
-  function addTransaction(tx) {
+  async function addTransaction(tx) {
     const entry = {
       id:        tx.id || ('t' + Date.now()),
       amount:    tx.amount,
@@ -448,16 +450,43 @@ function LifeDataProvider({ user, onSessionExpired, onLogout, children }) {
       source:    tx.source || 'manual',
       included_in_totals: tx.included_in_totals !== false,
     };
+    const categorySetting = state?.categoryOverrides?.[entry.category_id];
+    const categoryIncluded = categorySetting?.included_in_totals !== false;
+    const queued = await analytics?.enqueueTransaction(entry, categoryIncluded);
+    if (queued) entry.aa_idempotency_key = queued.idempotency_key;
     mutate(prev => ({ transactions: [entry, ...prev.transactions] }), {
       entity_type: 'transaction', entity_id: entry.id, action: 'created',
       details: { amount: entry.amount, category_id: entry.category_id, description: entry.description },
     });
+    return entry;
   }
-  function toggleTransactionInclusion(transactionId) {
+  async function updateTransaction(transactionId, patch, reason = 'Операция изменена') {
+    const current = state?.transactions?.find(x => x.id === transactionId);
+    if (!current) return null;
+    const next = { ...current, ...patch };
+    const measurementKey = current.aa_idempotency_key || `legacy-transaction:${current.id}`;
+    const queued = await analytics?.enqueueCorrection(next, measurementKey, reason);
+    if (queued) next.aa_idempotency_key = queued.idempotency_key;
     setStateRaw(prev => {
-      const tx = prev.transactions.find(x => x.id === transactionId);
-      if (!tx) return prev;
-      const nextIncluded = tx.included_in_totals === false ? true : false;
+      const transactions = prev.transactions.map(x => x.id === transactionId ? next : x);
+      const log = {
+        entity_type: 'transaction', entity_id: transactionId, action: 'corrected',
+        details: { amount: next.amount, category_id: next.category_id, description: next.description },
+      };
+      return { ...prev, transactions, activityLog: LifeActivity.append(prev.activityLog, log) };
+    });
+    return next;
+  }
+  function correctTransaction(transactionId, patch, reason) {
+    return updateTransaction(transactionId, patch, reason || 'Исправление операции');
+  }
+  async function toggleTransactionInclusion(transactionId) {
+    const tx = state?.transactions?.find(x => x.id === transactionId);
+    if (!tx) return;
+    const nextIncluded = tx.included_in_totals === false;
+    const measurementKey = tx.aa_idempotency_key || `legacy-transaction:${tx.id}`;
+    await analytics?.enqueueMembership(measurementKey, nextIncluded);
+    setStateRaw(prev => {
       const transactions = prev.transactions.map(x =>
         x.id === transactionId ? { ...x, included_in_totals: nextIncluded } : x
       );
@@ -469,7 +498,18 @@ function LifeDataProvider({ user, onSessionExpired, onLogout, children }) {
       return { ...prev, transactions, activityLog: LifeActivity.append(prev.activityLog, log) };
     });
   }
-  function toggleCategoryInclusion(categoryId) {
+  async function toggleCategoryInclusion(categoryId) {
+    const currentSetting = state?.categoryOverrides?.[categoryId];
+    const currentlyIncluded = !currentSetting || currentSetting.included_in_totals !== false;
+    const nextIncluded = !currentlyIncluded;
+    const futureOverrides = {
+      ...(state?.categoryOverrides || {}),
+      [categoryId]: { ...(currentSetting || {}), included_in_totals: nextIncluded },
+    };
+    const excluded = Object.entries(futureOverrides)
+      .filter(([, setting]) => setting?.included_in_totals === false)
+      .map(([id]) => id);
+    await analytics?.enqueuePolicy(excluded);
     setStateRaw(prev => {
       const cur = prev.categoryOverrides[categoryId];
       const currentlyIncluded = !cur || cur.included_in_totals !== false;
@@ -697,7 +737,8 @@ function LifeDataProvider({ user, onSessionExpired, onLogout, children }) {
   const value = useMemoDP(() => ({
     state,
     /* tasks */ toggleTask, addTask, updateTask, deleteTask,
-    /* transactions */ addTransaction, toggleTransactionInclusion, toggleCategoryInclusion,
+    /* transactions */ addTransaction, updateTransaction, correctTransaction,
+                       toggleTransactionInclusion, toggleCategoryInclusion,
     /* goals + habits */ addGoal, toggleHabitToday,
     /* notes */ addQuickNote, deleteQuickNote,
     /* profile + dog */ updateProfile, updateDog,

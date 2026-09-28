@@ -34,6 +34,7 @@ from app.services.aa_facts import (
     FactNotFoundError,
     append_measurement,
     correct_measurement,
+    get_measurement_by_idempotency_key,
 )
 
 logger = logging.getLogger(__name__)
@@ -103,6 +104,38 @@ def correct_recorded_measurement(
     except (FactNotFoundError, CorrectionConflictError, AAServiceError) as error:
         return _error_response(error)
 
+    response.status_code = status.HTTP_200_OK if result.replayed else status.HTTP_201_CREATED
+    return CorrectionOut(
+        measurement=MeasurementOut.from_row(result.measurement),
+        superseded=MeasurementOut.from_row(result.superseded),
+    )
+
+
+@router.post(
+    "/measurements/by-idempotency/{measurement_key}/correct",
+    response_model=CorrectionOut,
+    dependencies=[Depends(require_json_content_type), Depends(require_aa_write_enabled)],
+)
+def correct_recorded_measurement_by_key(
+    measurement_key: str,
+    body: MeasurementCorrect,
+    request: Request,
+    response: Response,
+    user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
+    settings: Annotated[Settings, Depends(get_request_settings)],
+):
+    """Queue-safe correction when the create acknowledgement has not arrived yet."""
+    enforce_same_origin(request, settings)
+    try:
+        original = get_measurement_by_idempotency_key(
+            db, user_id=user.id, idempotency_key=measurement_key
+        )
+        result = correct_measurement(
+            db, user_id=user.id, measurement_id=original.id, request=body
+        )
+    except (FactNotFoundError, CorrectionConflictError, AAServiceError) as error:
+        return _error_response(error)
     response.status_code = status.HTTP_200_OK if result.replayed else status.HTTP_201_CREATED
     return CorrectionOut(
         measurement=MeasurementOut.from_row(result.measurement),
