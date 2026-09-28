@@ -24,8 +24,7 @@ from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.analytics.asof import apply_as_of
-from app.analytics.enums import SignalMateriality, SignalState
+from app.analytics.enums import FactStatus, SignalMateriality, SignalState
 from app.analytics.rules import Evaluation, SignalSubject, compose_episode_key
 from app.models import AAForecastVersion, AASignalEpisode
 
@@ -55,17 +54,25 @@ def inputs(
     now: datetime,
     as_of: datetime | None = None,
 ) -> Inputs:
+    """Every forecast version LifeOS had recorded by the belief instant.
+
+    Not ``apply_as_of``: that answers "which version was live at T", and the
+    semantic write path supersedes each prior forecast as a ``REVISION``, so a
+    live-version read collapses the history to its newest row. A revision's
+    history is every non-erased version recorded by ``as_of`` (or ever, when
+    ``as_of`` is absent), superseded ones included. Tombstones are excluded
+    outright.
+    """
     query = select(AAForecastVersion).where(
         AAForecastVersion.user_id == user_id,
         AAForecastVersion.subject_key == subject.subject_key,
         AAForecastVersion.metric_key == FORECAST_METRIC,
+        AAForecastVersion.status != FactStatus.TOMBSTONED,
     )
+    if as_of is not None:
+        query = query.where(AAForecastVersion.recorded_at <= as_of)
     versions = list(
-        db.scalars(
-            apply_as_of(query, AAForecastVersion, as_of).order_by(
-                AAForecastVersion.recorded_at, AAForecastVersion.id
-            )
-        )
+        db.scalars(query.order_by(AAForecastVersion.recorded_at, AAForecastVersion.id))
     )
     return Inputs(subject=subject, versions=tuple(versions))
 
