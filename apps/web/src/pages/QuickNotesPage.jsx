@@ -6,12 +6,17 @@ import { LifeLocaleContext } from '../context/LocaleContext.jsx';
 /* global React */
 const { useState: useStateQN, useRef: useRefQN, useContext: useCtxQN } = React;
 
-/* Quick Notes — raw-capture surface.
-   Type, hit enter, row appears. No category, no priority, no time. Each
-   note has a timestamp + actions to "promote" (open quick-add modal pre-
-   filled) or delete. Notes don't show up on home / calendar / anywhere
-   else until promoted. */
-function QuickNotesPage({ notes, onAdd, onDelete, onPromote }) {
+/* Quick Notes — raw-capture surface plus the Clarify step.
+   Type, hit enter, row appears. No category, no priority, no time. Tapping a
+   row opens the Clarify panel, which is the only way a note leaves the inbox:
+   it turns into a Task, Waiting item, deferred Task, Project or Reference, or
+   is deleted after confirmation. Notes don't show up on home / calendar /
+   anywhere else until clarified.
+
+   The References section below the inbox is the retrieval surface for the
+   Clarify "в справочник" outcome — Reference is a real persisted record, not a
+   hidden note. */
+function QuickNotesPage({ notes, references = [], onAdd, onClarify }) {
   const { t } = useCtxQN(LifeLocaleContext);
   const I = LIcons;
   const [draft, setDraft] = useStateQN('');
@@ -56,26 +61,40 @@ function QuickNotesPage({ notes, onAdd, onDelete, onPromote }) {
         <ul className="qn-list">
           {notes.map(n => (
             <li key={n.id} className="qn-item">
-              <span className="qn-item-time mono">{n.at}</span>
-              <span className="qn-item-text">{n.text}</span>
-              <div className="qn-item-actions">
-                <button className="qn-item-btn"
-                        onClick={() => onPromote(n)}
-                        title={t('qn_promote_full')}>
-                  {I.arrowUpRight({ size: 14 })}
-                  <span>{t('qn_promote')}</span>
-                </button>
-                <button className="qn-item-btn is-danger"
-                        onClick={() => onDelete(n.id)}
-                        title={t('qn_delete')}
-                        aria-label={t('qn_delete')}>
-                  {I.trash({ size: 14 })}
-                </button>
-              </div>
+              <button className="qn-item-open"
+                      onClick={() => onClarify(n)}
+                      title={t('qn_clarify_full')}>
+                <span className="qn-item-time mono">{n.at}</span>
+                <span className="qn-item-text">{n.text}</span>
+                <span className="qn-item-cta mono">
+                  <span>{t('qn_clarify')}</span>
+                  {I.chevRight({ size: 14 })}
+                </span>
+              </button>
             </li>
           ))}
         </ul>
       )}
+
+      <section className="qn-refs" aria-labelledby="qn-refs-title">
+        <div className="panel-head">
+          <h3 className="panel-title" id="qn-refs-title">{t('reference_section_title')}</h3>
+          <span className="panel-meta mono">{references.length}</span>
+        </div>
+        {references.length === 0 ? (
+          <div className="qn-empty">{t('reference_empty')}</div>
+        ) : (
+          <ul className="qn-ref-list">
+            {references.map(item => (
+              <li key={item.id} className="qn-ref-item">
+                <span className="qn-ref-icon" aria-hidden="true">{I.bookOpen({ size: 14 })}</span>
+                <span className="qn-ref-text">{item.text}</span>
+                <span className="qn-ref-date mono">{item.created_at.slice(0, 10)}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
     </div>
   );
 }

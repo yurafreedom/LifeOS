@@ -1,6 +1,7 @@
 import React from 'react';
 import { ANALYTICS_ROUTE_ENABLED, LIFE_ROUTES } from './app/routes.js';
 import { CalendarView } from './components/CalendarView.jsx';
+import { ClarifyPanel } from './components/ClarifyPanel.jsx';
 import { MobileBottomNav } from './components/MobileBottomNav.jsx';
 import { ParadiseScene } from './components/ParadiseScene.jsx';
 import { QuickAddModal } from './components/QuickAddModal.jsx';
@@ -209,6 +210,7 @@ function AppShell({ user }) {
   const [quickStakes, setQStakes] = useStateApp(false);
   const [quickSeed, setQuickSeed] = useStateApp(null);
   const [detailTask, setDetail]   = useStateApp(null);
+  const [clarifyNote, setClarify] = useStateApp(null);
   const [emptyMode, setEmptyMode] = useStateApp(false);
 
   function setRoute(next) {
@@ -233,6 +235,8 @@ function AppShell({ user }) {
   const tasks = persist.tasks || [];
   const quickNotes = persist.quickNotes || [];
   const projects = persist.projects || [];
+  const waitingItems = persist.waitingItems || [];
+  const references = persist.references || [];
   const profile = persist.profile || {};
   const dog = persist.dog || {};
 
@@ -264,6 +268,50 @@ function AppShell({ user }) {
       ts: new Date().toTimeString().slice(0,5) + ' · ' + t('nav_today'),
     });
   }
+
+  /* ── Clarify ───────────────────────────────────────────
+     Each handler performs one real domain transition through the provider.
+     The provider validates and persists the destination before removing the
+     source note, both in a single state update — so a rejection here leaves
+     the Quick Note in the inbox and the ClarifyPanel shows the reason. The
+     global Quick Add path (addTaskFromUI / QuickAddModal) is untouched. */
+  function clarifyToast(key, arg) {
+    showToast({
+      kind: 'sys',
+      msg: t(key, arg),
+      ts: new Date().toTimeString().slice(0, 5) + ' · ' + t('nav_today'),
+    });
+  }
+
+  const clarifyHandlers = {
+    onDoNow(note) {
+      const task = data.clarifyQuickNoteToTask(note.id);
+      clarifyToast('clarify_toast_do_now', task.title);
+    },
+    onDelegate(note) {
+      const item = data.clarifyQuickNoteToWaiting(note.id);
+      clarifyToast('clarify_toast_delegate', item.title);
+    },
+    onDefer(note, deferDate) {
+      const task = data.clarifyQuickNoteToDeferredTask(note.id, deferDate);
+      clarifyToast('clarify_toast_defer', task.schedule.date);
+    },
+    onProject(note) {
+      const project = data.clarifyQuickNoteToProject(note.id);
+      clarifyToast('clarify_toast_project', project.title);
+    },
+    onReference(note) {
+      const reference = data.clarifyQuickNoteToReference(note.id);
+      clarifyToast('clarify_toast_reference', reference.text);
+    },
+    onDelete(note) {
+      /* Guarded like the other five so a stale panel reports the truth instead
+         of claiming a deletion that never applied. */
+      data.requireClarifiableQuickNote(note.id);
+      data.deleteQuickNote(note.id);
+      clarifyToast('clarify_toast_deleted');
+    },
+  };
 
   function showToast(toastObj) {
     setToast(toastObj);
@@ -382,9 +430,9 @@ function AppShell({ user }) {
         return (
           <QuickNotesPage
             notes={quickNotes}
+            references={references}
             onAdd={(text) => data.addQuickNote(text)}
-            onDelete={(id) => data.deleteQuickNote(id)}
-            onPromote={(note) => openQuickAdd(false, { title: note.text, fromNoteId: note.id })}
+            onClarify={(note) => setClarify(note)}
           />
         );
       case 'me':
@@ -393,6 +441,7 @@ function AppShell({ user }) {
         return (
           <TasksPage
             tasks={emptyMode ? [] : resolvedTasks}
+            waitingItems={emptyMode ? [] : waitingItems}
             onToggle={data.toggleTask}
             onAdd={addTaskFromUI}
             onOpen={(task) => setDetail(task)}
@@ -488,6 +537,14 @@ function AppShell({ user }) {
             setQuickSeed(null);
           }}
         />
+
+        {clarifyNote && (
+          <ClarifyPanel
+            note={clarifyNote}
+            onClose={() => setClarify(null)}
+            {...clarifyHandlers}
+          />
+        )}
 
         {detailTask && (
           <TaskDetailModal

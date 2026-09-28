@@ -58,6 +58,94 @@ describe('state migration', () => {
     expect(() => migrateStateCopy({ ...buildInitialState(), version: 3 })).toThrow(/newer/i);
     expect(() => migrateStateCopy({ ...buildInitialState(), tasks: {} })).toThrow(/tasks/i);
     expect(() => migrateStateCopy({ ...buildInitialState(), projects: {} })).toThrow(/projects/i);
+    expect(() => migrateStateCopy({ ...buildInitialState(), waitingItems: {} }))
+      .toThrow(/waitingItems/i);
+    expect(() => migrateStateCopy({ ...buildInitialState(), references: 'nope' }))
+      .toThrow(/references/i);
+  });
+
+  /* ── Clarify · additive waitingItems[] + references[] ───────────────── */
+
+  it('loads an old v2 snapshot that predates Clarify and seeds the new arrays to []', () => {
+    const source = buildInitialState() as Record<string, any>;
+    delete source.waitingItems;
+    delete source.references;
+    const before = structuredClone(source);
+
+    const migrated = migrateStateCopy(source);
+
+    expect(migrated).toEqual({ ...before, waitingItems: [], references: [] });
+    expect(migrated.version).toBe(2);
+    /* Nothing else moved, and the input object is never mutated. */
+    expect(source).toEqual(before);
+    expect(source.waitingItems).toBeUndefined();
+    expect(source.references).toBeUndefined();
+  });
+
+  it('preserves valid existing Waiting and Reference records byte-for-byte', () => {
+    const waiting = {
+      id: 'waiting-existing',
+      title: 'счёт от подрядчика',
+      waiting_for: 'Аня',
+      created_at: '2026-09-20T09:14:00.000Z',
+    };
+    const reference = {
+      id: 'reference-existing',
+      text: 'ссылка на статью про CYP2D6',
+      created_at: '2026-09-21T11:02:00.000Z',
+    };
+    const source = {
+      ...buildInitialState(),
+      waitingItems: [waiting],
+      references: [reference],
+    } as Record<string, any>;
+
+    const migrated = migrateStateCopy(source);
+
+    expect(migrated.waitingItems).toEqual([waiting]);
+    expect(migrated.references).toEqual([reference]);
+    expect(migrated.waitingItems[0]).not.toBe(waiting);
+    expect(migrated.references[0]).not.toBe(reference);
+    expect(migrated.version).toBe(2);
+  });
+
+  it('accepts a Waiting record with the optional counterparty absent', () => {
+    const source = {
+      ...buildInitialState(),
+      waitingItems: [{
+        id: 'waiting-bare',
+        title: 'ответ из банка',
+        created_at: '2026-09-20T09:14:00.000Z',
+      }],
+    } as Record<string, any>;
+
+    expect(migrateStateCopy(source).waitingItems).toEqual([{
+      id: 'waiting-bare',
+      title: 'ответ из банка',
+      created_at: '2026-09-20T09:14:00.000Z',
+    }]);
+  });
+
+  it('rejects malformed Waiting and Reference records instead of silently dropping them', () => {
+    expect(() => migrateStateCopy({
+      ...buildInitialState(),
+      waitingItems: [{ id: 'w', title: '   ', created_at: '2026-09-20T09:14:00.000Z' }],
+    })).toThrow(/Waiting item title/i);
+    expect(() => migrateStateCopy({
+      ...buildInitialState(),
+      waitingItems: ['nope'],
+    })).toThrow(/Waiting item data/i);
+    expect(() => migrateStateCopy({
+      ...buildInitialState(),
+      references: [{ id: 'r', text: 'x', created_at: 'not-a-date' }],
+    })).toThrow(/Reference timestamp/i);
+  });
+
+  it('ships both collections empty in a fresh snapshot and keeps state version 2', () => {
+    const fresh = migrateStateCopy(buildInitialState()) as Record<string, any>;
+    expect(fresh.waitingItems).toEqual([]);
+    expect(fresh.references).toEqual([]);
+    expect(fresh.version).toBe(2);
   });
 
   it('preserves legacy literal habit names as a fallback', () => {
