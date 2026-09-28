@@ -1,5 +1,6 @@
 import React from 'react';
 import { LifeLocaleContext, LifeStrings } from '../context/LocaleContext.jsx';
+import { newReviewHash, projectReviewWindow } from '../analytics/review';
 
 /* global React */
 const { useContext: useProjectLocale, useRef: useProjectRef, useState: useProjectState } = React;
@@ -24,7 +25,12 @@ function formatInstant(value, locale) {
   });
 }
 
-function ProjectCard({ project, onForecast, onComplete, onArchive }) {
+function projectReviewHash(project) {
+  const { from, to } = projectReviewWindow(project);
+  return newReviewHash(`project:project:${project.id}`, from, to);
+}
+
+function ProjectCard({ project, onForecast, onComplete, onArchive, reviewEnabled = false }) {
   const { locale, t } = useProjectLocale(LifeLocaleContext);
   const [forecastDate, setForecastDate] = useProjectState(project.current_forecast_date || '');
   const [busyAction, setBusyAction] = useProjectState(null);
@@ -118,6 +124,10 @@ function ProjectCard({ project, onForecast, onComplete, onArchive }) {
             {busyAction === 'complete' ? t('project_saving') : t('project_complete')}
           </button>
         ) : null}
+        {reviewEnabled && project.status === 'completed' ? (
+          /* Frozen G: «открыть ревью» is the primary action once a project is closed. */
+          <a className="set-btn-primary" href={projectReviewHash(project)}>{t('aa_rv_open_review')}</a>
+        ) : null}
         {archiveAllowed ? (
           <button className="set-btn-ghost" type="button" onClick={archive} disabled={busyAction != null}>
             {busyAction === 'archive' ? t('project_saving') : t('project_archive')}
@@ -128,4 +138,4 @@ function ProjectCard({ project, onForecast, onComplete, onArchive }) {
   );
 }
 
-export { ProjectCard };
+export { ProjectCard, projectReviewHash };

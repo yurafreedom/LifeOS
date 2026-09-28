@@ -188,6 +188,93 @@ class DenominatorBasis(StrEnum):
     EXPECTED_OBSERVATIONS = "expected_observations"
 
 
+class ReviewSection(StrEnum):
+    """Where a frozen Review context item is shown. Layout, never meaning."""
+
+    COMPARE = "compare"
+    QUALITY = "quality"
+    ALONGSIDE = "alongside"
+
+
+class ReviewRole(StrEnum):
+    """What a frozen Review context item is.
+
+    The concepts stay as separate as they are in the fact tables: an
+    ``expected`` item is never a ``target``, and a ``forecast`` item is never an
+    ``actual``.
+    """
+
+    EXPECTED = "expected"
+    FORECAST = "forecast"
+    ACTUAL = "actual"
+    DELTA = "delta"
+    TARGET = "target"
+    COVERAGE = "coverage"
+    OBSERVATION = "observation"
+
+
+class ReviewAvailability(StrEnum):
+    """What the user saw in place of, or as, a value when the Review was saved.
+
+    These are frozen *display* states of a Review, not facts: a ``no_data``
+    item records that the comparison had nothing to show, and no Measurement or
+    other fact row is ever written for it.
+    """
+
+    PRESENT = "present"
+    NO_DATA = "no_data"
+    INSUFFICIENT_DATA = "insufficient_data"
+    NOT_APPLICABLE = "not_applicable"
+    EXPLICITLY_ABSENT = "explicitly_absent"
+    EXPLICITLY_UNKNOWN = "explicitly_unknown"
+
+
+class Desire(StrEnum):
+    NEUTRAL = "neutral"
+    FAVORABLE = "favorable"
+    UNFAVORABLE = "unfavorable"
+    UNKNOWN = "unknown"
+
+
+class ReviewDecisionChoice(StrEnum):
+    """The user's own «что дальше». Never suggested by the system.
+
+    There is no member for "no decision": that is ``NULL``, and it is not
+    ``INCONCLUSIVE``. «Пока без решения» means nothing was decided;
+    «Непонятно — данных недостаточно» is a decision that the evidence does
+    not settle the question.
+    """
+
+    KEEP = "keep"
+    ADJUST = "adjust"
+    LATER = "later"
+    INCONCLUSIVE = "inconclusive"
+
+
+class DecisionScope(StrEnum):
+    """What a decision belongs to. Experiment scope arrives with Slice 6 (M6)."""
+
+    REVIEW = "review"
+
+
+class RedactionReason(StrEnum):
+    SOURCE_HARD_DELETED = "source_hard_deleted"
+
+
+class ReviewSourceState(StrEnum):
+    """How a frozen item's sources stand *now*. Derived at read time, never stored.
+
+    ``CORRECTED`` (the source was wrong) and ``REVISED`` (a newer belief
+    replaced a valid one) are kept apart, exactly like ``SupersedeKind``.
+    """
+
+    CURRENT = "current"
+    CORRECTED = "corrected"
+    REVISED = "revised"
+    WITHDRAWN = "withdrawn"
+    REDACTED = "redacted"
+
+
 def members(enum_cls: type[StrEnum]) -> tuple[str, ...]:
     return tuple(member.value for member in enum_cls)
 

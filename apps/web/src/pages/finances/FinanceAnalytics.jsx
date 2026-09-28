@@ -8,6 +8,8 @@ import AAChart from '../../components/analytics/AAChart.jsx';
 import { PageHeader } from '../../components/HeroVignette.jsx';
 import { useAnalytics } from '../../context/AnalyticsContext.jsx';
 import { formatValue } from '../../analytics/values.ts';
+import { financeReviewWindow, newReviewHash } from '../../analytics/review';
+import { useAAText } from '../../components/analytics/useAAText.js';
 
 function derivedActual(month) {
   if (!month.actual) return null;
@@ -54,6 +56,7 @@ function QueueFailures({ failures, onDiscard, onExport }) {
 
 export default function FinanceAnalytics({ onHistory }) {
   const analytics = useAnalytics();
+  const t = useAAText();
   const month = analytics.finance.data;
   const [importMessage, setImportMessage] = React.useState('');
   const [expectationAmount, setExpectationAmount] = React.useState('');
@@ -134,6 +137,8 @@ export default function FinanceAnalytics({ onHistory }) {
       aside={<div className="panel-head-right">
         <button className="set-btn-ghost" type="button" onClick={runImport}>Импортировать существующие операции</button>
         {onHistory ? <button className="set-btn-ghost" type="button" onClick={onHistory}>История метрики</button> : null}
+        {/* Frozen F: the month review is optional, so it is a ghost action. */}
+        <a className="set-btn-ghost" href={newReviewHash(month.subject_key, financeReviewWindow(month.period).from, financeReviewWindow(month.period).to)}>{t('aa_rv_month_review')}</a>
       </div>}
     />
     {importMessage ? <p className="mono">{importMessage}</p> : null}

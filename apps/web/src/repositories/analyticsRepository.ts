@@ -5,7 +5,10 @@ import {
   getFinanceMonth,
   getFactProvenance,
   getMetricHistory,
+  getReview,
+  getReviewContext,
   getSignals,
+  listReviews,
   recordMeasurement,
   importLegacyTransactions,
 } from '../api/analytics';
@@ -22,6 +25,9 @@ import type {
   AAFinanceMonth,
   AASignalEpisode,
   AASignals,
+  AAReview,
+  AAReviewContext,
+  AAReviewList,
   LegacyImportResult,
 } from '../api/analytics';
 import { requestJson } from '../api/client';
@@ -202,5 +208,30 @@ export class AnalyticsRepository {
       throw new TypeError('An episode acknowledgement requires the observed sha256 fingerprint.');
     }
     return acknowledgeSignalEpisode(episodeKey, inputFingerprint);
+  }
+
+  /**
+   * The evidence a new Review would freeze. Always an explicit, bounded window —
+   * never an all-time read. Saving goes through the durable queue, not here.
+   */
+  readReviewContext(
+    query: { subject: string; from: string; to: string; timezone?: string },
+    signal?: AbortSignal,
+  ): Promise<AAReviewContext> {
+    if (!/^[^:]+:[^:]+:[^:]*$/.test(query.subject)) {
+      throw new TypeError('A review subject is domain:type:id.');
+    }
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(query.from) || !/^\d{4}-\d{2}-\d{2}$/.test(query.to)) {
+      throw new TypeError('A review context read requires an explicit from/to window.');
+    }
+    return getReviewContext(query, signal);
+  }
+
+  readReview(reviewId: string, signal?: AbortSignal): Promise<AAReview> {
+    return getReview(reviewId, signal);
+  }
+
+  listReviews(subject: string, signal?: AbortSignal): Promise<AAReviewList> {
+    return listReviews(subject, 20, signal);
   }
 }

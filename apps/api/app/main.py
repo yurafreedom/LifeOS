@@ -13,6 +13,7 @@ from app.routes import (
     aa_history,
     aa_import,
     aa_measurements,
+    aa_reviews,
     aa_signals,
     aa_subjects,
     account,
@@ -66,5 +67,6 @@ def create_app(
     app.include_router(aa_import.router)
     app.include_router(aa_comparison.router)
     app.include_router(aa_signals.router)
+    app.include_router(aa_reviews.router)
     app.include_router(aa_subjects.router)
     return app

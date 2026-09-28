@@ -3,6 +3,7 @@ import { PageHeader } from '../components/HeroVignette.jsx';
 import { ProjectCard } from '../components/ProjectCard.jsx';
 import { LifeDataContext } from '../context/LifeDataContext.jsx';
 import { LifeLocaleContext } from '../context/LocaleContext.jsx';
+import { ANALYTICS_ROUTE_ENABLED } from '../app/routes.js';
 
 /* global React */
 const { useContext: useProjectsContext, useState: useProjectsState } = React;
@@ -77,6 +78,7 @@ function ProjectsPage() {
                   onForecast={data.setProjectForecast}
                   onComplete={data.completeProject}
                   onArchive={data.archiveProject}
+                  reviewEnabled={ANALYTICS_ROUTE_ENABLED}
                 />
               ))}
             </div>

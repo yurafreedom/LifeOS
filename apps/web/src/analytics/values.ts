@@ -80,18 +80,30 @@ export function grouped(value: Numeric): string {
   return fraction ? `${groupedWhole}.${fraction.replace(/0+$/, '')}`.replace(/\.$/, '') : groupedWhole;
 }
 
-export function formatValue(value: FactValue | null | undefined): string {
-  if (value == null) return 'нет данных';
+/** Locale lookup. Omitted ⇒ Russian, the product's primary locale. */
+export type AAText = (key: string) => string;
+
+const RU_TEXT: Record<string, string> = {
+  aa_pr_no_data: 'нет данных', _intl_locale: 'ru-RU', aa_pr_hours_short: 'ч', aa_pr_minutes_short: 'м',
+};
+
+export function aaText(t: AAText | undefined, key: string): string {
+  if (t) return t(key);
+  return RU_TEXT[key] ?? key;
+}
+
+export function formatValue(value: FactValue | null | undefined, t?: AAText): string {
+  if (value == null) return aaText(t, 'aa_pr_no_data');
   validateValue(value);
   switch (value.type) {
     case 'money': return `${value.unit_code === 'UAH' ? '₴' : value.unit_code === 'USD' ? '$' : `${value.unit_code} `}${grouped(value.num!)}`;
-    case 'date': return new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'short', timeZone: 'UTC' }).format(dateMillis(value.date!));
+    case 'date': return new Intl.DateTimeFormat(aaText(t, '_intl_locale'), { day: 'numeric', month: 'short', timeZone: 'UTC' }).format(dateMillis(value.date!));
     case 'duration': {
       const units = decimalUnits(value.num!);
       const absolute = units < 0 ? -units : units;
       const hours = absolute / (60n * factor);
       const minutes = decimalText(absolute % (60n * factor));
-      return `${units < 0 ? '−' : ''}${hours ? `${hours} ч ` : ''}${minutes} м`;
+      return `${units < 0 ? '−' : ''}${hours ? `${hours} ${aaText(t, 'aa_pr_hours_short')} ` : ''}${minutes} ${aaText(t, 'aa_pr_minutes_short')}`;
     }
     case 'count': return grouped(value.num!);
     case 'scale': return `${grouped(value.num!)}/${grouped(value.scale_max!)}`;

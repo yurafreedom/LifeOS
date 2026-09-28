@@ -29,6 +29,7 @@ import { GoalsPage, HabitsPage } from './pages/RelocatedPages.jsx';
 import { TasksPage } from './pages/TasksPage.jsx';
 import FinanceAnalytics from './pages/finances/FinanceAnalytics.jsx';
 import MetricHistoryPage from './pages/analytics/MetricHistoryPage.jsx';
+import ReviewPage from './pages/analytics/ReviewPage.jsx';
 
 /* global React, ReactDOM */
 const {
@@ -54,6 +55,9 @@ function readRouteFromHash() {
   /* Sprint 3A · medications sub-routes: /medications/{id} → still
      dispatch the medications surface; the page reads the id itself. */
   if (raw.startsWith('medications/') || raw === 'medications') return 'medications';
+  /* Slice 4 · review/{new/<subject>/<from>/<to> | <id>} → the Review surface
+     reads its own parameters from the hash. */
+  if (raw.startsWith('review/') && LIFE_ROUTES.has('review')) return 'review';
   return LIFE_ROUTES.has(raw) ? raw : 'home';
 }
 
@@ -466,6 +470,8 @@ function AppShell({ user }) {
         return <FinanceAnalytics onHistory={() => setRoute('analytics-history')} />;
       case 'analytics-history':
         return <MetricHistoryPage onBack={() => setRoute('analytics')} />;
+      case 'review':
+        return <ReviewPage />;
       case 'monthly':
         return <PlaceholderPage title={t('ph_monthly_title')} body={t('ph_monthly_body')} />;
       case 'annual':

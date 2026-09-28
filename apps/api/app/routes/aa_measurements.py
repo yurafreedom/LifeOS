@@ -50,6 +50,14 @@ _ERROR_STATUS: dict[str, int] = {
     "episode_not_found": status.HTTP_404_NOT_FOUND,
     "episode_changed": status.HTTP_409_CONFLICT,
     "unsupported_resolution": status.HTTP_422_UNPROCESSABLE_CONTENT,
+    "review_not_found": status.HTTP_404_NOT_FOUND,
+    "review_context_changed": status.HTTP_409_CONFLICT,
+    "idempotency_key_reused": status.HTTP_409_CONFLICT,
+    "unsupported_review_subject": status.HTTP_422_UNPROCESSABLE_CONTENT,
+    "invalid_review_window": status.HTTP_422_UNPROCESSABLE_CONTENT,
+    "invalid_factor": status.HTTP_422_UNPROCESSABLE_CONTENT,
+    "empty_revision": status.HTTP_422_UNPROCESSABLE_CONTENT,
+    "invalid_review": status.HTTP_422_UNPROCESSABLE_CONTENT,
 }
 
 

@@ -20,6 +20,7 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from app.models import (
     AABaseline,
+    AADecision,
     AADeletionReceipt,
     AAExpectationVersion,
     AAForecastVersion,
@@ -29,6 +30,11 @@ from app.models import (
     AAMetricPolicyVersion,
     AAObservation,
     AAPreference,
+    AAReview,
+    AAReviewContextItem,
+    AAReviewContextSource,
+    AAReviewFactor,
+    AAReviewRevision,
     AASignalEpisode,
     AASourceCoverage,
     AATarget,
@@ -56,6 +62,14 @@ EXPORT_TABLES = {
     # Episode state is personal data — the user's own acknowledgements — so it
     # leaves with an account export like any fact.
     "aa_signal_episodes": AASignalEpisode.__table__,
+    # Reviews: frozen evidence (with redaction markers, never erased values),
+    # its source links, and everything the user wrote.
+    "aa_reviews": AAReview.__table__,
+    "aa_review_revisions": AAReviewRevision.__table__,
+    "aa_review_context_items": AAReviewContextItem.__table__,
+    "aa_review_context_sources": AAReviewContextSource.__table__,
+    "aa_review_factors": AAReviewFactor.__table__,
+    "aa_decisions": AADecision.__table__,
 }
 
 
