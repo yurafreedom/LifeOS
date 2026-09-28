@@ -3,6 +3,13 @@ import { LifeDogSeed } from '../data/dog.js';
 import { LifeMeds } from '../data/medications.js';
 import { LifeProfileSeed } from '../data/profile.js';
 import { LifeActivity } from '../lib/activity.js';
+import {
+  archiveProjectRecord,
+  completeProjectWithDurableIntent,
+  createProjectRecord,
+  setProjectForecastWithDurableIntent,
+  validateProjectRecord,
+} from '../domain/projects.ts';
 import { ApiError } from '../api/client.ts';
 import { StateImportPrompt } from '../components/StateImportPrompt.jsx';
 import { readLegacyLocalState, recordLegacyDecision } from '../repositories/legacyLocalImport.ts';
@@ -119,6 +126,7 @@ function buildInitialState() {
     ],
     transactions: seedTransactions(),
     categoryOverrides: {},
+    projects: [],
     goals: buildDefaultGoals(),
     habits: buildDefaultHabits(),
     quickNotes: [
@@ -218,6 +226,9 @@ function migrateStateCopy(input) {
      Goals screen isn't empty after upgrade. Unconditional null-check, runs
      regardless of version gate. */
   if (!Array.isArray(state.goals)) state.goals = buildDefaultGoals();
+  if (!Object.prototype.hasOwnProperty.call(state, 'projects')) state.projects = [];
+  if (!Array.isArray(state.projects)) throw new Error('State collection projects is invalid.');
+  state.projects.forEach(validateProjectRecord);
   if (!Array.isArray(state.habits)) {
     state.habits = buildDefaultHabits();
   } else {
@@ -236,7 +247,9 @@ function migrateStateCopy(input) {
       };
     });
   }
-  const arrays = ['medications', 'tasks', 'transactions', 'goals', 'quickNotes', 'activityLog'];
+  const arrays = [
+    'medications', 'tasks', 'transactions', 'projects', 'goals', 'quickNotes', 'activityLog',
+  ];
   const objects = ['profile', 'dog', 'doseLogs', 'pharmNotes', 'modeStyles', 'categoryOverrides'];
   arrays.forEach(key => {
     if (!Array.isArray(state[key])) throw new Error(`State collection ${key} is invalid.`);
@@ -254,6 +267,7 @@ function buildLegacyPreview(state, raw) {
     tasks: state.tasks.length,
     goals: state.goals.length,
     transactions: state.transactions.length,
+    projects: state.projects.length,
     medications: state.medications.length,
     notes: state.quickNotes.length,
     activity: state.activityLog.length,
@@ -527,10 +541,69 @@ function LifeDataProvider({ user, onSessionExpired, onLogout, children }) {
     });
   }
 
+  /* ── Projects · Slice P ─────────────────────────────── */
+  function addProject(title) {
+    const project = createProjectRecord(title);
+    mutate(prev => ({ projects: [...prev.projects, project] }), {
+      entity_type: 'project', entity_id: project.id, action: 'created',
+      details: { title: project.title },
+    });
+    return project;
+  }
+
+  async function setProjectForecast(projectId, forecastDate) {
+    const project = state?.projects?.find(item => item.id === projectId);
+    if (!project) throw new Error('Project was not found.');
+    const next = await setProjectForecastWithDurableIntent(
+      project,
+      forecastDate,
+      async (current, date) => analytics?.enqueueProjectForecast?.(current, date) ?? null,
+    );
+    mutate(prev => ({
+      projects: prev.projects.map(item => item.id === projectId ? next : item),
+    }), {
+      entity_type: 'project', entity_id: projectId, action: 'forecast_revised',
+      details: { title: project.title, forecast_date: forecastDate },
+    });
+    return next;
+  }
+
+  async function completeProject(projectId) {
+    const project = state?.projects?.find(item => item.id === projectId);
+    if (!project) throw new Error('Project was not found.');
+    const completedAt = new Date().toISOString();
+    const next = await completeProjectWithDurableIntent(
+      project,
+      completedAt,
+      async (current, instant) => analytics?.enqueueProjectCompletion?.(current, instant) ?? null,
+    );
+    mutate(prev => ({
+      projects: prev.projects.map(item => item.id === projectId ? next : item),
+    }), {
+      entity_type: 'project', entity_id: projectId, action: 'completed',
+      details: { title: project.title, completed_at: completedAt },
+    });
+    return next;
+  }
+
+  function archiveProject(projectId) {
+    const project = state?.projects?.find(item => item.id === projectId);
+    if (!project) throw new Error('Project was not found.');
+    const next = archiveProjectRecord(project);
+    mutate(prev => ({
+      projects: prev.projects.map(item => item.id === projectId ? next : item),
+    }), {
+      entity_type: 'project', entity_id: projectId, action: 'archived',
+      details: { title: project.title },
+    });
+    return next;
+  }
+
   /* ── Goals · Batch 1 rev · FIX 7 ──────────────────── */
   /* Minimal add-goal path: a new goal starts at 0% with a default
-     timeframe tag (current quarter). Batch 4 (Clarify "project" outcome)
-     reuses this same entry point — keep it lean and additive. */
+     timeframe tag (current quarter). Goals remain a separate domain.
+     Clarify's future "project" outcome must use the real Project domain
+     introduced by Slice P, not addGoal. */
   function addGoal(title) {
     const clean = (title || '').trim();
     if (!clean) return;
@@ -739,6 +812,7 @@ function LifeDataProvider({ user, onSessionExpired, onLogout, children }) {
     /* tasks */ toggleTask, addTask, updateTask, deleteTask,
     /* transactions */ addTransaction, updateTransaction, correctTransaction,
                        toggleTransactionInclusion, toggleCategoryInclusion,
+    /* projects */ addProject, setProjectForecast, completeProject, archiveProject,
     /* goals + habits */ addGoal, toggleHabitToday,
     /* notes */ addQuickNote, deleteQuickNote,
     /* profile + dog */ updateProfile, updateDog,

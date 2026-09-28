@@ -6,6 +6,7 @@ const routes = [
   'tasks',
   'habits',
   'goals',
+  'projects',
   'health',
   'dog',
   'finances',
