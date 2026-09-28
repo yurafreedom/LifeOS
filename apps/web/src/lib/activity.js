@@ -11,11 +11,12 @@
  *     id:          string,                 // unique
  *     timestamp:   ISO string,
  *     entity_type: 'task' | 'transaction' | 'med_dose' |
- *                  'med_config' | 'habit' | 'goal' |
+ *                  'med_config' | 'habit' | 'goal' | 'project' |
+ *                  'waiting' | 'reference' |
  *                  'profile' | 'mode_style' | 'note' | 'quick_note',
  *     entity_id:   string | number,
  *     action:      'created' | 'edited' | 'completed' | 'reopened' |
- *                  'deleted' | 'restored' | 'dose_taken' |
+ *                  'deleted' | 'restored' | 'clarified' | 'dose_taken' |
  *                  'dose_skipped' | 'dose_snoozed' |
  *                  'mode_changed' | 'inventory_updated' |
  *                  'note_added' | 'note_edited' | 'note_deleted',

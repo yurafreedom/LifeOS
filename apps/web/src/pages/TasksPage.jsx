@@ -8,8 +8,12 @@ const { useState: useStateTP, useMemo: useMemoTP, useContext: useCtxTP } = React
 
 /* Tasks tab — master view of every task across routine + stakes.
    Filter chips on the left, sort dropdown on the right. Reuses the same
-   task-row markup as the home composite, opens TaskDetailModal on click. */
-function TasksPage({ tasks, onToggle, onAdd, onOpen }) {
+   task-row markup as the home composite, opens TaskDetailModal on click.
+
+   The "ожидание" chip is the retrieval surface for Clarify's Delegate outcome.
+   Waiting items are a distinct persisted collection, NOT tasks and NOT a task
+   tag — they render as their own list so the difference stays visible. */
+function TasksPage({ tasks, waitingItems = [], onToggle, onAdd, onOpen }) {
   const { t } = useCtxTP(LifeLocaleContext);
   const I = LIcons;
   const [filter, setFilter] = useStateTP('all');
@@ -22,6 +26,7 @@ function TasksPage({ tasks, onToggle, onAdd, onOpen }) {
     { id: 'overdue', label: t('tasks_filter_overdue') },
     { id: 'routine', label: t('tasks_filter_routine') },
     { id: 'stakes',  label: t('tasks_filter_stakes') },
+    { id: 'waiting', label: t('tasks_filter_waiting') },
     { id: 'done',    label: t('tasks_filter_done') },
   ];
   const sorts = [
@@ -43,6 +48,7 @@ function TasksPage({ tasks, onToggle, onAdd, onOpen }) {
   }, [tasks, filter, sort]);
 
   const openCount = tasks.filter(x => !x.done).length;
+  const waitingView = filter === 'waiting';
 
   return (
     <div className="page tasks-page">
@@ -78,7 +84,32 @@ function TasksPage({ tasks, onToggle, onAdd, onOpen }) {
         </div>
       </div>
 
-      {filtered.length === 0 ? (
+      {waitingView ? (
+        waitingItems.length === 0 ? (
+          <div className="empty-state">{t('waiting_empty')}</div>
+        ) : (
+          <section className="card panel tasks-list-card" aria-labelledby="tasks-waiting-title">
+            <div className="panel-head">
+              <h3 className="panel-title" id="tasks-waiting-title">{t('waiting_section_title')}</h3>
+              <span className="panel-meta mono">{t('waiting_section_meta')}</span>
+            </div>
+            <ul className="waiting-list">
+              {waitingItems.map(item => (
+                <li key={item.id} className="waiting-row">
+                  <span className="waiting-icon" aria-hidden="true">{I.user({ size: 14 })}</span>
+                  <span className="waiting-title">{item.title}</span>
+                  <span className="waiting-meta">
+                    {item.waiting_for
+                      ? <span className="waiting-for">{t('waiting_for', item.waiting_for)}</span>
+                      : null}
+                    <span className="waiting-date mono">{item.created_at.slice(0, 10)}</span>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )
+      ) : filtered.length === 0 ? (
         <div className="empty-state">{t('tasks_empty')}</div>
       ) : (
         <section className="card panel tasks-list-card">

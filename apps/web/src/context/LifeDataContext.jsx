@@ -4,6 +4,16 @@ import { LifeMeds } from '../data/medications.js';
 import { LifeProfileSeed } from '../data/profile.js';
 import { LifeActivity } from '../lib/activity.js';
 import {
+  applyClarifyTransition,
+  createClarifiedTaskRecord,
+  createDeferredTaskRecord,
+  createReferenceRecord,
+  createWaitingItemRecord,
+  requireQuickNote,
+  validateReferenceRecord,
+  validateWaitingItemRecord,
+} from '../domain/clarify.ts';
+import {
   archiveProjectRecord,
   completeProjectWithDurableIntent,
   createProjectRecord,
@@ -135,6 +145,8 @@ function buildInitialState() {
       { id: 103, text: 'мама — найти билеты на декабрь',               at: '14:48' },
       { id: 104, text: 'послушать тот подкаст про CYP2D6',             at: '17:21' },
     ],
+    waitingItems: [],
+    references: [],
     activityLog: [],
   };
 }
@@ -229,6 +241,19 @@ function migrateStateCopy(input) {
   if (!Object.prototype.hasOwnProperty.call(state, 'projects')) state.projects = [];
   if (!Array.isArray(state.projects)) throw new Error('State collection projects is invalid.');
   state.projects.forEach(validateProjectRecord);
+  /* Clarify · additive operational collections. Snapshots written before the
+     Clarify panel existed simply lack them — seed to [] and leave every other
+     field untouched. Nothing here bumps the state version. */
+  if (!Object.prototype.hasOwnProperty.call(state, 'waitingItems')) state.waitingItems = [];
+  if (!Array.isArray(state.waitingItems)) {
+    throw new Error('State collection waitingItems is invalid.');
+  }
+  state.waitingItems.forEach(validateWaitingItemRecord);
+  if (!Object.prototype.hasOwnProperty.call(state, 'references')) state.references = [];
+  if (!Array.isArray(state.references)) {
+    throw new Error('State collection references is invalid.');
+  }
+  state.references.forEach(validateReferenceRecord);
   if (!Array.isArray(state.habits)) {
     state.habits = buildDefaultHabits();
   } else {
@@ -248,7 +273,8 @@ function migrateStateCopy(input) {
     });
   }
   const arrays = [
-    'medications', 'tasks', 'transactions', 'projects', 'goals', 'quickNotes', 'activityLog',
+    'medications', 'tasks', 'transactions', 'projects', 'goals', 'quickNotes',
+    'waitingItems', 'references', 'activityLog',
   ];
   const objects = ['profile', 'dog', 'doseLogs', 'pharmNotes', 'modeStyles', 'categoryOverrides'];
   arrays.forEach(key => {
@@ -637,6 +663,56 @@ function LifeDataProvider({ user, onSessionExpired, onLogout, children }) {
       { entity_type: 'quick_note', entity_id: id, action: 'deleted' });
   }
 
+  /* ── Clarify · Quick Note → real operational outcome ─ */
+  /* Every non-delete outcome follows the same contract:
+       1. resolve the source note off the current tree — a stale id raises
+          here, before anything is written;
+       2. build and validate the destination record;
+       3. apply destination creation + source removal in ONE state update.
+     So a cancelled or failed Clarify always leaves the Quick Note intact, and
+     the note disappears only once its destination is actually persisted.
+     Delete keeps using the existing deleteQuickNote path, so it calls
+     requireClarifiableQuickNote first to get the same stale-source guard. */
+  function requireClarifiableQuickNote(noteId) {
+    return requireQuickNote(state, noteId);
+  }
+
+  function clarifyQuickNoteToTask(noteId) {
+    const note = requireQuickNote(state, noteId);
+    const task = createClarifiedTaskRecord(note.text);
+    setStateRaw(prev => applyClarifyTransition(prev, noteId, 'do_now', task));
+    return task;
+  }
+
+  function clarifyQuickNoteToDeferredTask(noteId, deferDate) {
+    const note = requireQuickNote(state, noteId);
+    const task = createDeferredTaskRecord(note.text, deferDate);
+    setStateRaw(prev => applyClarifyTransition(prev, noteId, 'defer', task));
+    return task;
+  }
+
+  function clarifyQuickNoteToWaiting(noteId, waitingFor = null) {
+    const note = requireQuickNote(state, noteId);
+    const item = createWaitingItemRecord(note.text, waitingFor);
+    setStateRaw(prev => applyClarifyTransition(prev, noteId, 'delegate', item));
+    return item;
+  }
+
+  /* Project outcome uses the REAL Project domain from Slice P. Never goals[]. */
+  function clarifyQuickNoteToProject(noteId) {
+    const note = requireQuickNote(state, noteId);
+    const project = createProjectRecord(note.text);
+    setStateRaw(prev => applyClarifyTransition(prev, noteId, 'project', project));
+    return project;
+  }
+
+  function clarifyQuickNoteToReference(noteId) {
+    const note = requireQuickNote(state, noteId);
+    const reference = createReferenceRecord(note.text);
+    setStateRaw(prev => applyClarifyTransition(prev, noteId, 'reference', reference));
+    return reference;
+  }
+
   /* ── Profile ──────────────────────────────────────── */
   function updateProfile(slice, patch) {
     mutate(prev => ({ profile: { ...prev.profile, [slice]: { ...prev.profile[slice], ...patch } } }),
@@ -815,6 +891,10 @@ function LifeDataProvider({ user, onSessionExpired, onLogout, children }) {
     /* projects */ addProject, setProjectForecast, completeProject, archiveProject,
     /* goals + habits */ addGoal, toggleHabitToday,
     /* notes */ addQuickNote, deleteQuickNote,
+    /* clarify */ requireClarifiableQuickNote,
+                  clarifyQuickNoteToTask, clarifyQuickNoteToDeferredTask,
+                  clarifyQuickNoteToWaiting, clarifyQuickNoteToProject,
+                  clarifyQuickNoteToReference,
     /* profile + dog */ updateProfile, updateDog,
     /* meds */ updateMedication, deleteMedication, setMedicationStatus,
               setMedicationInventory, takeDose, snoozeDose, skipDose,
