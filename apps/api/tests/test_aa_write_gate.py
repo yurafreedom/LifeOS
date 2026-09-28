@@ -72,6 +72,32 @@ def test_writes_are_refused_while_the_gate_is_closed(
         assert corrected.status_code == 403
         assert corrected.json()["code"] == "aa_writes_disabled"
 
+        corrected_by_key = gated_client.post(
+            "/api/v1/aa/measurements/by-idempotency/not-created/correct",
+            json=correction_payload(idempotency_key="gated-correction-by-key"),
+        )
+        assert corrected_by_key.status_code == 403
+        assert corrected_by_key.json()["code"] == "aa_writes_disabled"
+
+        policy = gated_client.post(
+            "/api/v1/aa/finance/policies",
+            json={
+                "policy": {"exclude_categories": [], "default": "include"},
+                "effective_from": "2026-08-01T00:00:00+00:00",
+                "provenance": {"source_kind": "USER_REPORTED"},
+                "idempotency_key": "gated-policy",
+            },
+        )
+        assert policy.status_code == 403
+        assert policy.json()["code"] == "aa_writes_disabled"
+
+        imported = gated_client.post(
+            "/api/v1/aa/import/legacy-transactions",
+            json={"timezone": "Europe/Kyiv", "coverage": []},
+        )
+        assert imported.status_code == 403
+        assert imported.json()["code"] == "aa_writes_disabled"
+
     with session_factory() as db:
         assert db.scalar(select(func.count(AAMeasurement.id))) == 0
 

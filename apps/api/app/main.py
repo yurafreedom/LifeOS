@@ -9,7 +9,9 @@ from app.middleware.body_limit import SnapshotBodyLimitMiddleware
 from app.routes import (
     aa_comparison,
     aa_facts,
+    aa_finance,
     aa_history,
+    aa_import,
     aa_measurements,
     aa_subjects,
     account,
@@ -59,6 +61,8 @@ def create_app(
     app.include_router(export.router)
     app.include_router(account.router)
     app.include_router(aa_facts.router)
+    app.include_router(aa_finance.router)
+    app.include_router(aa_import.router)
     app.include_router(aa_comparison.router)
     app.include_router(aa_subjects.router)
     return app

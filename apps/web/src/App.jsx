@@ -1,5 +1,5 @@
 import React from 'react';
-import { LIFE_ROUTES } from './app/routes.js';
+import { ANALYTICS_ROUTE_ENABLED, LIFE_ROUTES } from './app/routes.js';
 import { CalendarView } from './components/CalendarView.jsx';
 import { MobileBottomNav } from './components/MobileBottomNav.jsx';
 import { ParadiseScene } from './components/ParadiseScene.jsx';
@@ -12,6 +12,7 @@ import { Toast } from './components/Toast.jsx';
 import { TopBar } from './components/TopBar.jsx';
 import { LifeDataContext, LifeDataProvider } from './context/LifeDataContext.jsx';
 import { AuthProvider, useAuth } from './context/AuthContext.jsx';
+import { AnalyticsProvider } from './context/AnalyticsContext.jsx';
 import { LifeLocaleContext, LifeLocales, LifeMakeT } from './context/LocaleContext.jsx';
 import { DogPage } from './pages/DogPage.jsx';
 import { FinancesPage } from './pages/FinancesPage.jsx';
@@ -24,6 +25,8 @@ import { ProfilePage } from './pages/ProfilePage.jsx';
 import { QuickNotesPage } from './pages/QuickNotesPage.jsx';
 import { GoalsPage, HabitsPage } from './pages/RelocatedPages.jsx';
 import { TasksPage } from './pages/TasksPage.jsx';
+import FinanceAnalytics from './pages/finances/FinanceAnalytics.jsx';
+import MetricHistoryPage from './pages/analytics/MetricHistoryPage.jsx';
 
 /* global React, ReactDOM */
 const {
@@ -401,7 +404,14 @@ function AppShell({ user }) {
       case 'dog':
         return <DogPage dog={dog} onUpdate={data.updateDog} locale={locale} t={t} />;
       case 'finances':
-        return <FinancesPage emptyMode={emptyMode} />;
+        return <FinancesPage
+          emptyMode={emptyMode}
+          onAnalytics={ANALYTICS_ROUTE_ENABLED ? () => setRoute('analytics') : null}
+        />;
+      case 'analytics':
+        return <FinanceAnalytics onHistory={() => setRoute('analytics-history')} />;
+      case 'analytics-history':
+        return <MetricHistoryPage onBack={() => setRoute('analytics')} />;
       case 'monthly':
         return <PlaceholderPage title={t('ph_monthly_title')} body={t('ph_monthly_body')} />;
       case 'annual':
@@ -510,9 +520,11 @@ function AuthGate() {
   }
   if (auth.phase !== 'authenticated' || !auth.user) return <LoginPage />;
   return (
-    <LifeDataProvider user={auth.user} onSessionExpired={auth.expireSession} onLogout={auth.logout}>
-      <AppShell user={auth.user} />
-    </LifeDataProvider>
+    <AnalyticsProvider user={auth.user}>
+      <LifeDataProvider user={auth.user} onSessionExpired={auth.expireSession} onLogout={auth.logout}>
+        <AppShell user={auth.user} />
+      </LifeDataProvider>
+    </AnalyticsProvider>
   );
 }
 

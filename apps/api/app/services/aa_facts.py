@@ -87,6 +87,18 @@ def _find_by_idempotency_key(
     )
 
 
+def get_measurement_by_idempotency_key(
+    db: Session, *, user_id: UUID, idempotency_key: str
+) -> AAMeasurement:
+    """Resolve a client-created fact identity without crossing account scope."""
+    row = _find_by_idempotency_key(
+        db, user_id=user_id, idempotency_key=idempotency_key
+    )
+    if row is None:
+        raise FactNotFoundError
+    return row
+
+
 def get_measurement(db: Session, *, user_id: UUID, measurement_id: UUID) -> AAMeasurement:
     """Load one fact owned by this account, or raise as if it did not exist."""
     row = db.scalar(

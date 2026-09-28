@@ -44,9 +44,10 @@ function installBrowserStubs() {
 
 describe('Life OS production module graph', () => {
   it('keeps the complete route registry', () => {
-    expect(LIFE_ROUTES.size).toBe(15);
+    expect(LIFE_ROUTES.size).toBe(17);
     expect(LIFE_ROUTES.has('home')).toBe(true);
     expect(LIFE_ROUTES.has('settings')).toBe(true);
+    expect(LIFE_ROUTES.has('analytics')).toBe(true);
   });
 
   it('keeps private routes behind the auth boot gate', async () => {
