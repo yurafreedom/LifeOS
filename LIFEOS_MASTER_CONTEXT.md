@@ -577,6 +577,10 @@ Slice 4:
 Outputs/Implementations/
 lifeos-adaptive-analytics-slice-4_20260928-171500.md
 
+Slice 5:
+Outputs/Implementations/
+lifeos-adaptive-analytics-slice-5-project-analytics_20260929-001128.md
+
 Before implementing a relevant slice:
 
 READ the current plan/report/code directly.
@@ -1514,15 +1518,15 @@ P ✅
 Clarify Panel ✅
 3 ✅
 4 ✅
+5 ✅
 
 NEXT SLICE:
 
-Slice 5 — Project Analytics
+Slice 6 — Experiment
 
 Then, unless the owner changes priorities:
 
-Slice 5
-→ Slice 6
+Slice 6
 → Slice 7
 → Slice 8
 
@@ -1634,49 +1638,55 @@ POST /api/v1/aa/reviews/{id}/revise.
 Validation at completion: 380 pytest, 242 Vitest (25 files).
 
 ====================================================================
-39. SLICE 5 — FUTURE PROJECT ANALYTICS
+39. SLICE 5 — PROJECT ANALYTICS — COMPLETED
 ====================================================================
 
-Prerequisite now exists because Slice P is merged.
+Implementation report:
 
-Expected future files include things like:
+Outputs/Implementations/
+lifeos-adaptive-analytics-slice-5-project-analytics_20260929-001128.md
 
-ForecastHistoryPage.jsx
+No migration (Alembic head stays 20260928_0006), no Project SQL table,
+snapshot version 2 / server schema_version 2, no new write path.
 
-ProjectAnalytics.jsx
+One read-only endpoint (auth only, no write gate):
 
-dual-delta comparison helper
+GET /api/v1/aa/projects/{project_id}/analytics[?as_of=]
 
-Future accepted scenario:
+Canonical scenario (tested through the real write paths):
 
-first forecast:
-20 Aug
+Forecast 20 Aug → 24 Aug → 26 Aug, Actual 25 Aug
+forecast versions = 3 (two superseded/REVISION + one active)
+Actual is a separate field, never a version
+actual vs first = +5 days · actual vs latest = −1 day
+both NEUTRAL
 
-later:
-24 Aug
+Settled semantics:
 
-latest:
-26 Aug
+- forecast VERSION HISTORY uses the PR #14 predicate: every non-tombstoned
+  version of user + project subject + project.completion_date,
+  recorded_at <= as_of for as-of, ordered recorded_at, id; never apply_as_of;
+- Actual = the completion Measurement live at T and occurred by T; a
+  correction counts once, its lineage is exposed;
+- dual delta = compute_delta(Actual, first) and (Actual, latest);
+  desirability always neutral: no Target/Preference/Decision is consulted
+  for a project date (a project Target window has no accepted meaning);
+  Expectation and Forecast never ground;
+- states: no_facts · too_early · actual_not_recorded (never "missed") ·
+  no_forecast (delta unknown, never zero) · compared;
+- tombstoned versions leave the history; the first operand is always
+  «первая сохранённая оценка», never "first ever";
+- pending local writes are reported beside the history, never merged;
+  snapshot current_forecast_date is never counted.
 
-Actual:
-25 Aug
+Frontend: route project-analytics (#/project-analytics/<id>, analytics-gated,
+lazy), ProjectCard entry, Review entry reuses Slice 4 for completed projects,
+RU/UK day grammar (+5 дней / −1 день, +5 днів / −1 день).
 
-Forecast version count:
+Not built (no truthful source): task counts, «typical for me» baseline,
+cause, duration KPI.
 
-3
-
-Actual listed separately.
-
-Possible deltas:
-
-actual vs first = +5 days
-actual vs latest = −1 day
-
-Both remain NEUTRAL absent normative grounding.
-
-Do NOT infer late=bad / early=good automatically.
-
-Do not implement this during Clarify.
+Validation at completion: 420 pytest, 316 Vitest (31 files).
 
 ====================================================================
 40. SLICE 6 — FUTURE EXPERIMENT
@@ -2341,12 +2351,13 @@ A BLOCKED result is better than silently corrupting product semantics.
 65. CURRENT NEXT STEP
 ====================================================================
 
-Slice P, Clarify, Slice 3 and Slice 4 (Review / Debrief) are complete.
-Verify the exact current main SHA live; do not trust a SHA written here.
+Slice P, Clarify, Slice 3, Slice 4 (Review / Debrief) and Slice 5 (Project
+Analytics) are complete. Verify the exact current main SHA live; do not trust a
+SHA written here.
 
 The next major product task is:
 
-Adaptive Analytics Slice 5 — Project Analytics (see §39)
+Adaptive Analytics Slice 6 — Experiment (see §40)
 
 Follow the Discovery → Plan → Implementation gates on an ordinary feature
 branch in the canonical checkout after fast-forwarding local `main`.
