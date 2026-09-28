@@ -230,3 +230,12 @@ This implementation report is the only non-application addition.
 - Deployment or production gate change: **NO**
 
 Slice P is complete and ready for owner review. The PR must remain open and unmerged.
+
+## Pre-merge owner review correction
+
+Owner review found one stale pre-Slice-P instruction, duplicated in the production
+provider comment and its tracked UI-kit source, claiming that Clarify's future
+Project outcome should reuse `addGoal`. Runtime behavior was already correct:
+Project is a distinct domain and is not stored in `goals[]`. Both stale comment
+copies now state that the future Clarify Project outcome must target the real
+Project domain introduced by Slice P, not `addGoal`. No runtime behavior changed.

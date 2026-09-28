@@ -601,8 +601,9 @@ function LifeDataProvider({ user, onSessionExpired, onLogout, children }) {
 
   /* ── Goals · Batch 1 rev · FIX 7 ──────────────────── */
   /* Minimal add-goal path: a new goal starts at 0% with a default
-     timeframe tag (current quarter). Batch 4 (Clarify "project" outcome)
-     reuses this same entry point — keep it lean and additive. */
+     timeframe tag (current quarter). Goals remain a separate domain.
+     Clarify's future "project" outcome must use the real Project domain
+     introduced by Slice P, not addGoal. */
   function addGoal(title) {
     const clean = (title || '').trim();
     if (!clean) return;
