@@ -168,6 +168,25 @@ The Finance list, Finance Analytics and Metric History preserve the Hero/PageHea
 Paradise receives the vignette; dark/light keep the compact fallback. Hero component, CSS and
 regression test are unchanged from merged main.
 
+## Pre-merge owner review correction — timezone-safe date-only Finance facts
+
+Owner review found that the manual Finance transaction payload appended a fixed `+03:00` to a
+date-only source value while declaring `Europe/Kyiv`. That offset is wrong during standard time:
+`2026-12-01T00:00:00+03:00` resolves to 23:00 on November 30 in Kyiv, so a December transaction
+could enter the preceding local day and month.
+
+The payload now uses a small deterministic `Intl.DateTimeFormat` helper to resolve local midnight
+under IANA `Europe/Kyiv` rules for the transaction's exact source date. It emits the corresponding
+UTC instant and retains `occurred_tz=Europe/Kyiv`; it does not consult the browser's local timezone,
+assume a fixed offset, add a dependency or fabricate precision beyond the accepted local-midnight
+convention. The same pure builder is the payload path used by `AnalyticsContext`.
+
+Four permanent frontend regressions cover summer `2026-08-01`, winter and month boundary
+`2026-12-01`, and year boundary `2027-01-01`. They convert the produced instant back through
+`Europe/Kyiv` and assert the genuine source calendar date at 00:00:00; the payload assertion also
+proves December 1 remains in the December aggregation period. Focused validation passed 28 web
+tests and all 6 backend Finance tests. Final validation after this correction is recorded below.
+
 ## Dependency and migration delta
 
 - Added dependency: `fake-indexeddb@6.2.5`, **dev-only**.
@@ -198,20 +217,20 @@ regression test are unchanged from merged main.
 
 ### Final full validation
 
-- API: **253 passed**, 7 inherited dependency/config warnings, 44.71s
+- API: **253 passed**, 7 inherited dependency/config warnings, 45.90s
 - ruff: **PASS**
 - Alembic heads/current: **`20260910_0004` / `20260910_0004`, one head**
-- web: **104 passed / 15 files**, 1.66s
+- web: **108 passed / 16 files**, 1.22s
 - typecheck: **PASS**
 - lint: **PASS**
 - build: **PASS**
-- final bundle: 101 modules; CSS 130.95 kB / 23.21 kB gzip; JS 422.66 kB /
-  121.38 kB gzip; map 1,051.89 kB
+- final bundle: 102 modules; CSS 130.95 kB / 23.21 kB gzip; JS 423.66 kB /
+  121.80 kB gzip; map 1,056.20 kB
 - `git diff --check`: PASS
 
-Relative to Hero main: +18 modules; CSS +4.26 kB / +0.84 kB gzip; JS +23.45 kB /
-+7.48 kB gzip; map +63.24 kB. Relative to recovered pre-edit Slice 2: +1 module, no CSS
-change, JS +2.25 kB / +0.65 kB gzip and map +5.60 kB.
+Relative to Hero main: +19 modules; CSS +4.26 kB / +0.84 kB gzip; JS +24.45 kB /
++7.90 kB gzip; map +67.55 kB. Relative to recovered pre-edit Slice 2: +2 modules, no CSS
+change, JS +3.25 kB / +1.07 kB gzip and map +9.91 kB.
 
 ## Changed paths and recovered implementation set
 

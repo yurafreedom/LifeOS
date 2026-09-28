@@ -1,4 +1,5 @@
 import React from 'react';
+import { financeTransactionMeasurementPayload } from '../analytics/financeTransaction.ts';
 import { AnalyticsRepository } from '../repositories/analyticsRepository.ts';
 import { AnalyticsSyncCoordinator } from '../repositories/analyticsSyncCoordinator.ts';
 import { AnalyticsWriteQueue } from '../repositories/analyticsWriteQueue.ts';
@@ -64,20 +65,11 @@ function AnalyticsProvider({ user, children }) {
   }
 
   async function enqueueTransaction(transaction, includedByDefault = true) {
-    return enqueue('measurement.append', '/api/v1/aa/measurements', {
-      metric_key: 'finance.transaction_amount',
-      subject: { domain: 'finance', type: 'transaction', id: String(transaction.id) },
-      value: { type: 'money', unit_code: 'UAH', num: String(transaction.amount) },
-      occurred_at: `${transaction.date}T00:00:00+03:00`,
-      occurred_tz: 'Europe/Kyiv',
-      provenance: {
-        source_kind: 'USER_REPORTED', basis: '1 операция', method: 'Ручная запись',
-      },
-      dimensions: {
-        category_id: transaction.category_id,
-        included_by_default: includedByDefault,
-      },
-    });
+    return enqueue(
+      'measurement.append',
+      '/api/v1/aa/measurements',
+      financeTransactionMeasurementPayload(transaction, includedByDefault),
+    );
   }
 
   async function enqueueCorrection(transaction, originalKey, reason) {
