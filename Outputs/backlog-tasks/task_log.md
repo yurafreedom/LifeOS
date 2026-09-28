@@ -47,3 +47,37 @@
 - **Phases used:** A+B+C
 - **Blockers / rework:** corrected the tracked tsconfig classification, added the approved Vitest TypeScript discovery path, and re-anchored three stale expected-count gates before commit
 - **Summary:** Replaced browser-local snapshot writes with authenticated server hydration, explicit legacy import, single-flight revision sync, conflict recovery, server reset/export, and persisted habits while preserving local appearance preferences.
+
+## Task LifeOS Claude Export Forensic — Reconstruct historical product intent
+- **Date:** 2026-08-11
+- **Branch:** design-sync-setup
+- **Duration:** 5h 30m (estimated, multi-session)
+- **Tokens:** 90,000 in / 42,000 out / 132,000 total (estimated, multi-session)
+- **Files touched:** 26
+- **Net diff:** +3,700 / -12 (estimated)
+- **Complexity:** heavy
+- **Phases used:** A+B+C
+- **Blockers / rework:** none; approved Stop Condition #6 amendment converted genuine archive ambiguity into propagated UNRESOLVED states instead of stopping processing
+- **Summary:** Parsed and semantically routed the full Claude export, reconstructed LifeOS product/GTD/dashboard/design/architecture history into 21 validated forensic artifacts, and reconciled historical intent against the verified server-backed repository guardrail without modifying source data or creating a commit.
+
+## Task LifeOS Post-Forensic Consistency — Correct artifact counts and taxonomy
+- **Date:** 2026-08-11
+- **Branch:** design-sync-setup
+- **Duration:** 1h 40m (estimated, includes Discovery/Plan review waits)
+- **Tokens:** 28,000 in / 15,000 out / 43,000 total (estimated)
+- **Files touched:** 11
+- **Net diff:** +745 / -17 (estimated, includes required phase reports)
+- **Complexity:** medium
+- **Phases used:** A+B+C
+- **Blockers / rework:** first one-off taxonomy regex was over-escaped and produced a false zero count; corrected probe passed without artifact rework
+- **Summary:** Corrected one stale conflict validation count and separated seven historical open questions from eleven forensic/evidence gaps, while preserving all IDs, source JSON, evidence JSONL, application code and Git history.
+
+## Task LifeOS Repository Consolidation — Establish one canonical checkout
+- **Date:** 2026-09-28
+- **Branch:** chore/lifeos-consolidation
+- **Duration:** multi-session audit and consolidation
+- **Files touched:** documentation/history only; no application code
+- **Complexity:** heavy
+- **Phases used:** discovery, owner-decision resolution, implementation, full verification
+- **Blockers / rework:** backend editable install remains unsupported by existing setuptools package discovery; exact declared dependencies were installed directly for validation
+- **Summary:** Preserved and classified 1,138 untracked paths, separated Consensu and archival exports, consolidated project context and agent instructions, removed only verified generated material and Finder metadata, validated the full backend/frontend suite, and prepared retirement of obsolete worktrees and merged branches after remote preservation.
