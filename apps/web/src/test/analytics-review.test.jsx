@@ -1,5 +1,5 @@
 import React from 'react';
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 
@@ -261,7 +261,15 @@ describe('Review · entry points and boundaries', () => {
 
   // Demo chrome is guarded for all of src/ by tests/aa-demo-chrome.test.js (T-16).
   it('computes no score and recommends nothing', () => {
-    const page = readFileSync(new URL('../pages/analytics/ReviewPage.jsx', import.meta.url), 'utf8');
-    expect(page).not.toMatch(/\bscore\b|lifeScore|recommendation/i);
+    /* The page shell plus every module it was split into (pages/analytics/review/). */
+    const reviewDir = new URL('../pages/analytics/review/', import.meta.url);
+    const files = [
+      new URL('../pages/analytics/ReviewPage.jsx', import.meta.url),
+      ...readdirSync(reviewDir).map(name => new URL(name, reviewDir)),
+    ];
+    expect(files.length).toBe(5);
+    for (const file of files) {
+      expect(readFileSync(file, 'utf8')).not.toMatch(/\bscore\b|lifeScore|recommendation/i);
+    }
   });
 });
