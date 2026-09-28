@@ -1,5 +1,14 @@
 import React from 'react';
 import { createClarifyHandlers } from './app/clarifyHandlers.js';
+import {
+  DogPage,
+  FinanceAnalytics,
+  MedicationsPage,
+  MetricHistoryPage,
+  ReviewPage,
+  RouteFallback,
+  SettingsPage,
+} from './app/lazyRoutes.jsx';
 import { useParadisePress } from './app/paradisePress.js';
 import { ANALYTICS_ROUTE_ENABLED, normalizeRoute, readRouteFromHash } from './app/routeRegistry.js';
 import { useSidebarCollapsed } from './app/useSidebarCollapsed.js';
@@ -9,7 +18,6 @@ import { ClarifyPanel } from './components/ClarifyPanel.jsx';
 import { MobileBottomNav } from './components/MobileBottomNav.jsx';
 import { ParadiseScene } from './components/ParadiseScene.jsx';
 import { QuickAddModal } from './components/QuickAddModal.jsx';
-import { SettingsPage } from './components/SettingsPage.jsx';
 import { Sidebar } from './components/Sidebar.jsx';
 import { SyncStatus } from './components/SyncStatus.jsx';
 import { TaskDetailModal } from './components/TaskDetailModal.jsx';
@@ -19,11 +27,9 @@ import { LifeDataContext, LifeDataProvider } from './context/LifeDataContext.jsx
 import { AuthProvider, useAuth } from './context/AuthContext.jsx';
 import { AnalyticsProvider } from './context/AnalyticsContext.jsx';
 import { LifeLocaleContext, LifeLocales, LifeMakeT } from './context/LocaleContext.jsx';
-import { DogPage } from './pages/DogPage.jsx';
 import { FinancesPage } from './pages/FinancesPage.jsx';
 import { HealthPage } from './pages/HealthPage.jsx';
 import { HomePage } from './pages/HomePage.jsx';
-import { MedicationsPage } from './pages/MedicationsPage.jsx';
 import { LoginPage } from './pages/LoginPage.jsx';
 import { PlaceholderPage } from './pages/PlaceholderPage.jsx';
 import { ProfilePage } from './pages/ProfilePage.jsx';
@@ -31,9 +37,6 @@ import { ProjectsPage } from './pages/ProjectsPage.jsx';
 import { QuickNotesPage } from './pages/QuickNotesPage.jsx';
 import { GoalsPage, HabitsPage } from './pages/RelocatedPages.jsx';
 import { TasksPage } from './pages/TasksPage.jsx';
-import FinanceAnalytics from './pages/finances/FinanceAnalytics.jsx';
-import MetricHistoryPage from './pages/analytics/MetricHistoryPage.jsx';
-import ReviewPage from './pages/analytics/ReviewPage.jsx';
 
 /* global React, ReactDOM */
 const {
@@ -273,7 +276,7 @@ function AppShell({ user }) {
         <main className="main">
           <TopBar onQuickAdd={() => openQuickAdd(false)} />
           <div className="global-sync"><SyncStatus compact /></div>
-          {renderRoute()}
+          <React.Suspense fallback={<RouteFallback />}>{renderRoute()}</React.Suspense>
         </main>
 
         {LIFE_DEBUG && <div className="demo-rail">
