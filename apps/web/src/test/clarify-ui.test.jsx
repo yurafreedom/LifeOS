@@ -100,10 +100,12 @@ describe('Clarify panel · handoff layout 1c', () => {
   });
 
   it('guards Delete against a stale source note instead of claiming success', () => {
-    const app = source('../App.jsx');
-    expect(app).toMatch(
+    /* The Clarify handlers live in app/clarifyHandlers.js; AppShell wires them. */
+    const handlers = source('../app/clarifyHandlers.js');
+    expect(handlers).toMatch(
       /onDelete\(note\) \{[\s\S]{0,300}requireClarifiableQuickNote\(note\.id\);[\s\S]{0,120}deleteQuickNote\(note\.id\)/,
     );
+    expect(source('../App.jsx')).toContain('createClarifyHandlers({ data, t, showToast })');
     const provider = source('../context/LifeDataContext.jsx');
     expect(provider).toContain('function requireClarifiableQuickNote(noteId)');
     expect(provider).toContain('requireClarifiableQuickNote,');

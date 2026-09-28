@@ -1,0 +1,575 @@
+/* ============================================================
+   Home dashboard — Sprint 2
+   ============================================================ */
+.home-page { gap: var(--pad-xl); padding-top: 4px; }
+.home-section-stub {
+  padding: 36px 24px;
+  text-align: center;
+  font-size: 11px; color: var(--fg4);
+  border: 1px dashed var(--border);
+  border-radius: var(--r-lg);
+}
+
+.home-hero {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.stat-card {
+  display: flex; flex-direction: column; gap: 8px;
+  padding: var(--pad-md);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--sh-card);
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 180ms var(--ease), transform 180ms var(--ease), border-color 180ms var(--ease), box-shadow 180ms var(--ease);
+  min-width: 0;
+}
+.stat-card:hover {
+  background: var(--surface-h);
+  border-color: var(--border-s);
+  transform: translateY(-1px);
+  box-shadow: var(--sh-card-hover);
+}
+.stat-eyebrow {
+  font-size: 12px;
+  color: var(--fg3);
+}
+.stat-value {
+  font: 500 var(--text-3xl) var(--font-mono);
+  letter-spacing: -0.01em;
+  color: var(--fg1);
+  line-height: var(--line-number);
+  white-space: nowrap;
+}
+.stat-value.is-stakes {
+  background: var(--accent);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+[data-theme="light"] .stat-value.is-stakes { color: var(--o2); background: none; -webkit-text-fill-color: var(--o2); }
+.stat-value.is-over { color: var(--danger); }
+.stat-context {
+  font-size: var(--text-sm); line-height: 1.4;
+  color: var(--fg2);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.stat-context.is-empty { color: var(--fg4); font-size: var(--text-xs); }
+.stat-card.is-empty .stat-value { color: var(--fg4); }
+
+@media (max-width: 720px) {
+  .home-hero { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 420px) {
+  .home-hero { grid-template-columns: 1fr; }
+  .home-page { gap: 20px; }
+}
+
+/* ============================================================
+   Charts row — Sprint 2 Batch 2
+   Shared ChartCard chrome, trend chart (SVG), category bars.
+   ============================================================ */
+.home-charts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--pad-lg);
+  min-width: 0;
+}
+@media (max-width: 960px) {
+  .home-charts { grid-template-columns: 1fr; }
+}
+
+.chart-card {
+  display: flex; flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: var(--pad-lg);
+  box-shadow: var(--sh-card);
+  min-width: 0;
+  min-height: 280px;
+}
+.chart-card-head {
+  display: flex; flex-direction: column; gap: 4px;
+  margin-bottom: var(--pad-md);
+}
+.chart-card-eyebrow {
+  font-size: var(--text-xs);
+  color: var(--fg3);
+}
+.chart-card-total {
+  font: 500 var(--text-2xl) var(--font-mono);
+  letter-spacing: -0.01em;
+  color: var(--fg1);
+  line-height: 1.1;
+}
+.chart-card-controls {
+  margin-bottom: var(--pad-md);
+}
+.chart-card-body {
+  flex: 1; min-width: 0; min-height: 0;
+  display: flex; flex-direction: column;
+}
+.chart-card-footer {
+  margin-top: var(--pad-sm);
+  font-size: var(--text-xs);
+  color: var(--fg4);
+  text-transform: none;
+}
+
+/* segmented control — shared by trend toggle + category filter.
+   Batch 1 rev · FIX 6 — box neutralised; buttons are unified capsules. */
+.chart-segctrl {
+  display: inline-flex;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  gap: 6px;
+}
+/* .chart-segctrl-btn geometry + colours come from the unified capsule
+   (FIX 6). Keep the mono face for the numeric period/series labels. */
+.chart-segctrl-btn {
+  appearance: none;
+  font-family: var(--font-mono);
+  cursor: pointer;
+}
+/* "quiet" category chart (no stakes row) keeps a NEUTRAL active pill
+   instead of orange — orange must stay a stakes-only signal. */
+.chart-segctrl.is-quiet .chart-segctrl-btn.is-on {
+  background: rgba(255,255,255,0.06);
+  color: var(--fg1);
+}
+[data-theme="light"] .chart-segctrl.is-quiet .chart-segctrl-btn.is-on {
+  background: rgba(0,0,0,0.05);
+  color: var(--fg1);
+}
+
+/* shared empty area inside a chart card */
+.chart-empty {
+  flex: 1;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: var(--pad-md);
+  text-align: center;
+  padding: var(--pad-xl) var(--pad-md);
+}
+.chart-empty-msg {
+  font-size: var(--text-md);
+  color: var(--fg3);
+  line-height: 1.5;
+  max-width: 32ch;
+}
+.chart-empty-cta {
+  appearance: none; background: transparent;
+  border: 1px solid var(--border-s, var(--border));
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--blue-2);
+  cursor: pointer;
+  transition: background-color 160ms var(--ease), color 160ms var(--ease);
+}
+.chart-empty-cta:hover {
+  background: var(--primary-soft);
+  color: var(--blue-2);
+}
+[data-theme="light"] .chart-empty-cta { color: var(--primary-d); }
+
+/* ── trend chart ──────────────────────────────────────── */
+.trend-chart {
+  position: relative; flex: 1;
+  min-height: 160px;
+  width: 100%;
+}
+.trend-svg {
+  display: block;
+  width: 100%; height: 100%;
+  min-height: 160px;
+  overflow: visible;
+}
+.trend-line {
+  fill: none;
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.trend-area { stroke: none; }
+.trend-dot {
+  stroke: var(--surface);
+  stroke-width: 1.5;
+  transition: r 140ms var(--ease);
+}
+.trend-dot.is-hov { stroke-width: 2; }
+.trend-xlabel {
+  fill: var(--fg4);
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+/* color per series */
+.trend-chart.is-expenses .trend-line { stroke: var(--blue); }
+.trend-chart.is-expenses .trend-area { fill: var(--blue); opacity: 0.10; }
+.trend-chart.is-expenses .trend-dot  { fill: var(--blue); }
+.trend-chart.is-income   .trend-line { stroke: var(--blue-3); }
+.trend-chart.is-income   .trend-area { fill: var(--blue-3); opacity: 0.10; }
+.trend-chart.is-income   .trend-dot  { fill: var(--blue-3); }
+.trend-chart.is-net      .trend-line { stroke: var(--fg3); }
+.trend-chart.is-net      .trend-area { fill: var(--fg3); opacity: 0.05; }
+.trend-chart.is-net      .trend-dot  { fill: var(--fg3); }
+
+.trend-tooltip {
+  position: absolute;
+  transform: translate(-50%, calc(-100% - 10px));
+  background: var(--surface-2, #14181F);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 10px;
+  display: flex; flex-direction: column; gap: 2px;
+  font-family: var(--font-mono);
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 2;
+  box-shadow: var(--sh-card-hover, 0 8px 24px rgba(0,0,0,0.35));
+}
+.trend-tooltip-label {
+  font-size: 12px;
+  color: var(--fg4);
+}
+.trend-tooltip-val {
+  font-size: 12px;
+  color: var(--fg1);
+  font-weight: 500;
+}
+
+/* ── category breakdown ───────────────────────────────── */
+.cat-list {
+  flex: 1;
+  display: flex; flex-direction: column;
+  gap: var(--pad-sm);
+  min-width: 0;
+}
+.cat-row {
+  display: flex; flex-direction: column;
+  gap: var(--pad-xs);
+  min-width: 0;
+}
+.cat-row-head {
+  display: flex; align-items: center;
+  gap: var(--pad-sm);
+  min-width: 0;
+}
+.cat-row-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 14px; height: 14px;
+  color: var(--fg3);
+  flex: none;
+}
+.cat-row-icon svg { width: 12px; height: 12px; }
+.cat-row-icon-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--fg3);
+}
+.cat-row-name {
+  flex: 1; min-width: 0;
+  font-family: 'Work Sans', sans-serif;
+  font-size: var(--text-md);
+  color: var(--fg1);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.cat-row-amt {
+  font-family: var(--font-mono);
+  font-size: var(--text-md);
+  color: var(--fg2);
+  flex: none;
+}
+.cat-row-bar {
+  position: relative;
+  height: 3px; border-radius: 2px;
+  background: rgba(255,255,255,0.04);
+  overflow: hidden;
+}
+[data-theme="light"] .cat-row-bar { background: rgba(0,0,0,0.04); }
+.cat-row-bar-fill {
+  height: 100%;
+  background: var(--blue);
+  border-radius: 2px;
+  transition: width 320ms var(--ease);
+  min-width: 2px;
+}
+.cat-row.is-others .cat-row-name { color: var(--fg3); font-style: normal; }
+.cat-row.is-others .cat-row-icon { color: var(--fg4); }
+.cat-row.is-others .cat-row-bar-fill { background: var(--fg3); opacity: 0.5; }
+
+/* the single orange-stakes row — exactly one allowed per chart */
+.cat-row.is-stakes .cat-row-bar-fill {
+  background: var(--accent);
+}
+.cat-row.is-stakes .cat-row-amt {
+  color: var(--orange-text-on-tint, var(--o2));
+}
+[data-theme="light"] .cat-row.is-stakes .cat-row-amt { color: #DB5A0C; }
+[data-theme="light"] .cat-row.is-stakes .cat-row-bar-fill { background: #DB5A0C; }
+
+/* ============================================================
+   Upcoming this week — Sprint 2 Batch 3
+   ============================================================ */
+.upcoming-card, .bot-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--sh-card);
+  min-width: 0;
+}
+.upcoming-card { padding: var(--pad-lg); }
+.upcoming-head { margin-bottom: var(--pad-md); }
+.upcoming-eyebrow, .bot-eyebrow {
+  font-size: var(--text-xs);
+  color: var(--fg3);
+}
+.upcoming-list {
+  display: flex; flex-direction: column;
+  gap: 2px;
+}
+.upcoming-row {
+  appearance: none; background: transparent; border: none;
+  display: flex; align-items: center; gap: var(--pad-sm);
+  padding: var(--pad-sm) var(--pad-sm);
+  border-radius: 8px;
+  text-align: left;
+  cursor: pointer;
+  min-height: var(--row-h);
+  transition: background-color 140ms var(--ease);
+}
+.upcoming-row:hover { background: rgba(255,255,255,0.04); }
+[data-theme="light"] .upcoming-row:hover { background: rgba(0,0,0,0.03); }
+.upcoming-row-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 14px; height: 14px;
+  color: var(--fg3);
+  flex: none;
+}
+.upcoming-row-icon svg { width: 12px; height: 12px; }
+.upcoming-row-title {
+  flex: 1; min-width: 0;
+  font-family: 'Work Sans', sans-serif;
+  font-size: var(--text-md);
+  color: var(--fg1);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.upcoming-row-when {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--fg3);
+  flex: none;
+}
+.upcoming-row-when.is-overdue {
+  color: var(--red);
+}
+.upcoming-empty {
+  font-family: 'Work Sans', sans-serif;
+  font-size: var(--text-md);
+  color: var(--fg3);
+  padding: var(--pad-lg) var(--pad-sm);
+  line-height: 1.5;
+}
+
+/* ============================================================
+   Telegram bot recent footer — Sprint 2 Batch 3
+   Quieter than upcoming. Orange-gradient avatar dots = brand-anchor
+   orange, exempt from event-only rule per spec.
+   ============================================================ */
+.bot-card { padding: var(--pad-md); }
+.bot-head { margin-bottom: var(--pad-sm); }
+.bot-list {
+  display: flex; flex-direction: column;
+  gap: 2px;
+}
+.bot-row {
+  display: flex; align-items: center; gap: var(--pad-sm);
+  padding: 6px var(--pad-sm);
+  border-radius: 8px;
+  min-height: 28px;
+}
+.bot-row-avatar {
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: var(--orange-bot-shadow);
+  flex: none;
+}
+.bot-row-text {
+  flex: 1; min-width: 0;
+  font-family: 'Work Sans', sans-serif;
+  font-size: var(--text-sm);
+  color: var(--fg2);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.bot-row-when {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--fg4);
+  flex: none;
+  text-transform: lowercase;
+}
+.bot-empty {
+  font-family: 'Work Sans', sans-serif;
+  font-size: var(--text-sm);
+  color: var(--fg3);
+  padding: var(--pad-md) var(--pad-sm);
+  line-height: 1.5;
+}
+.set-wrap { padding-top: 8px; }
+.set-h {
+  font-family: 'Onest', sans-serif; font-weight: 800; font-size: var(--text-2xl);
+  letter-spacing: -0.025em; color: var(--fg1); margin: 0 0 22px;
+}
+.set-layout {
+  display: grid; grid-template-columns: 200px 1fr; gap: 32px;
+  align-items: start;
+  /* Batch 1 rev · FIX 1 — cap the whole settings surface (nav + body)
+     to the wide bound, left-anchored. nav/body inherit the cap. */
+  max-width: var(--readable-wide); margin-inline: var(--readable-mi);
+}
+.set-nav { display: flex; flex-direction: column; gap: 2px; position: sticky; top: 24px; }
+.set-nav-btn {
+  text-align: left; padding: 6px var(--ctrl-px); border-radius: 8px;
+  font: 500 var(--text-md) 'Work Sans', sans-serif;
+  background: transparent; color: var(--fg3);
+  min-height: var(--row-h);
+  display: flex; align-items: center;
+}
+.set-nav-btn:hover { background: rgba(255,255,255,0.05); color: var(--fg1); }
+.set-nav-btn.is-on { background: var(--primary-soft); color: var(--primary-l); }
+.set-nav-btn.is-danger { color: #FF7479; }
+.set-nav-btn.is-danger:hover { background: rgba(229,72,77,0.08); }
+.set-nav-btn.is-danger.is-on { background: rgba(229,72,77,0.14); color: #FF7479; }
+
+.set-body { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.set-row {
+  display: grid; grid-template-columns: 240px 1fr; gap: var(--pad-md);
+  align-items: center;
+  padding: var(--pad-sm) 0;
+  border-bottom: 1px solid var(--border);
+}
+.set-row:last-child { border-bottom: none; }
+.set-row-left { min-width: 0; }
+.set-row-label { font-size: var(--text-md); font-weight: 500; color: var(--fg1); }
+.set-row-hint { font-size: 12px; color: var(--fg3); margin-top: 4px; }
+.set-row-control { display: flex; justify-content: flex-end; }
+
+.set-input {
+  width: 100%; max-width: 340px;
+  padding: 0 var(--ctrl-px); height: var(--input-h); border-radius: 8px;
+  background: rgba(255,255,255,0.035);
+  border: 1px solid var(--border);
+  color: var(--fg1); font-size: var(--text-sm); outline: none;
+  font-family: 'Work Sans', sans-serif;
+}
+.set-input.mono { font-family: var(--font-mono); font-size: var(--text-xs); }
+.set-input:focus { border-color: rgba(34,158,217,0.45); }
+.set-input.is-readonly { color: var(--fg3); cursor: default; }
+.set-mono-time { font-size: var(--text-xs); color: var(--fg2); }
+.set-range { width: 240px; accent-color: var(--primary); color-scheme: dark; }
+.set-subhead {
+  font-size: 12px; color: var(--fg4);
+  margin: 18px 0 4px;
+}
+
+/* Batch 1 rev · FIX 6 — the segmented "box" is neutralised so each option
+   is a standalone unified capsule (cream at rest / orange active). */
+.set-seg { display: inline-flex; gap: 6px; flex-wrap: wrap; background: transparent; border: none; border-radius: 0; padding: 0; }
+/* .set-seg-btn geometry + colours come from the unified capsule (FIX 6). */
+.set-seg-btn.is-disabled { color: var(--fg4); cursor: not-allowed; }
+.set-seg.is-disabled { opacity: 0.5; }
+
+/* Theme segmented control — adds glyph + AUTO badge so the "системная"
+   option is identifiable even when it resolves to the same theme as
+   "тёмная". Glyph is always visible; AUTO badge appears only on the
+   active system segment. */
+.set-seg-theme .set-seg-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 10px;
+}
+.set-seg-glyph { flex: none; opacity: 0.7; transition: opacity 120ms var(--ease); }
+.set-seg-btn:hover .set-seg-glyph,
+.set-seg-btn.is-on .set-seg-glyph { opacity: 1; }
+.set-seg-auto {
+  display: none;
+  font-size: 12px;
+  padding: 2px 5px; border-radius: 4px;
+  background: var(--primary); color: #fff;
+  line-height: 1;
+}
+.set-seg-btn-system.is-on .set-seg-auto { display: inline-block; }
+
+.set-toggle {
+  width: 36px; height: 20px; border-radius: var(--r-pill);
+  background: rgba(255,255,255,0.08);
+  position: relative; padding: 0; cursor: pointer;
+  transition: background-color 120ms var(--ease);
+}
+.set-toggle.is-on { background: var(--primary); }
+.set-toggle-knob {
+  position: absolute; top: 2px; left: 2px;
+  width: 16px; height: 16px; border-radius: var(--r-pill);
+  background: #fff;
+  transition: transform 160ms var(--ease);
+}
+.set-toggle.is-on .set-toggle-knob { transform: translateX(16px); }
+
+.set-btn-primary {
+  padding: 0 var(--ctrl-px); height: var(--btn-h-md); border-radius: 8px;
+  background: var(--primary); color: #fff;
+  font-weight: 600; font-size: var(--text-sm);
+}
+.set-btn-primary:hover { background: var(--primary-l); }
+.set-btn-ghost {
+  padding: 0 var(--ctrl-px); height: var(--btn-h-md); border-radius: 8px;
+  background: transparent; color: var(--fg2);
+  border: 1px solid var(--border);
+  font-size: var(--text-sm);
+}
+.set-btn-ghost:hover { background: rgba(255,255,255,0.05); color: var(--fg1); }
+.set-btn-danger {
+  /* Batch 1: harmonized to --btn-h-md to match adjacent primary/ghost in the
+     same row; red treatment (not height) carries "destructive". */
+  padding: 0 var(--ctrl-px); height: var(--btn-h-md); border-radius: 8px;
+  background: var(--danger); color: #fff;
+  font-weight: 600; font-size: var(--text-sm);
+}
+.set-btn-danger:hover { background: #FF6066; }
+
+.set-table { display: flex; flex-direction: column; }
+.set-table-head, .set-table-row {
+  display: grid; grid-template-columns: 1fr 100px 60px;
+  gap: 12px; padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  align-items: center;
+}
+.set-table-head { font-size: 12px; color: var(--fg4); font-family: var(--font-mono); }
+.set-table-cell { display: flex; align-items: center; gap: 8px; font-size: var(--text-sm); color: var(--fg1); min-width: 0; }
+.set-table-cell-actions { color: var(--fg3); font-size: 12px; cursor: pointer; }
+.set-table-cell-actions:hover { color: var(--primary-l); }
+.set-add-row {
+  text-align: left; padding: 10px 0;
+  font-size: 11px; color: var(--primary-l);
+  background: transparent;
+  font-family: var(--font-mono);
+}
+.set-add-row:hover { color: var(--primary); }
+
+.set-danger-card {
+  background: rgba(229,72,77,0.06);
+  border: 1px solid rgba(229,72,77,0.2);
+  border-radius: var(--r-lg);
+  padding: 20px;
+  margin-top: 8px;
+}
+.set-danger-msg { color: var(--fg2); font-size: var(--text-md); margin-bottom: 14px; line-height: 1.5; }
+
+.set-clear-confirm { display: inline-flex; gap: 8px; }

@@ -1,0 +1,70 @@
+/* ============================================================
+   Responsive — single column + bottom nav below 640px
+   ============================================================ */
+@media (max-width: 920px) {
+  .panel-grid { grid-template-columns: 1fr; }
+  .set-layout { grid-template-columns: 1fr; }
+  .set-nav { flex-direction: row; overflow-x: auto; position: static; padding-bottom: 8px; }
+  .set-nav-btn { white-space: nowrap; flex: none; }
+  .set-row { grid-template-columns: 1fr; gap: 6px; }
+  .set-row-control { justify-content: flex-start; }
+}
+
+@media (max-width: 640px) {
+  .app { grid-template-columns: 1fr; }
+  .sb { display: none; }
+  .main { padding: 16px 16px 96px; }
+  .tb { flex-direction: column; align-items: stretch; gap: 12px; padding-top: 0; }
+  .tb-title { font-size: var(--text-2xl); }
+  .tb-right { gap: 8px; }
+  .tb-cmd { min-width: 0; flex: 1; }
+  .demo-rail {
+    left: 12px; right: 12px; bottom: 80px;
+    flex-wrap: wrap; justify-content: center;
+  }
+  .panel-grid { grid-template-columns: 1fr; }
+  .today-num { font-size: 40px; }
+  .today-num-slash, .today-num-total { font-size: 26px; }
+
+  .mnav {
+    display: grid; grid-template-columns: repeat(5, 1fr);
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: var(--nav-bg);
+    backdrop-filter: blur(14px);
+    border-top: 1px solid var(--border);
+    padding: 6px 6px calc(6px + env(safe-area-inset-bottom));
+    z-index: 50;
+  }
+  .mnav-btn {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    padding: 6px 0;
+    background: transparent; color: var(--fg3);
+  }
+  .mnav-icon { display: inline-flex; }
+  .mnav-label {
+    font: 500 12px 'Work Sans', sans-serif;
+  }
+  .mnav-btn.is-on { color: var(--primary-l); }
+  .mnav-btn.is-stakes.is-on { color: var(--accent-light); }
+
+  /* quick-add → full-screen sheet from bottom */
+  .qa-backdrop { padding-top: 0; align-items: stretch; }
+  .qa-modal {
+    width: 100%; max-width: none;
+    border-radius: 16px 16px 0 0;
+    margin-top: auto;
+    max-height: 90vh; overflow-y: auto;
+    animation: qa-sheet 240ms var(--ease) both;
+  }
+  @keyframes qa-sheet {
+    from { transform: translateY(20px); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
+  }
+  .toast { right: 12px; bottom: 96px; }
+
+  /* calendar collapses time col width */
+  .cal-grid { grid-template-columns: 44px repeat(7, 1fr); }
+  .cal-day-num { font-size: var(--text-lg); }
+  .cal-day-num.is-today { min-width: 24px; height: 24px; font-size: var(--text-sm); }
+  .cal-time { font-size: 12px; padding: 4px 4px; }
+}

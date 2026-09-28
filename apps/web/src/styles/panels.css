@@ -1,0 +1,485 @@
+/* ============================================================
+   Today hero (stakes-tinted)
+   ============================================================ */
+.today-hero {
+  background: linear-gradient(180deg, rgba(255,138,30,0.07), rgba(255,138,30,0) 60%), var(--surface);
+  border: 1px solid var(--accent-border);
+  border-radius: 18px; padding: var(--pad-lg);
+  margin-bottom: var(--pad-lg);
+  box-shadow: 0 1px 0 rgba(255,255,255,0.04) inset, 0 10px 28px -16px rgba(255,107,10,0.35);
+}
+.today-head {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 14px;
+}
+.today-eyebrow {
+  font-size: 11px;
+  background: var(--accent); -webkit-background-clip: text; background-clip: text; color: transparent;
+  font-weight: 600;
+}
+.today-date { font-size: 12px; color: var(--fg3); }
+.today-body { display: flex; gap: 22px; align-items: center; }
+.today-num {
+  font-size: 56px; line-height: 1; font-weight: 500;
+  display: inline-flex; align-items: baseline;
+}
+.today-num-done {
+  background: var(--accent); -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.today-num-slash { color: var(--fg4); margin: 0 4px; font-size: var(--text-3xl); }
+.today-num-total { color: var(--fg3); font-size: var(--text-3xl); }
+.today-meta { flex: 1; }
+.today-meta-line {
+  font-family: 'Onest', sans-serif; font-weight: 700; font-size: 18px;
+  letter-spacing: -0.015em; color: var(--fg1);
+  margin-bottom: 12px;
+}
+.today-progress {
+  height: 6px; background: rgba(255,255,255,0.05); border-radius: var(--r-pill); overflow: hidden;
+}
+.today-progress-fill {
+  height: 100%; background: var(--accent); border-radius: var(--r-pill);
+  transition: width 320ms var(--ease);
+}
+
+/* ============================================================
+   Panel card
+   ============================================================ */
+.panel-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: var(--pad-lg);
+}
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 14px;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.04) inset;
+}
+.panel.is-stakes { border-color: rgba(255,138,30,0.18); }
+.panel-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 14px; }
+.panel-title {
+  font-family: 'Onest', sans-serif; font-weight: 700; font-size: var(--text-lg);
+  letter-spacing: -0.02em; color: var(--fg1); margin: 0;
+}
+.panel-meta { font-size: 12px; color: var(--fg3); }
+.panel-meta.is-stakes { color: var(--accent-light); }
+
+/* ============================================================
+   Task list
+   ============================================================ */
+.task-list { display: flex; flex-direction: column; }
+.task-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 7px 4px; min-height: var(--row-h);
+  border-bottom: 1px solid var(--border);
+  transition: background-color 180ms var(--ease);
+}
+.task-row:last-child { border-bottom: none; }
+.task-row.is-stakes {
+  background: linear-gradient(90deg, rgba(255,138,30,0.05), rgba(255,138,30,0) 70%);
+  margin: 0 -8px; padding: 7px 12px; border-radius: 8px;
+  border-bottom-color: transparent;
+}
+.task-row:hover { background-color: rgba(255,255,255,0.025); }
+.task-row.is-stakes:hover { background: linear-gradient(90deg, rgba(255,138,30,0.08), rgba(255,138,30,0) 70%); }
+
+/* Checkbox: visual shrinks to 16px, but ::before extends the click hit-area
+   to >=24px so the tap target meets the accessibility floor. */
+.task-check {
+  position: relative;
+  width: 16px; height: 16px; border-radius: 5px;
+  border: 1.5px solid rgba(255,255,255,0.22);
+  background: transparent; flex: none;
+  display: flex; align-items: center; justify-content: center;
+  transition: background-color 120ms var(--ease), border-color 120ms var(--ease);
+}
+.task-check::before {
+  content: ''; position: absolute; inset: -5px;
+}
+.task-check:hover { border-color: rgba(255,255,255,0.4); }
+.task-check.is-done { background: var(--success); border-color: var(--success); color: #fff; }
+.task-check.is-done svg { width: 10px; height: 10px; }
+
+/* Batch 1 rev: title takes remaining width and clamps to 2 lines max
+   (ellipsis). min-width:0 lets it shrink inside the flex row; the row/card
+   never grows with long text (card capped at --readable). Full text stays
+   visible in the expanded TaskDetailModal. */
+.task-title {
+  flex: 1; min-width: 0;
+  font-size: var(--text-md); font-weight: 500; color: var(--fg1);
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden; overflow-wrap: anywhere;
+}
+.task-title.is-done { color: var(--fg4); text-decoration: line-through; }
+/* chips fixed & right-aligned; never shrink */
+.task-meta { display: flex; align-items: center; gap: 8px; flex: none; }
+.task-tag {
+  font-family: var(--font-mono); font-size: 12px;
+  padding: 3px 7px; border-radius: 5px;
+  background: rgba(255,255,255,0.05); color: var(--fg3);
+  border: 1px solid var(--border);
+}
+.task-tag.is-stakes {
+  background: rgba(255,138,30,0.1); color: var(--accent-light);
+  border-color: var(--accent-border);
+}
+.task-due {
+  font-size: 12px; color: var(--fg3);
+}
+
+.task-add {
+  margin-top: 10px;
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: rgba(255,255,255,0.02);
+}
+.task-add:focus-within { border-color: rgba(34,158,217,0.45); background: rgba(34,158,217,0.04); }
+.task-add-prefix { color: var(--fg4); font-size: var(--text-lg); width: 16px; text-align: center; }
+.task-add-prefix.is-stakes { color: var(--accent-mid); }
+.task-add-input {
+  flex: 1; background: transparent; border: none;
+  color: var(--fg1); font-size: var(--text-md);
+}
+.task-add-input::placeholder { color: var(--fg4); }
+.task-add-toggle {
+  font-size: 12px;
+  padding: 4px 8px; border-radius: 5px;
+  background: rgba(255,255,255,0.05); color: var(--fg3);
+  border: 1px solid var(--border);
+  transition: background-color 120ms var(--ease), color 120ms var(--ease);
+}
+.task-add-toggle.is-stakes {
+  background: rgba(255,138,30,0.12); color: var(--accent-light);
+  border-color: var(--accent-border);
+}
+
+/* ============================================================
+   Money widget
+   ============================================================ */
+.money-input-row { display: flex; gap: 8px; margin-bottom: var(--pad-md); }
+.money-input-wrap { flex: 1; position: relative; }
+.money-prefix {
+  position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+  font-size: var(--text-lg); color: var(--accent-mid);
+}
+.money-input {
+  width: 100%; padding: 0 var(--ctrl-px) 0 26px;
+  height: var(--input-h);
+  background: var(--accent-tint);
+  border: 1px solid var(--accent-border);
+  border-radius: var(--r-md);
+  color: var(--fg1); font-size: var(--text-md); font-weight: 600;
+  transition: border-color 180ms, box-shadow 180ms;
+}
+.money-input:focus {
+  border-color: rgba(255,138,30,0.6);
+  box-shadow: 0 0 0 3px rgba(255,138,30,0.12);
+}
+.money-bucket {
+  background: var(--surface); border: 1px solid var(--border);
+  color: var(--fg2);
+  padding: 0 10px; height: var(--input-h);
+  font-family: var(--font-mono); font-size: 12px;
+  border-radius: var(--r-md);
+  appearance: none;
+}
+.money-log {
+  padding: 0 14px; height: var(--btn-h-lg); border-radius: var(--r-md);
+  background: var(--accent); color: #1a0d04;
+  font-weight: 600; font-size: var(--text-sm);
+  box-shadow: 0 8px 22px -10px rgba(255,107,10,0.45);
+  transition: transform 180ms var(--ease);
+}
+.money-log:hover { transform: translateY(-1px); }
+
+.money-budget { margin-bottom: 14px; }
+.money-budget-head {
+  display: flex; justify-content: space-between; align-items: baseline;
+  margin-bottom: 6px;
+}
+.money-budget-lab { font-size: 12px; color: var(--fg3); }
+.money-budget-val { font-size: var(--text-xs); color: var(--fg1); }
+.money-budget-track { height: 5px; background: rgba(255,255,255,0.05); border-radius: var(--r-pill); overflow: hidden; }
+.money-budget-fill { height: 100%; background: var(--success); border-radius: var(--r-pill); transition: width 320ms var(--ease); }
+
+.money-list { list-style: none; padding: 0; margin: 0; }
+.money-list-item {
+  display: grid; grid-template-columns: 60px 1fr auto;
+  align-items: center; gap: 12px;
+  padding: 8px 0; border-top: 1px solid var(--border);
+  font-size: var(--text-sm);
+}
+.money-list-time { font-size: 12px; color: var(--fg3); }
+.money-list-where { color: var(--fg2); }
+.money-list-amt { color: var(--fg1); font-size: var(--text-sm); }
+
+/* ============================================================
+   Goals widget
+   ============================================================ */
+/* Batch 1 rev: cap the goals card like the other list blocks (left-anchored) */
+.goals-card { width: 100%; max-width: var(--readable); margin-inline: var(--readable-mi); }
+.goal-list { display: flex; flex-direction: column; gap: 18px; }
+.goal-row {}
+.goal-row-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 10px; }
+.goal-title { font-family: 'Onest', sans-serif; font-weight: 700; font-size: 15px; letter-spacing: -0.015em; color: var(--fg1); flex: 1; min-width: 0; line-height: 1.25; }
+.goal-tag { font-size: 12px; color: var(--accent-light); padding-top: 4px; white-space: nowrap; flex: none; }
+.goal-track { height: 6px; background: rgba(255,255,255,0.05); border-radius: var(--r-pill); overflow: hidden; }
+.goal-fill { height: 100%; background: var(--accent); border-radius: var(--r-pill); }
+.goal-foot { display: flex; justify-content: space-between; margin-top: 6px; font-size: 11px; }
+.goal-val { color: var(--fg3); }
+.goal-pct { color: var(--fg1); }
+
+/* Batch 1 rev · FIX 7 — add-goal affordance at the foot of the goals card.
+   Reuses the notes-input idiom: prefix + text field + commit button. */
+.goal-add {
+  display: flex; align-items: center; gap: var(--pad-md);
+  margin-top: 18px; padding: var(--pad-sm) var(--pad-md);
+  border: 1px dashed var(--border); border-radius: var(--r-md);
+  transition: border-color 120ms var(--ease);
+}
+.goal-add:focus-within { border-color: var(--accent-border); }
+.goal-add-prefix { color: var(--fg4); font-size: var(--text-lg); line-height: 1; flex: none; }
+.goal-add-input {
+  flex: 1; min-width: 0;
+  background: transparent; border: none; outline: none;
+  font: 500 var(--text-md) 'Work Sans', sans-serif; color: var(--fg1);
+}
+.goal-add-input::placeholder { color: var(--fg4); }
+.goal-add-btn {
+  flex: none; height: var(--btn-h-sm); padding: 0 var(--pad-md);
+  border-radius: var(--r-pill); border: 1px solid transparent;
+  background: var(--accent); color: #fff;
+  font-size: var(--text-sm); white-space: nowrap;
+  transition: opacity 120ms var(--ease);
+}
+.goal-add-btn:disabled { opacity: 0.45; cursor: default; }
+
+/* ============================================================
+   Habits — clickable today + streaks + empty state (v0.3)
+   ============================================================ */
+.habits-grid { display: grid; gap: 6px;
+  /* Batch 1 rev · FIX 1 — cap the 7-col grid to the wide bound, left-anchored */
+  max-width: var(--readable-wide); margin-inline: var(--readable-mi); }
+.habits-row {
+  display: grid;
+  grid-template-columns: 1fr repeat(7, 22px) 1fr;
+  align-items: center; gap: 6px;
+}
+.habits-row-head { padding-bottom: 4px; }
+.habits-day {
+  font-size: 12px; color: var(--fg4);
+  text-align: center;
+  padding-bottom: 4px; position: relative;
+}
+.habits-day.is-today { color: var(--primary-l); }
+.habits-day.is-today::after {
+  content: '';
+  position: absolute; left: 50%; bottom: -2px;
+  width: 14px; height: 2px; border-radius: 1px;
+  background: var(--primary); transform: translateX(-50%);
+}
+
+.habits-name {
+  font-size: var(--text-sm); font-weight: 500; color: var(--fg1);
+  padding-right: 8px;
+}
+
+.habits-cell {
+  width: 22px; height: 22px; border-radius: 5px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  position: relative;
+}
+.habits-cell.is-done { background: var(--primary); border-color: var(--primary); }
+.habits-cell.is-missed { background: transparent; border-color: rgba(229,72,77,0.18); }
+.habits-cell.is-future { background: transparent; border-color: rgba(255,255,255,0.04); border-style: dashed; }
+
+/* the today cell is a button — clickable */
+button.habits-cell {
+  cursor: pointer; padding: 0;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(34,158,217,0.18);
+  transition: background-color 120ms var(--ease), box-shadow 120ms var(--ease);
+}
+button.habits-cell:hover { background: rgba(34,158,217,0.18); }
+button.habits-cell.is-done { box-shadow: 0 0 0 2px rgba(34,158,217,0.18); }
+button.habits-cell.is-done:hover { background: var(--primary-l); }
+.habits-cell-plus {
+  font-family: var(--font-mono); font-size: var(--text-sm);
+  color: var(--primary); line-height: 1;
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity 120ms var(--ease);
+}
+button.habits-cell:hover .habits-cell-plus { opacity: 1; }
+
+.habits-streak-row { margin-top: -2px; padding-bottom: 4px; }
+.habits-streak {
+  grid-column: 1 / -1;
+  font-size: 12px;
+  color: var(--fg3); padding-left: 0;
+}
+
+.empty-state {
+  padding: 28px 16px;
+  text-align: center;
+  font-size: var(--text-md);
+  color: var(--fg3);
+  border: 1px dashed var(--border);
+  border-radius: var(--r-md);
+  margin-top: 8px;
+  /* Batch 1 rev · FIX 1 — cap single-column empty states (Tasks etc.) */
+  max-width: var(--readable); margin-inline: var(--readable-mi);
+}
+.empty-habits { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.empty-action {
+  font-size: 12px;
+  padding: 6px 12px; border-radius: 8px;
+  background: var(--primary-soft); color: var(--primary-l);
+  border: 1px solid rgba(34,158,217,0.25);
+}
+
+.habits-counter { color: var(--fg1); }
+.habits-counter-max { color: var(--fg4); }
+
+/* ============================================================
+   Toast
+   ============================================================ */
+.toast {
+  position: fixed; bottom: 20px; right: 20px;
+  display: flex; align-items: flex-start; gap: var(--pad-md);
+  padding: var(--pad-sm) var(--pad-md); border-radius: 14px;
+  background: rgba(20,24,31,0.95); border: 1px solid var(--border);
+  box-shadow: 0 16px 40px -20px rgba(0,0,0,0.7);
+  min-width: 280px; max-width: 360px;
+  z-index: 50;
+  animation: toast-in 220ms var(--ease) both;
+  backdrop-filter: blur(8px);
+}
+.toast.is-bot {
+  border-color: var(--accent-border);
+  box-shadow: 0 16px 40px -20px rgba(255,107,10,0.4);
+}
+@keyframes toast-in {
+  from { transform: translateY(8px); opacity: 0; }
+  to   { transform: translateY(0);   opacity: 1; }
+}
+.toast-av {
+  width: 32px; height: 32px; border-radius: var(--r-pill); flex: none;
+  background: rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono); font-size: 11px; color: var(--fg2);
+}
+.toast-av.is-bot { background: var(--accent); color: #fff; font-weight: 600; }
+.toast-body { flex: 1; }
+.toast-name { font-size: 12px; color: var(--fg3); }
+.toast-name.is-bot { color: var(--accent-mid); }
+.toast-msg { font-size: var(--text-md); font-weight: 500; color: var(--fg1); margin-top: 4px; line-height: 1.45; }
+.toast-ts { font-size: 12px; color: var(--fg4); margin-top: 6px; }
+
+/* ============================================================
+   Streak milestone — stakes trigger #8 · 7 / 30 / 100 days
+   ============================================================ */
+.milestone {
+  display: flex; align-items: center; gap: var(--pad-md);
+  padding: var(--pad-md);
+  margin-bottom: var(--pad-lg);
+  background:
+    linear-gradient(90deg, rgba(255,138,30,0.10), rgba(255,138,30,0) 70%),
+    var(--surface);
+  border: 1px solid var(--accent-border);
+  border-radius: 14px;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.04) inset, 0 10px 28px -16px rgba(255,107,10,0.4);
+  animation: milestone-in 320ms var(--ease) both;
+}
+@keyframes milestone-in {
+  from { transform: translateY(-4px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+.milestone-icon {
+  width: 40px; height: 40px; border-radius: var(--r-md);
+  background: var(--accent); color: #1a0d04;
+  display: flex; align-items: center; justify-content: center;
+  flex: none;
+  box-shadow: 0 8px 22px -10px rgba(255,107,10,0.5);
+}
+.milestone-body { flex: 1; }
+.milestone-eyebrow {
+  font-size: 12px; color: var(--accent-light);
+}
+.milestone-line {
+  font-family: 'Onest', sans-serif; font-weight: 800; font-size: var(--text-xl);
+  letter-spacing: -0.02em; color: var(--fg1); margin-top: 2px;
+}
+.milestone-sub {
+  font-size: 12px; color: var(--fg3); margin-top: 4px;
+}
+.milestone-dismiss {
+  font-size: 12px;
+  padding: 6px 10px; border-radius: var(--r-sm);
+  background: rgba(255,255,255,0.04); color: var(--fg3);
+  border: 1px solid var(--border);
+  transition: background-color 120ms var(--ease), color 120ms var(--ease);
+}
+.milestone-dismiss:hover { background: rgba(255,255,255,0.08); color: var(--fg1); }
+
+/* ============================================================
+   Money — budget-warning + overshoot states
+   ============================================================ */
+.panel-head-right { display: flex; align-items: center; gap: 10px; }
+.money-warn-badge {
+  font-size: 12px;
+  padding: 3px 7px; border-radius: 5px;
+  background: rgba(255,138,30,0.12); color: var(--accent-light);
+  border: 1px solid var(--accent-border);
+}
+.money-over-badge {
+  font-size: 12px;
+  padding: 3px 7px; border-radius: 5px;
+  background: rgba(229,72,77,0.14); color: #FF7479;
+  border: 1px solid rgba(229,72,77,0.3);
+}
+.money-budget-lab.is-stakes { color: var(--accent-light); }
+.money-budget-fill.is-warn { background: var(--accent); }
+.money-budget-fill.is-over { background: var(--danger); }
+.money-budget-hint {
+  font-size: 12px;
+  color: var(--accent-light); margin-top: 8px;
+}
+.money-budget-hint.is-over { color: #FF7479; }
+
+/* ============================================================
+   Demo controls (small floating row, not part of the brand)
+   ============================================================ */
+.demo-rail {
+  position: fixed; bottom: 20px; left: 260px;
+  display: flex; gap: 8px; align-items: center;
+  z-index: 40;
+}
+.demo-btn {
+  font-family: var(--font-mono); font-size: 12px;
+  padding: 8px 12px; border-radius: 8px;
+  background: rgba(255,255,255,0.05); color: var(--fg3);
+  border: 1px solid var(--border);
+}
+.demo-btn:hover { background: rgba(255,255,255,0.08); color: var(--fg1); }
+
+.demo-locale {
+  display: flex; gap: 2px; padding: 2px;
+  background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+  border-radius: 8px; margin-left: 4px;
+}
+.demo-locale-btn {
+  font-family: var(--font-mono); font-size: 12px; padding: 6px 9px; border-radius: var(--r-sm);
+  color: var(--fg3); background: transparent;
+}
+.demo-locale-btn.is-on { background: var(--primary-soft); color: var(--primary-l); }
+.demo-locale-btn:not(.is-on):hover { color: var(--fg1); }
+
+/* ============================================================
+   Category tint helpers (used by chips, dots, money pills)
+   ============================================================ */
+.cat-tint-routine { background: var(--primary-soft); color: var(--primary-l); }
+.cat-tint-stakes  { background: rgba(255,138,30,0.12); color: var(--accent-light); }
+.cat-tint-income  { background: rgba(29,158,117,0.16); color: #4FCAA0; }
+.cat-tint-neutral { background: rgba(255,255,255,0.06); color: var(--fg3); }

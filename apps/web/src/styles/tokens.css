@@ -1,0 +1,359 @@
+/* ============================================================
+   Life OS — UI Kit styles
+   ============================================================ */
+
+
+*,*::before,*::after { box-sizing: border-box; }
+
+:root {
+  --font-display: 'Onest', system-ui, sans-serif;
+  --font-body:    'Work Sans', system-ui, sans-serif;
+  --font-mono:    'Work Sans', system-ui, sans-serif;  /* JetBrains Mono removed Sprint 3.5 */
+}
+
+/* ============================================================
+   Density tokens — theme-independent (Sprint 2 · Batch 0.5).
+   Compact baseline: ~12-13px body, 24px page headings, 30px
+   default controls, 34px rows. All component CSS references
+   these; don't hardcode new sizes downstream.
+   ============================================================ */
+:root {
+  /* type scale */
+  --text-xs:   11px;   /* eyebrows, mono labels */
+  --text-sm:   12px;   /* body small, secondary copy */
+  --text-md:   13px;   /* body default, primary copy */
+  --text-lg:   15px;   /* emphasized body */
+  --text-xl:   18px;   /* section headings */
+  --text-2xl:  24px;   /* page headings */
+  --text-3xl:  32px;   /* hero numbers */
+
+  --line-body:    1.5;  /* @kind font */ /* readability floor at 12-13px */
+  --line-heading: 1.2;  /* @kind font */
+  --line-number:  1.0;  /* @kind font */
+
+  /* spacing */
+  --pad-xs:    4px;
+  --pad-sm:    8px;
+  --pad-md:   10px;   /* Sprint 3.5: was 12 */
+  --pad-lg:   12px;   /* Sprint 3.5: was 16 */
+  --pad-xl:   24px;
+  --pad-2xl:  32px;
+
+  /* radii — Sprint 3.5 (tokens deferred from 3A) */
+  --r-sm:   6px;
+  --r-md:   10px;
+  --r-lg:   12px;
+  --r-pill: 999px;
+  --card-pad: 12px 14px;
+
+  /* control heights */
+  --btn-h-sm:  26px;
+  --btn-h-md:  30px;   /* default */
+  --btn-h-lg:  36px;   /* primary CTAs only */
+  --input-h:   30px;
+  --row-h:     34px;
+
+  /* readable measure — caps short text/list content so it stops spanning
+     the full 1200px .main. Applied to lists/tabs/2-col data/finance only,
+     NOT the KPI hero grid or charts (they need width). Switch centered↔
+     left-aligned by flipping --readable-mi (auto → 0) in one place. */
+  --readable:    680px;
+  --readable-mi: 0 auto; /* margin-inline for capped blocks: start 0 / end auto = LEFT-anchored.
+                            One-line switch: set to `auto` to center instead. */
+  /* Batch 1 rev · FIX 1 — wide cap for MULTI-COLUMN grids that shouldn't
+     stretch the full monitor but need more than --readable (habits 7-col,
+     meds 2-col, settings nav+body, med-detail grids, global journal).
+     Same LEFT-anchor via --readable-mi. */
+  --readable-wide: 1040px;
+
+  /* button + input internal padding (vertical = auto via height) */
+  --ctrl-px:  10px;
+
+  /* iconography */
+  --icon-sm:  12px;   /* inline mono / eyebrow */
+  --icon-md:  14px;   /* nav expanded, default UI */
+  --icon-lg:  18px;   /* emphasized / collapsed-sidebar */
+
+  /* sidebar (Sprint 3.5: 220→200) */
+  --sidebar-expanded:  200px;
+  --sidebar-collapsed: 60px;
+}
+
+:root, [data-theme="dark"] {
+  /* ── surfaces ─────────────────────────────── */
+  --bg-base: #0E1117;
+  --bg-shift: #14181F;
+  --bg: linear-gradient(180deg, var(--bg-base) 0%, var(--bg-shift) 100%);
+  --bg-2: #14181F;
+  --bg-elev-1: #14181F;
+  --bg-elev-2: #1A1F28;
+  --surface-rgb: 22, 26, 33;
+  --surface: rgba(var(--surface-rgb), 0.65);
+  --border-card: rgba(219, 90, 12, 0.16);
+  --border-card-stakes: rgba(219, 90, 12, 0.55);
+  --shadow-card: 0 1px 4px rgba(0,0,0,0.25);
+  --shadow-stakes: 0 0 0 1px rgba(219,90,12,0.18), 0 4px 16px rgba(219,90,12,0.14);
+  --surface-h: rgba(255,255,255,0.055);
+  --line: rgba(255,255,255,0.08);
+  --line-strong: rgba(255,255,255,0.14);
+  --border: var(--line);
+  --border-s: var(--line-strong);
+
+  /* ── text ─────────────────────────────────── */
+  --fg1: #F5F5F7;
+  --fg2: #C7C7CC;
+  --fg3: #8E8E93;
+  --fg4: #5C5C63;
+  --text: var(--fg1);
+  --text-soft: var(--fg2);
+  --muted: var(--fg3);
+  --muted-2: var(--fg4);
+
+  /* ── blue (primary) ───────────────────────── */
+  --primary: #229ED9;
+  --primary-l: #5BB8E8;
+  --primary-d: #1577A8;
+  --primary-soft: rgba(34,158,217,0.12);
+  --blue: var(--primary);
+  --blue-2: var(--primary-l);
+  --blue-3: var(--primary-d);
+  --blue-tint: var(--primary-soft);
+
+  /* ── orange (accent / stakes) ─────────────── */
+  --o1: #FFC066;
+  --o2: #FF8A1E;
+  --o3: #FF6B0A;
+  --o4: #1a0d04;
+  --accent: linear-gradient(135deg, #FFC066 0%, #FF8A1E 48%, #FF6B0A 100%); /* @kind color */
+  --orange-grad: var(--accent); /* @kind color */
+  --accent-mid: var(--o2);
+  --accent-light: var(--o1);
+  --accent-tint: rgba(255,138,30,0.06);
+  --accent-soft: rgba(255,138,30,0.10);
+  --accent-border: rgba(255,138,30,0.32);
+  --orange-tint-bg: rgba(255,138,30,0.10);
+  --orange-tint-strong: rgba(255,138,30,0.18);
+  --orange-text-on-tint: var(--o1);
+  --orange-border: var(--accent-border);
+  --accent-text-on-button: #1a0d04;
+
+  /* ── semantic ─────────────────────────────── */
+  --success: #1D9E75;
+  --success-soft: rgba(29,158,117,0.14);
+  --green: var(--success);
+  --green-2: #2BB388;
+  --green-tint: var(--success-soft);
+  --danger: #E5484D;
+  --danger-soft: rgba(229,72,77,0.14);
+  --red: var(--danger);
+  --red-2: #FF7479;
+  --red-tint: var(--danger-soft);
+  --warning: #F1B33B;
+  --warning-soft: rgba(241,179,59,0.14);
+  --warn: var(--warning);
+  --yellow: var(--warning);
+  --yellow-tint: var(--warning-soft);
+
+  /* ── interaction tints ────────────────────── */
+  --hover-tint: rgba(255,255,255,0.025);
+  --hover-tint-2: rgba(255,255,255,0.05);
+  --kbd-bg: rgba(255,255,255,0.06);
+  --tag-bg: rgba(255,255,255,0.05);
+  --check-border: rgba(255,255,255,0.22);
+  --track-bg: rgba(255,255,255,0.05);
+
+  /* ── focus / ring shadows ─────────────────── */
+  --primary-focus-ring: rgba(34,158,217,0.45);
+  --primary-focus-shadow: 0 0 0 3px rgba(34,158,217,0.10);
+  --primary-focus-bg: rgba(34,158,217,0.04);
+  --primary-glow-ring: rgba(34,158,217,0.18);
+  --primary-row-active: rgba(34,158,217,0.18);
+
+  --orange-focus-ring: rgba(255,138,30,0.6);
+  --orange-focus-shadow: 0 0 0 3px rgba(255,138,30,0.12);
+  --orange-button-shadow: 0 8px 22px -10px rgba(255,107,10,0.45);
+  --orange-milestone-shadow: 0 10px 28px -16px rgba(255,107,10,0.4);
+  --orange-bot-shadow: 0 16px 40px -20px rgba(255,107,10,0.4);
+  --orange-row-bg: rgba(255,138,30,0.05);
+  --orange-row-hover: rgba(255,138,30,0.08);
+
+  /* ── card / pop / modal shadows ───────────── */
+  --modal-backdrop: rgba(8,10,14,0.65);
+  --modal-backdrop-blur: blur(8px); /* @kind other */
+  --sh-card: 0 1px 0 rgba(255,255,255,0.04) inset;
+  --sh-card-hover: 0 12px 30px -14px rgba(0,0,0,0.6);
+  --sh-pop: 0 18px 48px -16px rgba(0,0,0,0.7);
+  --sh-modal: 0 32px 80px -20px rgba(0,0,0,0.7);
+  --sh-toast: 0 16px 40px -20px rgba(0,0,0,0.7);
+  --shadow-1: var(--sh-card);
+  --shadow-2: var(--sh-card-hover);
+  --shadow-hover: var(--sh-card-hover);
+
+  /* ── chrome ───────────────────────────────── */
+  --toast-bg: rgba(20,24,31,0.95);
+  --nav-bg: rgba(14,17,23,0.92);
+
+  /* ── calendar ─────────────────────────────── */
+  --cal-routine-bg: rgba(34,158,217,0.18);
+  --cal-routine-hover: rgba(34,158,217,0.28);
+  --cal-stakes-bg: rgba(255,138,30,0.14);
+  --cal-stakes-hover: rgba(255,138,30,0.24);
+  --cal-today-col: rgba(34,158,217,0.04);
+  --cal-today-cell-hover: rgba(34,158,217,0.05);
+
+  /* ── ambient (page glow) ──────────────────── */
+  --ambient:
+    radial-gradient(900px 600px at 92% -10%, rgba(34,158,217,0.10), transparent 60%),
+    radial-gradient(700px 500px at -10% 110%, rgba(255,138,30,0.07), transparent 65%); /* @kind color */
+
+  --border-soft: rgba(255,255,255,0.06);
+  --ease: cubic-bezier(0.22, 1, 0.36, 1); /* @kind other */
+}
+
+/* ============================================================
+   LIGHT THEME — token overrides only.
+   Component-level overrides for gradients/blurs/SVG fills
+   live at the bottom of this file.
+   ============================================================ */
+[data-theme="light"] {
+  --bg-base: #FFFFFF;
+  --bg-shift: #FBF8F4;
+  --bg: linear-gradient(180deg, var(--bg-base) 0%, var(--bg-shift) 100%);
+  --bg-2: #FAFAF8;
+  --bg-elev-1: #FFFFFF;
+  --bg-elev-2: #FAFAF8;
+  --surface-rgb: 255, 251, 246;
+  --surface: rgba(var(--surface-rgb), 0.72);
+  --border-card: rgba(219, 90, 12, 0.18);
+  --border-card-stakes: rgba(219, 90, 12, 0.65);
+  --shadow-card: 0 1px 4px rgba(219,90,12,0.04);
+  --shadow-stakes: 0 0 0 1px rgba(219,90,12,0.15), 0 4px 12px rgba(219,90,12,0.10);
+  --surface-h: #F2F2EF;
+  --line: #E5E5E1;
+  --line-strong: #D6D6D0;
+  --border: var(--line);
+  --border-s: var(--line-strong);
+
+  --fg1: #0F1419;
+  --fg2: #2A323D;
+  --fg3: #6B7280;
+  --fg4: #9CA3AF;
+  --text: var(--fg1);
+  --text-soft: var(--fg2);
+  --muted: var(--fg3);
+  --muted-2: var(--fg4);
+
+  --primary: #1B8AC4;
+  --primary-l: #229ED9;
+  --primary-d: #146A98;
+  --primary-soft: #E1F1FA;
+  --blue: var(--primary);
+  --blue-2: var(--primary-l);
+  --blue-3: var(--primary-d);
+  --blue-tint: var(--primary-soft);
+
+  --o1: #FF7A0E;
+  --o2: #DB5A0C;
+  --o3: #B14808;
+  --o4: #8A3806;
+  --accent: linear-gradient(135deg, #FF7A0E 0%, #DB5A0C 50%, #B14808 100%); /* @kind color */
+  --orange-grad: var(--accent); /* @kind color */
+  --accent-mid: var(--o2);
+  --accent-light: var(--o3);
+  --accent-tint: #FFF1E3;
+  --accent-soft: #FFF1E3;
+  --accent-border: #FFD1AC;
+  --orange-tint-bg: #FFF1E3;
+  --orange-tint-strong: #FFE4CF;
+  --orange-text-on-tint: #8A3806;
+  --orange-border: #FFD1AC;
+  --accent-text-on-button: #FFFFFF;
+
+  --success: #0F7A50;
+  --success-soft: #DFF3EA;
+  --green: #0F7A50;
+  --green-2: #138858;
+  --green-tint: #DFF3EA;
+  --danger: #C92429;
+  --danger-soft: #FCE4E5;
+  --red: #C92429;
+  --red-2: #B11C20;
+  --red-tint: #FCE4E5;
+  --warning: #B57F0F;
+  --warning-soft: #FBF1D9;
+  --warn: #B57F0F;
+  --yellow: #B57F0F;
+  --yellow-tint: #FBF1D9;
+
+  --hover-tint: rgba(15,20,25,0.04);
+  --hover-tint-2: rgba(15,20,25,0.06);
+  --kbd-bg: rgba(15,20,25,0.06);
+  --tag-bg: #F2F2EF;
+  --check-border: #D6D6D0;
+  --track-bg: #ECECE7;
+
+  --primary-focus-ring: rgba(27,138,196,0.55);
+  --primary-focus-shadow: 0 0 0 3px rgba(27,138,196,0.22);
+  --primary-focus-bg: rgba(27,138,196,0.06);
+  --primary-glow-ring: rgba(27,138,196,0.22);
+  --primary-row-active: rgba(27,138,196,0.18);
+
+  --orange-focus-ring: rgba(219,90,12,0.55);
+  --orange-focus-shadow: 0 0 0 3px rgba(219,90,12,0.18);
+  --orange-button-shadow: 0 4px 14px rgba(219,90,12,0.22);
+  --orange-milestone-shadow: 0 4px 14px rgba(219,90,12,0.10);
+  --orange-bot-shadow: 0 4px 14px rgba(219,90,12,0.10);
+  --orange-row-bg: #FFF6EB;
+  --orange-row-hover: #FFEED9;
+
+  --modal-backdrop: rgba(15,20,25,0.25);
+  --modal-backdrop-blur: blur(8px) saturate(120%); /* @kind other */
+  --sh-card: 0 1px 2px rgba(15,20,25,0.04), 0 0 0 1px var(--line);
+  --sh-card-hover: 0 4px 12px rgba(15,20,25,0.08), 0 0 0 1px var(--line-strong);
+  --sh-pop: 0 12px 32px rgba(15,20,25,0.12), 0 0 0 1px var(--line);
+  --sh-modal: 0 24px 48px rgba(15,20,25,0.16), 0 8px 16px rgba(15,20,25,0.08), 0 0 0 1px var(--line);
+  --sh-toast: 0 12px 32px rgba(15,20,25,0.16), 0 0 0 1px var(--line);
+  --shadow-1: var(--sh-card);
+  --shadow-2: var(--sh-card-hover);
+  --shadow-hover: var(--sh-card-hover);
+
+  --toast-bg: #FFFFFF;
+  --nav-bg: rgba(255,255,255,0.92);
+
+  --cal-routine-bg: #E1F1FA;
+  --cal-routine-hover: #C9E5F4;
+  --cal-stakes-bg: #FFF1E3;
+  --cal-stakes-hover: #FFE4CF;
+  --cal-today-col: rgba(27,138,196,0.06);
+  --cal-today-cell-hover: rgba(27,138,196,0.10);
+
+  --border-soft: rgba(0,0,0,0.06);
+  --ambient: none; /* @kind color */
+}
+
+html, body, #root { height: 100%; }
+html, body {
+  margin: 0;
+  background-color: var(--bg-base);
+  background-image: var(--ambient), var(--bg);
+  background-attachment: fixed;
+  color: var(--fg1);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 200ms var(--ease), color 200ms var(--ease);
+}
+
+.mono, .amount, .timestamp, .id, .number {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+}
+
+button { font: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+input, select { font: inherit; outline: none; }
+
+/* Kill transitions during a theme swap so var(--surface)-fed translucent
+   surfaces repaint to the new theme instantly (Sprint 3.5). */
+html.theme-switching, html.theme-switching *, html.theme-switching *::before, html.theme-switching *::after {
+  transition: none !important;
+}

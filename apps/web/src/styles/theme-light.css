@@ -1,0 +1,307 @@
+/* ============================================================
+   Placeholder
+   ============================================================ */
+.placeholder {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 320px;
+  border: 1px dashed var(--border); border-radius: 16px;
+  font-family: var(--font-mono); font-size: 11px; color: var(--fg4);
+}
+
+
+/* ════════════════════════════════════════════════════════════
+   LIGHT THEME — component-level overrides
+   Use only for things that can't flip with a simple token swap:
+   gradient backgrounds, blur direction, SVG fills, raw rgba()
+   left in component rules that don't map to a single var.
+   ════════════════════════════════════════════════════════════ */
+
+/* Sidebar */
+[data-theme="light"] .sb { background: #FFFFFF; border-right-color: var(--line); }
+[data-theme="light"] .sb-item:hover { background: var(--surface-h); }
+/* Active-state colors for sb-item now come from the v2 rules in the
+   main sidebar block above (orange icon glow on both themes, with a
+   light-theme override for the exact saturated #DB5A0C). The old v1
+   blue-tint overrides + stakes-row + sb-settings duplicates lived
+   here — removed because they shadowed the v2 orange-glow rule on
+   light theme. Settings is now just another .sb-item; no separate
+   override needed. */
+[data-theme="light"] .sb-avatar { background: var(--blue-tint); color: var(--blue-3); }
+
+/* The logo dot — on light, drop the gradient and use solid orange */
+[data-theme="light"] .sb-logo .logo-dot { fill: var(--o2); }
+[data-theme="light"] .sb-logo tspan:not(.logo-dot) { fill: var(--text); }
+
+/* TopBar */
+[data-theme="light"] .tb-cmd:focus-within {
+  border-color: var(--primary-focus-ring);
+  box-shadow: var(--primary-focus-shadow);
+}
+[data-theme="light"] .tb-kbd { background: var(--surface-h); }
+[data-theme="light"] .tb-add { color: #fff; }
+
+/* Today hero */
+[data-theme="light"] .today-hero {
+  background: linear-gradient(180deg, var(--orange-tint-bg), transparent 70%), var(--surface);
+  border-color: var(--orange-border);
+  box-shadow: var(--sh-card);
+}
+[data-theme="light"] .today-eyebrow {
+  /* keep gradient text — looks correct on light */
+}
+[data-theme="light"] .today-progress { background: var(--track-bg); }
+
+/* Cards / panels */
+[data-theme="light"] .panel,
+[data-theme="light"] .card { box-shadow: var(--sh-card); }
+[data-theme="light"] .card.is-interactive:hover { box-shadow: var(--sh-card-hover); }
+[data-theme="light"] .panel.is-stakes { border-color: var(--orange-border); }
+[data-theme="light"] .panel-meta.is-stakes { color: var(--o3); }
+
+/* Task rows */
+[data-theme="light"] .task-row:hover { background: var(--hover-tint); }
+[data-theme="light"] .task-row.is-stakes {
+  background: linear-gradient(90deg, var(--orange-row-bg), transparent 70%);
+}
+[data-theme="light"] .task-row.is-stakes:hover {
+  background: linear-gradient(90deg, var(--orange-row-hover), transparent 70%);
+}
+[data-theme="light"] .task-check {
+  background: var(--surface);
+  border-color: var(--check-border);
+}
+[data-theme="light"] .task-check:hover { border-color: var(--blue); }
+[data-theme="light"] .task-check.is-done { background: var(--blue); border-color: var(--blue); color: #fff; }
+[data-theme="light"] .task-row.is-stakes .task-check.is-done {
+  background: var(--o2); border-color: var(--o2);
+}
+[data-theme="light"] .task-tag {
+  background: var(--surface); color: var(--text-soft); border-color: var(--line-strong);
+}
+[data-theme="light"] .task-tag.is-stakes {
+  background: var(--orange-tint-bg); color: var(--orange-text-on-tint); border-color: var(--orange-border);
+}
+[data-theme="light"] .task-add { background: var(--surface); }
+[data-theme="light"] .task-add:focus-within {
+  border-color: var(--primary-focus-ring); background: var(--primary-focus-bg);
+}
+[data-theme="light"] .task-add-toggle { background: var(--surface); color: var(--muted); }
+[data-theme="light"] .task-add-toggle.is-stakes {
+  background: var(--orange-tint-bg); color: var(--orange-text-on-tint); border-color: var(--orange-border);
+}
+[data-theme="light"] .task-title-btn:hover { color: var(--blue); }
+
+/* Money widget */
+[data-theme="light"] .money-input {
+  background: var(--orange-tint-bg);
+  border-color: var(--orange-border);
+  color: var(--orange-text-on-tint);
+}
+[data-theme="light"] .money-input:focus {
+  border-color: var(--o2);
+  box-shadow: var(--orange-focus-shadow);
+}
+[data-theme="light"] .money-prefix { color: var(--o2); }
+[data-theme="light"] .money-log {
+  background: var(--orange-grad); color: #fff;
+  box-shadow: var(--orange-button-shadow);
+}
+[data-theme="light"] .money-bucket {
+  background: var(--surface); color: var(--text-soft);
+}
+[data-theme="light"] .money-budget-track,
+[data-theme="light"] .goal-track { background: var(--track-bg); }
+[data-theme="light"] .money-budget-hint { color: var(--o3); }
+[data-theme="light"] .money-budget-hint.is-over { color: var(--red-2); }
+[data-theme="light"] .money-budget-lab.is-stakes { color: var(--o3); }
+[data-theme="light"] .money-warn-badge {
+  background: var(--orange-tint-bg); color: var(--orange-text-on-tint); border-color: var(--orange-border);
+}
+[data-theme="light"] .money-over-badge {
+  background: var(--red-tint); color: var(--red-2); border-color: rgba(201,36,41,0.3);
+}
+
+/* Goal widget */
+[data-theme="light"] .goal-tag { color: var(--o3); }
+
+/* Habits */
+[data-theme="light"] .habits-cell { background: var(--track-bg); border-color: var(--line); }
+[data-theme="light"] .habits-cell.is-done { background: var(--blue); border-color: var(--blue); }
+[data-theme="light"] .habits-cell.is-missed {
+  background: var(--red-tint); border-color: var(--red);
+}
+[data-theme="light"] .habits-cell.is-future {
+  background: transparent; border-color: var(--line-strong);
+}
+[data-theme="light"] button.habits-cell {
+  background: var(--surface);
+  border-color: var(--blue);
+  box-shadow: 0 0 0 2px var(--primary-glow-ring);
+}
+[data-theme="light"] button.habits-cell:hover { background: var(--blue-tint); }
+[data-theme="light"] button.habits-cell.is-done { background: var(--blue); }
+[data-theme="light"] button.habits-cell.is-done:hover { background: var(--blue-2); }
+[data-theme="light"] .habits-cell-plus { color: var(--blue); }
+[data-theme="light"] .habits-day.is-today { color: var(--blue-3); }
+[data-theme="light"] .habits-day.is-today::after { background: var(--blue); }
+
+/* Empty state */
+[data-theme="light"] .empty-state { border-color: var(--line); color: var(--muted); }
+[data-theme="light"] .empty-action {
+  background: var(--blue-tint); color: var(--blue-3); border-color: rgba(27,138,196,0.25);
+}
+
+/* Toast */
+[data-theme="light"] .toast {
+  background: var(--toast-bg);
+  box-shadow: var(--sh-toast);
+}
+[data-theme="light"] .toast.is-bot {
+  border-color: var(--o2);
+  box-shadow: var(--sh-toast);
+}
+[data-theme="light"] .toast-av { background: var(--surface-h); color: var(--muted); }
+[data-theme="light"] .toast-av.is-bot { background: var(--orange-grad); color: #fff; }
+[data-theme="light"] .toast-name.is-bot { color: var(--o3); }
+
+/* Streak milestone — no glow on light */
+[data-theme="light"] .milestone {
+  background: linear-gradient(90deg, var(--orange-tint-bg), transparent 70%), var(--surface);
+  border-color: var(--orange-border);
+  box-shadow: var(--sh-card);
+}
+[data-theme="light"] .milestone-icon {
+  background: var(--orange-grad); color: #fff;
+  box-shadow: var(--orange-button-shadow);
+}
+[data-theme="light"] .milestone-eyebrow { color: var(--o3); }
+[data-theme="light"] .milestone-dismiss { background: var(--surface); }
+[data-theme="light"] .milestone-dismiss:hover { background: var(--surface-h); }
+
+/* Quick-add modal */
+[data-theme="light"] .qa-backdrop {
+  background: var(--modal-backdrop);
+  backdrop-filter: var(--modal-backdrop-blur);
+}
+[data-theme="light"] .qa-modal {
+  background: var(--bg-elev-1);
+  box-shadow: var(--sh-modal);
+}
+[data-theme="light"] .qa-close:hover { background: var(--surface-h); }
+[data-theme="light"] .qa-toggle { background: var(--surface); }
+[data-theme="light"] .qa-toggle-btn.is-on {
+  background: var(--blue-tint); color: var(--blue-3);
+}
+[data-theme="light"] .qa-toggle-btn.is-stakes.is-on {
+  background: var(--orange-tint-bg); color: var(--orange-text-on-tint);
+}
+[data-theme="light"] .qa-cat-trigger { background: var(--surface); }
+[data-theme="light"] .qa-cat-trigger:hover { background: var(--surface-h); }
+[data-theme="light"] .qa-cat-pop {
+  background: var(--bg-elev-2); box-shadow: var(--sh-pop);
+}
+[data-theme="light"] .qa-cat-opt:hover { background: var(--surface-h); }
+[data-theme="light"] .qa-expand-collapse:hover { background: var(--surface-h); }
+[data-theme="light"] .qa-sched-input,
+[data-theme="light"] .qa-notes-input {
+  background: var(--surface); color-scheme: light;
+}
+[data-theme="light"] .qa-sched-input:focus,
+[data-theme="light"] .qa-notes-input:focus { border-color: var(--primary-focus-ring); }
+[data-theme="light"] .qa-kbd { background: var(--surface-h); }
+[data-theme="light"] .qa-btn-ghost:hover { background: var(--surface-h); }
+[data-theme="light"] .qa-btn-save {
+  background: var(--blue); color: #fff;
+}
+[data-theme="light"] .qa-btn-save:hover:not(:disabled) { background: var(--blue-2); }
+[data-theme="light"] .qa-btn-save.is-stakes {
+  background: var(--orange-grad); color: #fff;
+  box-shadow: var(--orange-button-shadow);
+}
+
+/* Task detail */
+[data-theme="light"] .td-menu-btn:hover { background: var(--surface-h); }
+[data-theme="light"] .td-menu {
+  background: var(--bg-elev-2); box-shadow: var(--sh-pop);
+}
+[data-theme="light"] .td-menu-item:hover { background: var(--surface-h); }
+[data-theme="light"] .td-menu-item.is-danger { color: var(--red-2); }
+[data-theme="light"] .td-menu-item.is-danger:hover { background: var(--red-tint); }
+[data-theme="light"] .td-menu-item.is-danger-solid { background: var(--red); color: #fff; }
+[data-theme="light"] .td-menu-item.is-danger-solid:hover { background: var(--red-2); }
+[data-theme="light"] .td-subtask:hover { background: var(--hover-tint); }
+[data-theme="light"] .td-subtask-remove:hover {
+  background: var(--red-tint); color: var(--red-2);
+}
+[data-theme="light"] .td-eyebrow-stakes { color: var(--o3); }
+
+/* Settings */
+[data-theme="light"] .set-nav-btn:hover { background: var(--surface-h); }
+[data-theme="light"] .set-nav-btn.is-on { background: var(--blue-tint); color: var(--blue-3); }
+[data-theme="light"] .set-nav-btn.is-danger { color: var(--red-2); }
+[data-theme="light"] .set-nav-btn.is-danger:hover { background: var(--red-tint); }
+[data-theme="light"] .set-nav-btn.is-danger.is-on { background: var(--red-tint); color: var(--red-2); }
+[data-theme="light"] .set-input { background: var(--surface); }
+[data-theme="light"] .set-input:focus {
+  border-color: var(--primary-focus-ring); box-shadow: var(--primary-focus-shadow);
+}
+[data-theme="light"] .set-range { color-scheme: light; }
+/* Batch 1 rev · FIX 6 — light theme: keep the segmented box neutralised and
+   the active option orange+white (was a blue-tint segmented pill). */
+[data-theme="light"] .set-seg { background: transparent; }
+[data-theme="light"] .set-seg-btn.is-on { background: var(--accent); color: #fff; }
+[data-theme="light"] .set-toggle { background: var(--line-strong); }
+[data-theme="light"] .set-toggle.is-on { background: var(--blue); }
+[data-theme="light"] .set-btn-primary { background: var(--blue); color: #fff; }
+[data-theme="light"] .set-btn-primary:hover { background: var(--blue-2); }
+[data-theme="light"] .set-btn-ghost { background: var(--surface); }
+[data-theme="light"] .set-btn-ghost:hover { background: var(--surface-h); }
+[data-theme="light"] .set-btn-danger { background: var(--red); color: #fff; }
+[data-theme="light"] .set-btn-danger:hover { background: var(--red-2); }
+[data-theme="light"] .set-add-row { color: var(--blue-3); }
+[data-theme="light"] .set-add-row:hover { color: var(--blue); }
+[data-theme="light"] .set-danger-card {
+  background: var(--red-tint); border-color: rgba(201,36,41,0.2);
+}
+
+/* Calendar */
+[data-theme="light"] .cal-btn { background: var(--surface); color: var(--text-soft); }
+[data-theme="light"] .cal-btn:hover { background: var(--surface-h); }
+[data-theme="light"] .cal-views { background: var(--surface); }
+[data-theme="light"] .cal-view-btn.is-on {
+  background: var(--blue-tint); color: var(--blue-3);
+}
+[data-theme="light"] .cal-grid { background: var(--surface); }
+[data-theme="light"] .cal-col-day.is-today { background: var(--cal-today-col); }
+[data-theme="light"] .cal-cell.is-today-col { background: var(--cal-today-col); }
+[data-theme="light"] .cal-cell:hover { background: var(--hover-tint); }
+[data-theme="light"] .cal-cell.is-today-col:hover { background: var(--cal-today-cell-hover); }
+[data-theme="light"] .cal-day-num.is-today { background: var(--blue); color: #fff; }
+[data-theme="light"] .cal-event {
+  background: var(--cal-routine-bg); border-left-color: var(--blue);
+}
+[data-theme="light"] .cal-event:hover { background: var(--cal-routine-hover); }
+[data-theme="light"] .cal-event.is-stakes {
+  background: var(--cal-stakes-bg); border-left-color: var(--o2);
+}
+[data-theme="light"] .cal-event.is-stakes:hover { background: var(--cal-stakes-hover); }
+[data-theme="light"] .cal-event-title { color: var(--text); }
+[data-theme="light"] .cal-event-time { color: var(--muted); }
+
+/* Mobile bottom nav */
+[data-theme="light"] .mnav { background: var(--nav-bg); border-top-color: var(--line); }
+[data-theme="light"] .mnav-btn.is-on { color: var(--blue-3); }
+[data-theme="light"] .mnav-btn.is-stakes.is-on { color: var(--o3); }
+
+/* Demo rail */
+[data-theme="light"] .demo-btn { background: var(--surface); border-color: var(--line); color: var(--muted); }
+[data-theme="light"] .demo-btn:hover { background: var(--surface-h); color: var(--text); }
+[data-theme="light"] .demo-btn.is-on { background: var(--blue-tint); color: var(--blue-3); }
+[data-theme="light"] .demo-locale { background: var(--surface); }
+[data-theme="light"] .demo-locale-btn.is-on { background: var(--blue-tint); color: var(--blue-3); }
+
+/* Category tints */
+[data-theme="light"] .cat-tint-routine { background: var(--blue-tint); color: var(--blue-3); }
+[data-theme="light"] .cat-tint-stakes  { background: var(--orange-tint-bg); color: var(--orange-text-on-tint); }
+[data-theme="light"] .cat-tint-income  { background: var(--green-tint); color: var(--green); }
+[data-theme="light"] .cat-tint-neutral { background: var(--surface-h); color: var(--muted); }

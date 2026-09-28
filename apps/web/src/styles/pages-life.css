@@ -1,0 +1,528 @@
+/* ============================================================
+   Tasks page — toolbar (filter chips + sort)
+   ============================================================ */
+.tasks-toolbar {
+  display: flex; justify-content: space-between; align-items: center;
+  gap: 16px; flex-wrap: wrap;
+  /* Batch 1 rev · FIX 8 — span the full capped width so filters cluster
+     LEFT and the sort trigger sits at the RIGHT edge, aligned with the
+     task list card below (both capped at --readable, left-anchored). */
+  width: 100%;
+  max-width: var(--readable); margin-inline: var(--readable-mi);
+}
+.tasks-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+/* Batch 1 rev · FIX 6 — unified filter capsule.
+   ONE geometry (height --btn-h-sm · padding 0 --pad-md · radius --r-pill)
+   and ONE colour story shared by all six surfaces: .tasks-chip (Tasks +
+   Finances), .meds-filter-chip, .meds-view-tab, .set-seg-btn,
+   .chart-segctrl-btn. Rest = CREAM (card-surface family) + muted text;
+   active = orange-gradient (var(--accent)) + white text (matches the
+   sidebar active treatment, FIX 5). Tokens are theme-aware (--surface,
+   --fg2, --accent) so the same rule reads correctly in all 4 combos —
+   no per-theme active override needed. */
+.tasks-chip,
+.meds-filter-chip,
+.meds-view-tab,
+.set-seg-btn,
+.chart-segctrl-btn {
+  height: var(--btn-h-sm);
+  padding: 0 var(--pad-md);
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--fg2);
+  font-size: var(--text-sm);
+  line-height: 1; white-space: nowrap;
+  transition: background-color 120ms var(--ease), color 120ms var(--ease), border-color 120ms var(--ease);
+}
+.tasks-chip:hover,
+.meds-filter-chip:hover,
+.meds-view-tab:hover,
+.set-seg-btn:hover:not(.is-disabled),
+.chart-segctrl-btn:hover { background: var(--surface-h); color: var(--fg1); border-color: var(--border-s, var(--border)); }
+.tasks-chip.is-on,
+.meds-filter-chip.is-on,
+.meds-view-tab.is-on,
+.set-seg-btn.is-on,
+.chart-segctrl-btn.is-on {
+  background: var(--accent);
+  border-color: transparent;
+  color: #fff;
+}
+.tasks-sort { position: relative; }
+.tasks-sort-trigger {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 0 var(--ctrl-px); height: var(--input-h); border-radius: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--fg2);
+  font-size: 12px;
+}
+.tasks-sort-trigger:hover { background: var(--surface-h); color: var(--fg1); }
+.tasks-sort-pop {
+  position: absolute; top: calc(100% + 6px); right: 0;
+  min-width: 180px; padding: 4px;
+  background: var(--bg-elev-2, #1A1F28);
+  border: 1px solid var(--border-s);
+  border-radius: var(--r-md);
+  box-shadow: var(--sh-pop);
+  z-index: 20;
+}
+.tasks-sort-opt {
+  width: 100%; text-align: left;
+  padding: 8px 10px; border-radius: var(--r-sm);
+  background: transparent; color: var(--fg2);
+  font-size: var(--text-sm);
+}
+.tasks-sort-opt:hover { background: var(--hover-tint); color: var(--fg1); }
+.tasks-sort-opt.is-on { color: var(--primary-l); }
+.tasks-list-card { margin-top: 0; width: 100%; max-width: var(--readable); margin-inline: var(--readable-mi); }
+
+/* ============================================================
+   Inline editable field (used across Profile cards)
+   ============================================================ */
+.ef-display {
+  display: inline-flex; align-items: baseline; gap: 6px;
+  padding: 4px var(--ctrl-px); border-radius: var(--r-sm);
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--fg1);
+  font: 500 var(--text-md) 'Work Sans', sans-serif;
+  text-align: left;
+  cursor: text;
+  transition: background-color 120ms var(--ease), border-color 120ms var(--ease);
+  min-height: 28px;
+  min-width: 60px;
+}
+.ef-display.mono { font-family: var(--font-mono); }
+.ef-display:hover { background: var(--hover-tint); border-color: var(--border); }
+.ef-display.is-empty { color: var(--fg4); font-weight: 400; }
+.ef-suffix { color: var(--fg4); font-size: 11px; }
+.ef-input {
+  padding: 4px var(--ctrl-px); border-radius: var(--r-sm);
+  background: var(--surface-h);
+  border: 1px solid var(--primary-focus-ring);
+  color: var(--fg1);
+  font: 500 var(--text-md) 'Work Sans', sans-serif;
+  outline: none;
+  box-shadow: var(--primary-focus-shadow);
+  min-height: 28px;
+}
+.ef-input.mono { font-family: var(--font-mono); }
+.ef-input-multi { width: 100%; min-height: 64px; resize: vertical; line-height: 1.5; }
+
+/* ============================================================
+   Profile / Me page · cards
+   ============================================================ */
+.profile-page { gap: var(--pad-lg); }
+.profile-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--pad-md);
+  max-width: var(--readable); margin-inline: var(--readable-mi);
+}
+.pc-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: var(--pad-md) var(--pad-md) var(--pad-md);
+  box-shadow: var(--sh-card);
+  display: flex; flex-direction: column; gap: var(--pad-sm);
+  min-width: 0;
+}
+.pc-card-wide { grid-column: 1 / -1; }
+
+.pc-head {
+  display: flex; justify-content: space-between; align-items: baseline;
+  gap: 10px; padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.pc-title {
+  font: 700 var(--text-lg) 'Onest', sans-serif; letter-spacing: -0.015em;
+  color: var(--fg1); margin: 0;
+}
+.pc-sub { font-size: 12px; color: var(--fg4); }
+
+.pc-body { display: flex; flex-direction: column; gap: 12px; }
+.pc-grid-2 {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 12px 16px;
+}
+
+.pc-row { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.pc-row-wide { grid-column: 1 / -1; }
+.pc-label {
+  font-size: 12px;
+  color: var(--fg4);
+  padding-left: 11px;
+}
+.pc-empty-inline {
+  font-family: var(--font-mono); color: var(--fg4);
+  padding: 6px 10px; font-size: var(--text-sm);
+}
+
+/* sparkline in body-metrics */
+.pc-sparkline {
+  display: flex; align-items: center; gap: 18px;
+  padding: 6px 10px;
+}
+.pc-sparkline svg { flex: none; }
+.pc-sparkline-labels {
+  display: flex; flex-direction: column; gap: 2px;
+  font-size: 12px; color: var(--fg3);
+}
+.pc-sparkline-label.is-last { color: var(--primary-l); }
+
+/* clothing-sizes table */
+.pc-sizes-table { display: flex; flex-direction: column; }
+.pc-sizes-head, .pc-sizes-row {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr 1fr;
+  gap: 12px;
+  align-items: center;
+  padding: 8px 4px;
+  border-bottom: 1px solid var(--border);
+}
+.pc-sizes-head {
+  font-size: 12px; color: var(--fg4);
+}
+.pc-sizes-row:last-child { border-bottom: none; }
+.pc-sizes-type { font-size: var(--text-sm); color: var(--fg1); padding-left: 4px; }
+.pc-sizes-derived {
+  font-size: var(--text-sm);
+  color: var(--fg2);
+  padding: 6px 10px;
+}
+
+/* food preferences */
+.pc-food-body { gap: 16px; }
+.pc-food-cols {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+}
+.pc-food-group { display: flex; flex-direction: column; gap: 8px; }
+.pc-food-tags {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  padding: 8px 10px; border-radius: 8px;
+  background: var(--surface-h);
+  border: 1px dashed var(--border);
+  min-height: 44px;
+  align-items: center;
+}
+.pc-food-tag {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: var(--text-xs); padding: 4px 6px 4px 10px;
+  border-radius: var(--r-pill);
+  background: var(--tag-bg);
+  color: var(--fg1);
+  border: 1px solid var(--border);
+}
+.pc-food-tag-danger { background: var(--danger-soft); color: var(--danger); border-color: rgba(229,72,77,0.25); }
+.pc-food-tag-ok     { background: var(--success-soft); color: var(--success); border-color: rgba(29,158,117,0.25); }
+.pc-food-tag-muted  { background: var(--tag-bg); color: var(--fg2); border-color: var(--border); }
+[data-theme="light"] .pc-food-tag-danger { border-color: rgba(201,36,41,0.25); }
+[data-theme="light"] .pc-food-tag-ok     { border-color: rgba(15,122,80,0.25); }
+
+.pc-food-tag-x {
+  width: 16px; height: 16px; line-height: 1;
+  border-radius: var(--r-pill);
+  background: transparent; color: inherit;
+  opacity: 0.55;
+  font-size: var(--text-md);
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.pc-food-tag-x:hover { opacity: 1; }
+.pc-food-add { flex: 1; min-width: 80px; }
+.pc-food-add-input {
+  width: 100%;
+  padding: 4px 8px;
+  background: transparent; border: none; outline: none;
+  color: var(--fg1);
+  font-size: var(--text-xs);
+}
+.pc-food-add-input::placeholder { color: var(--fg4); }
+
+.profile-add-section {
+  align-self: flex-start;
+  padding: 10px 14px; border-radius: 8px;
+  background: transparent;
+  border: 1px dashed var(--border);
+  color: var(--fg4);
+  font-size: 11px;
+  font-family: var(--font-mono);
+  cursor: not-allowed;
+}
+.profile-add-section:hover { color: var(--fg3); border-color: var(--border-s); }
+
+/* ============================================================
+   Dog tab
+   ============================================================ */
+.dog-page { gap: var(--pad-lg); }
+.dog-reminders {
+  display: flex; gap: 8px; flex-wrap: wrap;
+  padding: var(--pad-sm) var(--pad-md);
+  border-radius: var(--r-lg);
+  background: var(--bg-elev-1);
+  border: 1px solid var(--border);
+  /* Batch 1 rev · FIX 1 — cap the reminders rail left-anchored */
+  max-width: var(--readable); margin-inline: var(--readable-mi);
+}
+.dog-reminder {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: var(--text-xs); color: var(--fg2);
+  padding: 6px 12px; border-radius: var(--r-pill);
+  background: var(--hover-tint);
+  border: 1px solid var(--border);
+}
+.dog-reminder-icon { color: var(--fg3); display: inline-flex; }
+
+.dog-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--pad-md);
+  max-width: var(--readable); margin-inline: var(--readable-mi);
+}
+
+.dog-profile-card { grid-column: 1 / -1; }
+.dog-profile-body {
+  display: grid; grid-template-columns: 120px 1fr; gap: 24px;
+  align-items: start;
+}
+.dog-avatar {
+  width: 120px; height: 120px;
+  border-radius: 14px;
+  background: var(--surface-h);
+  border: 1px dashed var(--border-s);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 6px;
+  color: var(--fg3);
+}
+.dog-avatar-hint { font-size: 12px; color: var(--fg4); }
+.dog-profile-fields {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 12px 24px;
+}
+.dog-name-placeholder {
+  font-style: italic;
+  color: var(--fg4);
+  padding: 6px 10px; border-radius: var(--r-sm);
+  background: transparent;
+  border: 1px dashed var(--border);
+  text-align: left;
+  font-size: var(--text-md);
+}
+.dog-name-placeholder:hover { color: var(--fg2); background: var(--hover-tint); }
+.dog-static {
+  padding: 6px 10px; color: var(--fg1); font-size: var(--text-md);
+}
+
+/* feeding */
+.dog-meals { display: flex; flex-direction: column; gap: 4px; }
+.dog-meal-row {
+  display: grid;
+  grid-template-columns: 20px 90px 1fr auto;
+  gap: 12px; align-items: center;
+  padding: 6px 0;
+}
+.dog-meal-num {
+  font-size: 11px; color: var(--fg4);
+  text-align: center;
+}
+.dog-feed-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12px;
+  padding: 6px 10px; border-radius: var(--r-sm);
+  background: var(--surface-h);
+  border: 1px solid var(--border);
+  color: var(--fg2);
+}
+.dog-feed-btn:hover { background: var(--primary-soft); color: var(--primary-l); border-color: var(--primary-focus-ring); }
+.dog-meal-history {
+  font-size: 12px;
+  color: var(--fg3); text-decoration: none;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+  margin-top: 4px;
+  display: inline-block;
+}
+.dog-meal-history:hover { color: var(--fg1); }
+
+/* inventory */
+.dog-inv { display: flex; flex-direction: column; gap: 10px; }
+.dog-inv-row {
+  display: grid;
+  grid-template-columns: 100px 1fr 90px;
+  gap: 12px; align-items: center;
+}
+.dog-inv-name { font-size: var(--text-sm); color: var(--fg1); }
+.dog-inv-track {
+  height: 6px; border-radius: var(--r-pill);
+  background: var(--track-bg);
+  overflow: hidden;
+}
+.dog-inv-track-bar {
+  height: 100%; background: var(--primary);
+  transition: width 200ms var(--ease);
+}
+.dog-inv-meta { font-size: 11px; color: var(--fg3); text-align: right; }
+.dog-inv-empty {
+  font-size: 11px; color: var(--fg4); line-height: 1.5;
+  padding-left: 0;
+}
+.dog-inv-secondary { display: flex; flex-direction: column; gap: 4px; padding-top: 8px; border-top: 1px solid var(--border); }
+.dog-inv-secondary-row {
+  display: flex; justify-content: space-between;
+  font-size: var(--text-xs); color: var(--fg2);
+  padding: 4px 0;
+}
+.dog-inv-secondary-row .mono { color: var(--fg4); font-size: 11px; }
+
+/* Empty-state row when no food bag is set yet — clicking simulates
+   "add bag" for the demo (seeds 7kg bag); real app opens an editor. */
+.dog-inv-row-empty {
+  grid-template-columns: 100px 1fr;
+}
+.dog-inv-empty-link {
+  text-align: left;
+  font-size: 11px;
+  color: var(--fg3);
+  padding: 6px 0;
+  background: transparent;
+  border: none;
+}
+.dog-inv-empty-link:hover { color: var(--primary-l); }
+
+/* vet */
+.dog-vet { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.dog-vet-block { display: flex; flex-direction: column; gap: 4px; padding: 12px; border-radius: var(--r-md); background: var(--surface-h); border: 1px solid var(--border); }
+.dog-vet-block.is-next { border-color: var(--primary-focus-ring); background: var(--primary-soft); }
+.dog-vet-note { font-size: var(--text-xs); color: var(--fg2); line-height: 1.5; padding: 0 10px; }
+
+.dog-empty {
+  padding: 24px 12px;
+  text-align: center;
+  font-size: var(--text-xs); line-height: 1.55;
+  color: var(--fg3);
+  border: 1px dashed var(--border);
+  border-radius: var(--r-md);
+}
+
+/* ============================================================
+   Health tab — skeleton
+   ============================================================ */
+.health-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: var(--pad-md);
+  max-width: var(--readable); margin-inline: var(--readable-mi);
+}
+.health-card .pc-head { gap: 10px; }
+.health-icon { color: var(--fg3); display: inline-flex; }
+.health-empty {
+  padding: 32px 16px;
+  text-align: center;
+  font-size: var(--text-sm); line-height: 1.55;
+  color: var(--fg3);
+  border: 1px dashed var(--border);
+  border-radius: var(--r-md);
+}
+
+/* ============================================================
+   Medications — read-only list for Sprint 1
+   Sprint 3 replaces the body with the interactive tracker.
+   ============================================================ */
+.meds-page { gap: var(--pad-lg); }
+.meds-ph { max-width: none; margin: 0; text-align: left; padding: 22px 24px; }
+.meds-ph .ph-body { font-size: var(--text-sm); }
+
+.meds-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
+.meds-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: var(--pad-md);
+  box-shadow: var(--sh-card);
+  display: flex; flex-direction: column; gap: 6px;
+}
+.meds-item.is-inactive { opacity: 0.7; }
+
+.meds-item-head {
+  display: flex; justify-content: space-between; align-items: baseline;
+  gap: 12px; flex-wrap: wrap;
+}
+.meds-item-id { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.meds-item-name {
+  font: 600 var(--text-lg) 'Onest', sans-serif; letter-spacing: -0.01em;
+  color: var(--fg1);
+}
+.meds-item-brand {
+  font-size: 12px; color: var(--fg4);
+}
+.meds-status {
+  font-size: 12px;
+  padding: 3px 8px; border-radius: 4px;
+  flex: none;
+}
+.meds-status-blue   { background: var(--primary-soft); color: var(--primary-l); }
+.meds-status-orange { background: var(--accent-soft); color: var(--accent-light); border: 1px solid var(--accent-border); }
+.meds-status-muted  { background: var(--tag-bg); color: var(--fg3); }
+
+.meds-item-meta { display: flex; flex-wrap: wrap; gap: 6px; }
+.meds-chip {
+  font-size: 12px;
+  padding: 3px 7px; border-radius: 5px;
+  background: var(--tag-bg); color: var(--fg2);
+  border: 1px solid var(--border);
+}
+.meds-chip-dose       { color: var(--fg1); border-color: var(--border-s); }
+.meds-chip-muted      { color: var(--fg3); }
+.meds-chip-supplement { color: var(--success); border-color: rgba(29,158,117,0.25); background: var(--success-soft); }
+[data-theme="light"] .meds-chip-supplement { border-color: rgba(15,122,80,0.25); }
+.meds-chip-orange     { color: var(--accent-light); border-color: var(--accent-border); background: var(--accent-soft); }
+.meds-chip-blue       { color: var(--primary-l); border-color: var(--primary-focus-ring); background: var(--primary-soft); }
+
+.meds-item-notes {
+  font-size: var(--text-xs); line-height: 1.5;
+  color: var(--fg2);
+  padding-top: 6px;
+  border-top: 1px solid var(--border);
+}
+
+/* interactions */
+.meds-interactions {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: var(--pad-md);
+  box-shadow: var(--sh-card);
+  display: flex; flex-direction: column; gap: 10px;
+}
+.meds-interactions-head { display: flex; align-items: center; gap: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+.meds-interactions-icon { color: var(--warning); display: inline-flex; }
+.meds-interactions-title { font: 700 var(--text-md) 'Onest', sans-serif; color: var(--fg1); margin: 0; letter-spacing: -0.01em; }
+
+.meds-interactions-list { display: flex; flex-direction: column; gap: 10px; }
+.meds-ix {
+  padding: 12px 14px; border-radius: var(--r-md);
+  background: var(--surface-h);
+  border: 1px solid var(--border);
+  display: flex; flex-direction: column; gap: 4px;
+}
+.meds-ix-major    { border-color: rgba(229,72,77,0.35); background: var(--danger-soft); }
+.meds-ix-moderate { border-color: var(--accent-border);  background: var(--accent-soft); }
+.meds-ix-minor    { border-color: rgba(241,179,59,0.35); background: var(--warning-soft); }
+
+.meds-ix-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.meds-ix-pair { font-size: var(--text-md); font-weight: 600; color: var(--fg1); display: inline-flex; gap: 8px; align-items: center; }
+.meds-ix-x { color: var(--fg4); }
+.meds-ix-sev {
+  font-size: 12px;
+  padding: 3px 7px; border-radius: 4px;
+  background: var(--bg-elev-2, #1A1F28); color: var(--fg2);
+}
+.meds-ix-sev-major    { color: var(--danger); background: var(--danger-soft); }
+.meds-ix-sev-moderate { color: var(--accent-light); background: var(--accent-soft); }
+.meds-ix-sev-minor    { color: var(--warning); background: var(--warning-soft); }
+
+.meds-ix-effect { font-size: var(--text-sm); color: var(--fg1); line-height: 1.45; }
+.meds-ix-action { font-size: 11px; color: var(--fg2); }
+.meds-ix-source { font-size: 12px; color: var(--fg4); }

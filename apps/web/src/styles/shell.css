@@ -1,0 +1,257 @@
+/* ============================================================
+   Layout
+   ============================================================ */
+.app {
+  display: grid;
+  grid-template-columns: var(--sidebar-expanded) 1fr;
+  min-height: 100vh;
+  transition: grid-template-columns 200ms var(--ease);
+}
+.app[data-sb="collapsed"] { grid-template-columns: var(--sidebar-collapsed) 1fr; }
+
+/* Batch 1 rev: container is FULL WIDTH (fills space after the sidebar).
+   Readability comes from per-block --readable caps, not a container cap. */
+.main { padding: var(--pad-lg) var(--pad-2xl) 40px; width: 100%; }
+
+/* ============================================================
+   Sidebar — v2 · collapsible · orange-glow active state
+   ============================================================ */
+.sb {
+  background: rgba(255,255,255,0.02);
+  border-right: 1px solid var(--border);
+  padding: 14px 10px 12px;
+  display: flex; flex-direction: column;
+  position: sticky; top: 0; height: 100vh;
+  overflow: hidden;
+  transition: padding 200ms var(--ease);
+}
+[data-theme="light"] .sb { background: #FFFFFF; }
+.sb.is-collapsed { padding: 14px 8px 12px; }
+
+/* logo row + collapse chevron */
+.sb-top {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 4px 4px 14px;
+  min-height: 40px;
+}
+.sb.is-collapsed .sb-top { justify-content: center; flex-direction: column; gap: 8px; padding: 4px 0 12px; }
+.sb-logo {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 4px 6px; border-radius: var(--r-sm);
+  background: transparent; cursor: pointer;
+  flex: 1; justify-content: flex-start; min-width: 0;
+}
+.sb-logo:hover { background: var(--hover-tint); }
+.sb.is-collapsed .sb-logo { flex: none; padding: 4px; justify-content: center; }
+.sb-logo svg { display: block; }
+.sb-logo-dot {
+  width: 14px; height: 14px; border-radius: var(--r-pill);
+  background: var(--accent);
+  display: inline-block;
+  box-shadow: 0 0 8px rgba(255,138,30,0.45);
+}
+[data-theme="light"] .sb-logo-dot { box-shadow: 0 0 6px rgba(219,90,12,0.35); }
+
+.sb-toggle {
+  width: 26px; height: 26px; border-radius: var(--r-sm);
+  display: inline-flex; align-items: center; justify-content: center;
+  color: var(--fg3); background: transparent;
+  border: 1px solid transparent;
+  transition: background-color 120ms var(--ease), color 120ms var(--ease), border-color 120ms var(--ease);
+  flex: none;
+}
+.sb-toggle:hover { background: var(--hover-tint); color: var(--fg1); border-color: var(--border); }
+
+/* nav scrolls if it overflows; sections + items render below */
+.sb-nav {
+  flex: 1; min-height: 0; overflow-y: auto;
+  display: flex; flex-direction: column;
+  gap: 1px;
+  margin: 0 -2px;
+  padding: 0 2px;
+}
+.sb-nav::-webkit-scrollbar { width: 4px; }
+.sb-nav::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+.sb-section-wrap { padding: 0; }
+.sb-divider {
+  border: 0;
+  height: 0.5px;
+  background: var(--border-soft);
+  margin: 12px 16px;
+}
+.sb.is-collapsed .sb-divider { margin: 8px 12px; }
+
+.sb-item {
+  position: relative;
+  display: flex; align-items: center; gap: 10px;
+  padding: 6px 10px; border-radius: 8px;
+  background: transparent;
+  font: 500 var(--text-md) 'Work Sans', sans-serif;
+  color: var(--fg2);
+  min-height: var(--row-h);
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 180ms var(--ease), color 180ms var(--ease);
+  width: 100%;
+}
+.sb-item:hover { background: var(--hover-tint); color: var(--fg1); }
+.sb-item:hover .sb-icon { color: var(--fg1); }
+/* Batch 1 rev · FIX 5 — ACTIVE nav item is an orange-gradient row with
+   WHITE label + WHITE icon (one item active at a time → contained accent,
+   does not dilute the stakes signal). Inactive items unchanged. */
+.sb-item.is-active {
+  background: var(--accent);
+  color: #fff;
+}
+
+.sb-icon {
+  color: var(--fg3);
+  display: inline-flex;
+  flex: none;
+  width: var(--icon-md); height: var(--icon-md);
+  transition: color 180ms var(--ease), filter 180ms var(--ease);
+}
+.sb.is-collapsed .sb-icon { width: var(--icon-lg); height: var(--icon-lg); }
+/* Batch 1 rev · FIX 5 — white icon on the orange active row (all themes) */
+.sb-item.is-active .sb-icon {
+  color: #fff;
+  filter: none;
+}
+
+.sb-label {
+  flex: 1; min-width: 0;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.sb-count {
+  font-size: var(--text-xs);
+  color: var(--muted);
+  margin-left: 12px;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+.sb-item.is-active .sb-count { color: rgba(255,255,255,0.85); } /* FIX 5 — legible on orange */
+
+/* Collapsed state — icons only, tooltips on hover */
+.sb.is-collapsed .sb-item {
+  justify-content: center;
+  padding: 7px 0;
+}
+.sb.is-collapsed .sb-label { display: none; }
+.sb.is-collapsed .sb-count {
+  position: absolute;
+  top: 4px; right: 6px;
+  font-size: 8.5px;
+  color: var(--o2);
+  margin: 0;
+}
+[data-theme="light"] .sb.is-collapsed .sb-count { color: #DB5A0C; }
+/* Batch 1 rev · FIX 5 — collapsed active row is orange → white count badge */
+.sb.is-collapsed .sb-item.is-active .sb-count { color: #fff; }
+
+/* tooltip on hover, only when collapsed */
+.sb.is-collapsed .sb-item[data-tooltip]:hover::after,
+.sb.is-collapsed .sb-logo[title]:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: calc(100% + 8px);
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--bg-elev-2, #1A1F28);
+  color: var(--fg1);
+  font: 500 var(--text-xs) 'Work Sans', sans-serif;
+  white-space: nowrap;
+  padding: 6px 10px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--border-s);
+  box-shadow: var(--sh-pop);
+  z-index: 100;
+  animation: sb-tt-in 120ms var(--ease) 80ms both;
+  pointer-events: none;
+}
+@keyframes sb-tt-in {
+  from { opacity: 0; transform: translateY(-50%) translateX(-2px); }
+  to   { opacity: 1; transform: translateY(-50%) translateX(0); }
+}
+
+/* footer pinned at bottom */
+.sb-foot {
+  margin-top: auto;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+  display: flex; flex-direction: column; gap: 4px;
+}
+.sb-settings { /* same look as a nav item */ }
+.sb-foot-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 10px;
+}
+.sb-avatar {
+  width: 28px; height: 28px; border-radius: var(--r-pill);
+  background: var(--primary-soft); color: var(--primary-l);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono); font-weight: 600; font-size: var(--text-sm);
+  flex: none;
+}
+.sb-foot-meta { min-width: 0; }
+.sb-foot-name { font: 500 var(--text-sm) 'Work Sans', sans-serif; color: var(--fg1); }
+.sb-foot-sub { font-size: 12px; color: var(--fg4); margin-top: 2px; }
+
+/* ============================================================
+   TopBar
+   ============================================================ */
+.tb {
+  display: flex; justify-content: space-between; align-items: flex-end;
+  padding: 6px 0 var(--pad-xl);
+  gap: 16px;
+}
+.tb-eyebrow {
+  font-size: 11px; color: var(--fg3);
+}
+.tb-title {
+  font-family: 'Onest', sans-serif; font-weight: 800; font-size: 40px;
+  letter-spacing: -0.028em; line-height: 1.08;
+  margin: 6px 0 0; color: var(--fg1);
+}
+.tb-right { display: flex; gap: 10px; align-items: center; }
+.tb-cmd {
+  display: flex; align-items: center; gap: 10px;
+  padding: 0 var(--ctrl-px); border-radius: var(--r-md);
+  background: var(--surface); border: 1px solid var(--border);
+  color: var(--fg3);
+  min-width: 280px; height: var(--input-h);
+  cursor: text;
+  transition: background-color 180ms var(--ease), border-color 180ms var(--ease);
+}
+.tb-cmd:hover { background: var(--surface-h); border-color: var(--border-s); }
+.tb-cmd:focus-within {
+  /* Batch 1 rev · FIX 2 — keep the field OPAQUE on focus. Under
+     paradise-day --surface-h is rgba(10,20,40,0.06) (near-transparent):
+     the bright scene showed through and dark text/caret vanished. Use the
+     opaque --surface (cream under paradise) so typed text stays readable.
+     (This is a VISUAL fix only — the field is still a dead control.) */
+  background: var(--surface);
+  border-color: rgba(34,158,217,0.45);
+  box-shadow: 0 0 0 3px rgba(34,158,217,0.1);
+}
+.tb-cmd-icon { display: inline-flex; color: var(--fg3); flex: none; }
+.tb-cmd-input {
+  flex: 1; background: transparent; border: none; outline: none;
+  color: var(--fg1); font-size: var(--text-sm);
+  font-family: 'Work Sans', sans-serif;
+  min-width: 0;
+  caret-color: var(--fg1); /* Batch 1 rev · FIX 2 — explicit visible caret */
+}
+.tb-cmd-input::placeholder { color: var(--fg3); }
+.tb-kbd {
+  font-size: 12px; padding: 3px 6px;
+  border-radius: 5px; background: rgba(255,255,255,0.06);
+  color: var(--fg3);
+}
+.tb-add {
+  width: var(--input-h); height: var(--input-h); border-radius: var(--r-md);
+  background: var(--primary); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  transition: background-color 180ms var(--ease), transform 180ms var(--ease);
+}
+.tb-add:hover { background: var(--primary-l); transform: translateY(-1px); }

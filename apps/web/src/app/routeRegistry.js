@@ -1,0 +1,26 @@
+import { ANALYTICS_ROUTE_ENABLED, LIFE_ROUTES } from './routes.js';
+
+/* ── Routes ────────────────────────────────────────────────
+   v2 nav tree. Each route has an id used both as state key and as the
+   URL hash (#/<id>). Add a new tab → drop an entry in routes.js + render
+   it in App.jsx renderRoute() + add a sidebar item. */
+function readRouteFromHash(hash = window.location.hash) {
+  const raw = (hash || '').replace(/^#\/?/, '');
+  /* Sprint 3A · medications sub-routes: /medications/{id} → still
+     dispatch the medications surface; the page reads the id itself. */
+  if (raw.startsWith('medications/') || raw === 'medications') return 'medications';
+  /* Slice 4 · review/{new/<subject>/<from>/<to> | <id>} → the Review surface
+     reads its own parameters from the hash. */
+  if (raw.startsWith('review/') && LIFE_ROUTES.has('review')) return 'review';
+  return LIFE_ROUTES.has(raw) ? raw : 'home';
+}
+
+/* setRoute's target rule: an unknown id falls back to home, except the
+   medications/{id} sub-route, which dispatches the medications surface while
+   the hash keeps the full path. */
+function normalizeRoute(next) {
+  if (!LIFE_ROUTES.has(next) && !next.startsWith('medications/')) next = 'home';
+  return { route: LIFE_ROUTES.has(next) ? next : 'medications', hash: '#/' + next };
+}
+
+export { ANALYTICS_ROUTE_ENABLED, LIFE_ROUTES, normalizeRoute, readRouteFromHash };
