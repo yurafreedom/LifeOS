@@ -60,7 +60,9 @@ export function ProjectAnalyticsView({
 }) {
   const t = useAAText();
   const locale = t('_intl_locale');
-  const back = <a className="aa-link" href="#/projects">{t('aa_pj_back')}</a>;
+  const back = <nav className="aa-pj-nav" aria-label={t('aa_pj_nav_group')}>
+    <a className="aa-link" href="#/projects">{t('aa_pj_back')}</a>
+  </nav>;
 
   if (!project) {
     return <div className="page project-analytics-page">
@@ -76,8 +78,7 @@ export function ProjectAnalyticsView({
   const reviewable = reviewEnabled && project.status === 'completed';
 
   return <div className={`page project-analytics-page${narrow ? ' aa-narrow' : ''}`}>
-    <PageHeader title={project.title} subtitle={subtitle} />
-    <nav className="aa-pj-nav" aria-label={t('aa_pj_nav_group')}>{back}</nav>
+    <PageHeader title={project.title} subtitle={subtitle} aside={back} />
 
     {pending > 0 ? <p className="aa-note aa-pj-pending" role="status">{t('aa_pj_pending', pending)}</p> : null}
 

@@ -200,8 +200,10 @@ button.aa-tag { cursor: pointer; }
 .aa-narrow .aa-delta.is-pair { grid-template-columns: 1fr; }
 .aa-pj-strip .aa-quality-item { cursor: default; }
 .aa-pj-actual-head { margin-top: 10px; }
-.aa-pj-nav { display: flex; gap: 12px; }
-.aa-pj-review .set-btn-primary { text-decoration: none; }
+.project-analytics-page .aa-section-head { flex-wrap: wrap; row-gap: 2px; }
+.aa-pj-nav { display: flex; gap: 12px; align-self: flex-end; }
+.aa-pj-review .set-btn-primary { display: inline-flex; align-items: center; text-decoration: none; }
+.hero-head__aside .aa-pj-nav .aa-link { color: #fff; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.45); }
 @media (max-width: 700px) {
   .aa-delta.is-pair { grid-template-columns: 1fr; }
 }
