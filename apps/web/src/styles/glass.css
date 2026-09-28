@@ -1,0 +1,30 @@
+/* ============================================================
+   Sprint 3.5 · Variant А — glass card system
+   semi-transparent surface (token) + backdrop-blur + soft orange
+   tint border. Routine = ambient warmth, stakes = signal.
+   Scoped to card surfaces only; controls keep the surface color
+   without blur. Graceful-degrades to solid rgba where unsupported.
+   ============================================================ */
+.panel, .stat-card, .chart-card, .pc-card, .medc, .meds-item, .meds-interactions,
+.ph-card, .mdp-stat, .mdp-timers-card, .mdp-notes, .mdp-config-grid {
+  background: var(--surface);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--border-card);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-card);
+}
+.panel, .stat-card, .chart-card, .pc-card {
+  padding: var(--card-pad);
+}
+/* warm banners pick up the same glass */
+.milestone, .today-hero {
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+/* stakes intensity — thicker, more saturated border + glow */
+.panel.is-stakes, .stat-card.is-stakes, .chart-card.is-stakes, .medc.is-stakes,
+.pc-card.is-stakes, .fin-summary.is-warn {
+  border: 1.5px solid var(--border-card-stakes);
+  box-shadow: var(--shadow-stakes);
+}

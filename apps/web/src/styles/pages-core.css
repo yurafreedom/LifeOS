@@ -1,0 +1,521 @@
+/* ============================================================
+   Generic page chrome (.page · .page-head · .page-title)
+   Used by Quick Notes, Tasks, Habits/Goals/Finances relocations,
+   Profile, Dog, Health, etc. Same header treatment everywhere.
+   ============================================================ */
+.page { padding-top: 4px; display: flex; flex-direction: column; gap: var(--pad-lg); }
+.page-head {
+  display: flex; justify-content: space-between; align-items: flex-end;
+  gap: var(--pad-md);
+  padding-bottom: var(--pad-sm);
+  border-bottom: 1px solid var(--border);
+  /* Batch 1 rev · FIX 1 — cap page headers (title + subline) left-anchored */
+  max-width: var(--readable); margin-inline: var(--readable-mi);
+}
+.page-head-left { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.page-title {
+  font: 800 var(--text-2xl) 'Onest', sans-serif;
+  letter-spacing: -0.025em; color: var(--fg1);
+  margin: 0;
+}
+.page-sub {
+  font-size: 12px; color: var(--fg3);
+}
+.page-count {
+  font-size: 11px; color: var(--fg3);
+  align-self: center;
+}
+
+/* ============================================================
+   Hero vignette · Claude Design handoff variant 1b
+   Mounted by PageHeader only in paradise; dark/light retain the compact
+   page-head above. The fade belongs to the text block, so it grows with
+   wrapped copy and has no plate edge, border, blur or accent colour.
+   ============================================================ */
+.hero-scene {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  width: 100%;
+  min-height: 190px;
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  background: var(--bg-base);
+  isolation: isolate;
+  container-type: inline-size;
+}
+.hero-scene--tall { min-height: 240px; }
+.hero-scene__media-wrap {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.hero-scene__media {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  pointer-events: none;
+  transform-origin: center;
+  animation: hero-scene-breathe 28s ease-in-out infinite alternate;
+  transition: opacity 1.4s ease;
+  will-change: transform, opacity;
+}
+.hero-scene__media--day { opacity: 1; }
+.hero-scene__media--night { opacity: 0; }
+[data-scene="night"] .hero-scene__media--day { opacity: 0; }
+[data-scene="night"] .hero-scene__media--night { opacity: 1; }
+@keyframes hero-scene-breathe {
+  from { transform: scale(1); }
+  to { transform: scale(1.045) translateY(-1%); }
+}
+.hero-head {
+  position: relative;
+  z-index: 2;
+  padding: 64px 18px 16px;
+  background: linear-gradient(
+    to top,
+    rgba(6, 10, 16, 0.82) 0%,
+    rgba(6, 10, 16, 0.66) 38%,
+    rgba(6, 10, 16, 0.30) 72%,
+    rgba(6, 10, 16, 0) 100%
+  );
+}
+.hero-head__content {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+}
+.hero-head__copy { min-width: 0; }
+.hero-head__date {
+  margin: 0 0 8px;
+  font: 500 10px/1 var(--font-mono);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.60);
+}
+.hero-head__title {
+  margin: 0;
+  font: 800 32px/1 var(--font-display);
+  letter-spacing: -0.02em;
+  color: #fff;
+  text-shadow: 0 1px 16px rgba(0, 0, 0, 0.45),
+               0 1px 3px rgba(0, 0, 0, 0.55);
+  text-wrap: balance;
+}
+.hero-head__sub {
+  margin: 5px 0 0;
+  font: 400 var(--text-md)/1.4 var(--font-body);
+  color: rgba(255, 255, 255, 0.92);
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.50);
+  text-wrap: pretty;
+}
+.hero-head__aside {
+  flex: none;
+  max-width: 100%;
+  color: rgba(255, 255, 255, 0.92);
+}
+.hero-head__aside .page-count { color: rgba(255, 255, 255, 0.92); }
+@container (min-width: 720px) {
+  .hero-head { padding: 88px 24px 20px; }
+  .hero-head__title { font-size: 44px; }
+}
+@container (max-width: 520px) {
+  .hero-head__content { align-items: flex-start; flex-direction: column; gap: 12px; }
+  .hero-head__aside { width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-scene__media { animation: none; transition: none; }
+}
+
+/* ============================================================
+   Quick Notes
+   ============================================================ */
+.qn-page { gap: 18px; }
+.qn-input {
+  display: flex; align-items: center; gap: var(--pad-md);
+  padding: var(--pad-sm) var(--pad-md); border-radius: var(--r-lg);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  transition: border-color 120ms var(--ease), background-color 120ms var(--ease);
+  /* Batch 1 rev · FIX 1 — cap the notes input left-anchored */
+  max-width: var(--readable); margin-inline: var(--readable-mi);
+}
+.qn-input:focus-within {
+  border-color: var(--primary-focus-ring);
+  background: var(--surface-h);
+  box-shadow: var(--primary-focus-shadow);
+}
+.qn-input-prefix { color: var(--fg4); flex: none; display: inline-flex; }
+.qn-input:focus-within .qn-input-prefix { color: var(--primary-l); }
+.qn-input-field {
+  flex: 1; min-width: 0;
+  background: transparent; border: none; outline: none;
+  font: 500 15px 'Work Sans', sans-serif;
+  color: var(--fg1);
+}
+.qn-input-field::placeholder { color: var(--fg4); }
+.qn-input-hint {
+  flex: none;
+  font-size: 12px;
+  padding: 3px 8px; border-radius: 5px;
+  background: var(--primary-soft);
+  color: var(--primary-l);
+}
+
+.qn-empty {
+  text-align: center;
+  padding: 48px 24px;
+  color: var(--fg3);
+  font-size: var(--text-md); line-height: 1.6;
+  border: 1px dashed var(--border);
+  border-radius: var(--r-lg);
+}
+
+.qn-list {
+  list-style: none; padding: 0; margin: 0;
+  display: flex; flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--sh-card);
+  overflow: hidden;
+  /* Batch 1 rev · FIX 1 — cap the notes list left-anchored */
+  max-width: var(--readable); margin-inline: var(--readable-mi);
+}
+.qn-item {
+  border-bottom: 1px solid var(--border);
+}
+.qn-item:last-child { border-bottom: none; }
+/* The whole inbox row is the Clarify trigger — one tap opens the panel, which
+   is the only way a note leaves the inbox. Row height clears the 44px touch
+   minimum on mobile. */
+.qn-item-open {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 64px 1fr auto;
+  gap: 16px; align-items: center;
+  padding: var(--pad-sm) var(--pad-md);
+  min-height: 46px;
+  background: transparent; border: none; text-align: left;
+  font-family: 'Work Sans', sans-serif;
+  transition: background-color 120ms var(--ease);
+}
+.qn-item-open:hover { background: var(--hover-tint); }
+.qn-item-time {
+  font-size: 12px; color: var(--fg4);
+}
+.qn-item-text {
+  font-size: var(--text-md); line-height: 1.45; color: var(--fg1);
+  min-width: 0; word-break: break-word;
+}
+.qn-item-cta {
+  display: inline-flex; align-items: center; gap: 5px;
+  flex: none;
+  font-size: 11px; letter-spacing: .06em; text-transform: uppercase;
+  color: var(--fg4);
+  transition: color 120ms var(--ease);
+}
+.qn-item-open:hover .qn-item-cta,
+.qn-item-open:focus-visible .qn-item-cta { color: var(--fg2); }
+
+/* Reference retrieval surface — the "в справочник" Clarify outcome lands here
+   as a real persisted record, not a hidden note. */
+.qn-refs {
+  display: flex; flex-direction: column; gap: var(--pad-md);
+  max-width: var(--readable); margin-inline: var(--readable-mi);
+}
+.qn-ref-list {
+  list-style: none; padding: 0; margin: 0;
+  display: flex; flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--sh-card);
+  overflow: hidden;
+}
+.qn-ref-item {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 12px; align-items: center;
+  padding: var(--pad-sm) var(--pad-md);
+  border-bottom: 1px solid var(--border);
+}
+.qn-ref-item:last-child { border-bottom: none; }
+.qn-ref-icon { display: inline-flex; color: var(--fg4); }
+.qn-ref-text {
+  font-size: var(--text-md); line-height: 1.45; color: var(--fg1);
+  min-width: 0; word-break: break-word;
+}
+.qn-ref-date { font-size: 11px; color: var(--fg4); flex: none; }
+
+/* Waiting retrieval surface — the "делегировать" Clarify outcome. Rendered as
+   its own list inside Tasks so Waiting stays visibly distinct from a Task. */
+.waiting-list {
+  list-style: none; padding: 0; margin: 0;
+  display: flex; flex-direction: column;
+}
+.waiting-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 12px; align-items: center;
+  padding: var(--pad-sm) 0;
+  border-bottom: 1px solid var(--border);
+}
+.waiting-row:last-child { border-bottom: none; }
+.waiting-icon { display: inline-flex; color: var(--fg4); }
+.waiting-title {
+  font-size: var(--text-md); line-height: 1.45; color: var(--fg1);
+  min-width: 0; word-break: break-word;
+}
+.waiting-meta { display: inline-flex; align-items: center; gap: 8px; flex: none; }
+.waiting-for {
+  font-size: 11px; padding: 3px 8px; border-radius: var(--r-pill);
+  background: var(--tag-bg); color: var(--fg2);
+}
+.waiting-date { font-size: 11px; color: var(--fg4); }
+
+/* ============================================================
+   Clarify panel — GTD «прояснить» step (handoff layout 1c)
+   Reuses .qa-backdrop / .qa-modal chrome so theme, paradise and the
+   mobile bottom-sheet behaviour come from the existing modal system.
+   ============================================================ */
+/* The handoff centres the panel. The shared backdrop is top-anchored for the
+   quick-add sheet, so Clarify re-centres and reclaims the vertical room its
+   six rows need; the panel still scrolls rather than clipping if the viewport
+   is shorter than the content. */
+.clarify-backdrop { align-items: center; padding-top: 0; padding-block: 4vh; }
+.qa-modal.clarify-panel {
+  width: min(680px, 92vw);
+  padding: 20px 22px 22px;
+  max-height: 92vh; overflow-y: auto;
+}
+.clarify-head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; margin-bottom: 16px;
+}
+.clarify-eyebrow {
+  font-size: 11px; letter-spacing: .18em; text-transform: uppercase;
+  color: var(--fg3);
+}
+.clarify-close {
+  width: 28px; height: 28px; border-radius: var(--r-sm);
+  flex: none;
+  display: flex; align-items: center; justify-content: center;
+  background: transparent; color: var(--fg3);
+  border: 1px solid var(--border);
+  transition: background-color 140ms var(--ease), color 140ms var(--ease);
+}
+.clarify-close:hover { background: var(--hover-tint); color: var(--fg1); }
+
+.clarify-source { margin-bottom: 14px; }
+.clarify-note-title {
+  margin: 0;
+  font-family: 'Onest', sans-serif; font-weight: 700;
+  font-size: 21px; line-height: 1.24; letter-spacing: -0.02em;
+  color: var(--fg1);
+  /* Long captures wrap; past three lines they clamp instead of pushing the
+     six outcomes off screen. */
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+.clarify-note-meta {
+  margin: 9px 0 0;
+  font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--fg3);
+}
+
+.clarify-hint {
+  margin: 0 0 18px;
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 13px; border-radius: var(--r-md);
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-border);
+  font-size: 13px; font-weight: 500;
+  color: var(--orange-text-on-tint);
+}
+.clarify-hint-icon { display: inline-flex; flex: none; color: var(--accent-mid); }
+
+.clarify-choose {
+  margin: 0 0 11px;
+  font-size: 10.5px; letter-spacing: .16em; text-transform: uppercase;
+  color: var(--fg4);
+}
+
+.clarify-list {
+  display: flex; flex-direction: column;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--tag-bg);
+}
+.clarify-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 14px; min-height: 54px;
+  background: transparent; border: none;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  font-family: 'Work Sans', sans-serif;
+  transition: background-color 140ms var(--ease);
+}
+.clarify-row:last-child { border-bottom: none; }
+.clarify-row:hover:not(:disabled) { background: var(--hover-tint); }
+.clarify-row:disabled { opacity: 0.55; }
+.clarify-row-icon {
+  width: 30px; height: 30px; border-radius: var(--r-sm); flex: none;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--surface-h); color: var(--fg2);
+}
+.clarify-row-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.clarify-row-label { font-size: 14px; font-weight: 500; color: var(--fg1); }
+.clarify-row-hint { font-size: 12px; color: var(--fg3); overflow-wrap: anywhere; }
+.clarify-row-key {
+  flex: none;
+  font-size: 10px; padding: 2px 6px; border-radius: 5px;
+  background: var(--kbd-bg); color: var(--fg4);
+}
+.clarify-row-chev { display: inline-flex; flex: none; color: var(--fg4); }
+
+/* Row 1 — the recommended outcome. Warm emphasis is earned here because the
+   two-minute rule is the handoff's primary call to action. */
+.clarify-row.is-primary { background: var(--orange-row-bg); }
+.clarify-row.is-primary:hover:not(:disabled) { background: var(--orange-row-hover); }
+.clarify-row.is-primary .clarify-row-icon {
+  background: var(--accent); color: var(--accent-text-on-button);
+  box-shadow: var(--orange-button-shadow);
+}
+.clarify-row.is-primary .clarify-row-label { font-weight: 600; }
+.clarify-row.is-primary .clarify-row-hint { color: var(--orange-text-on-tint); }
+.clarify-row.is-primary .clarify-row-chev { color: var(--accent-mid); }
+
+/* Row 6 — destructive. Marked by icon + label + copy, never by colour alone. */
+.clarify-row.is-danger:hover:not(:disabled) { background: var(--red-tint); }
+.clarify-row.is-danger .clarify-row-icon { background: var(--red-tint); color: var(--red); }
+.clarify-row.is-danger .clarify-row-label { color: var(--red); }
+.clarify-row.is-danger .clarify-row-chev { color: var(--red-2); }
+
+/* Expansion below the list: Delete confirmation and Defer date. The list stays
+   in place and visible, exactly as the handoff specifies. */
+.clarify-expand {
+  margin-top: 12px;
+  display: flex; align-items: flex-start; gap: 13px;
+  padding: 13px 15px; border-radius: 12px;
+  animation: clarify-expand 180ms var(--ease) both;
+}
+@keyframes clarify-expand {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.clarify-expand-icon { display: inline-flex; flex: none; padding-top: 2px; }
+.clarify-expand-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.clarify-expand-title { font-size: 13.5px; font-weight: 600; color: var(--fg1); }
+.clarify-expand-copy { font-size: 12px; color: var(--fg3); }
+.clarify-expand-actions { display: flex; gap: 8px; flex: none; flex-wrap: wrap; }
+
+.clarify-confirm {
+  align-items: center;
+  background: var(--red-tint);
+  border: 1px solid var(--red);
+}
+.clarify-confirm .clarify-expand-icon { color: var(--red); padding-top: 0; }
+
+.clarify-defer {
+  background: var(--surface);
+  border: 1px solid var(--border-s);
+}
+.clarify-defer .clarify-expand-icon { color: var(--fg3); }
+.clarify-defer-input {
+  align-self: flex-start;
+  height: 34px; padding: 0 10px;
+  border-radius: var(--r-sm);
+  background: var(--surface-h);
+  border: 1px solid var(--border);
+  color: var(--fg1);
+  font-size: 12.5px;
+  outline: none;
+}
+.clarify-defer-input:focus { border-color: var(--primary-focus-ring); }
+
+.clarify-btn-ghost,
+.clarify-btn-primary,
+.clarify-btn-danger {
+  height: 34px; padding: 0 15px; border-radius: var(--r-pill);
+  white-space: nowrap;
+  font-family: 'Work Sans', sans-serif; font-size: 12.5px;
+  transition: background-color 140ms var(--ease), transform 140ms var(--ease);
+}
+.clarify-btn-ghost {
+  background: var(--tag-bg); border: 1px solid var(--border);
+  color: var(--fg1); font-weight: 500;
+}
+.clarify-btn-ghost:hover:not(:disabled) { background: var(--surface-h); }
+.clarify-btn-primary {
+  background: var(--accent); border: 1px solid transparent;
+  color: var(--accent-text-on-button); font-weight: 600;
+  box-shadow: var(--orange-button-shadow);
+}
+.clarify-btn-primary:hover:not(:disabled) { transform: translateY(-1px); }
+.clarify-btn-danger {
+  background: var(--danger); border: 1px solid transparent;
+  color: #fff; font-weight: 600;
+}
+.clarify-btn-danger:hover:not(:disabled) { transform: translateY(-1px); }
+.clarify-btn-ghost:disabled,
+.clarify-btn-primary:disabled,
+.clarify-btn-danger:disabled { opacity: 0.55; }
+
+.clarify-error {
+  margin: 12px 0 0;
+  display: flex; align-items: flex-start; gap: 9px;
+  padding: 10px 13px; border-radius: var(--r-md);
+  background: var(--red-tint); border: 1px solid var(--red);
+  font-size: 12.5px; color: var(--fg1);
+}
+.clarify-error-icon { display: inline-flex; flex: none; color: var(--red); padding-top: 1px; }
+
+.clarify-foot {
+  margin-top: 18px; padding-top: 13px;
+  border-top: 1px solid var(--border);
+  display: flex; justify-content: space-between; align-items: center; gap: 12px;
+}
+.clarify-foot-label {
+  font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--fg4);
+}
+.clarify-kbd {
+  font-size: 10px; padding: 3px 7px; border-radius: 5px;
+  background: var(--kbd-bg); color: var(--fg3);
+}
+
+/* Handoff: below ~720px the panel spans the viewport minus 16px gutters. At
+   640px and below it inherits the production bottom-sheet treatment from
+   .qa-modal, where a 54px row is already above the 44px touch minimum. */
+@media (max-width: 720px) {
+  .qa-modal.clarify-panel { width: calc(100vw - 32px); padding: 18px 16px 18px; }
+  .clarify-note-title { font-size: 19px; }
+  .clarify-row-key { display: none; }
+  .clarify-expand { flex-wrap: wrap; }
+  .clarify-expand-actions { width: 100%; }
+  .clarify-expand-actions > * { flex: 1; }
+}
+@media (max-width: 640px) {
+  /* Hand back to the production bottom-sheet geometry: flush to the bottom
+     edge, no centring padding. */
+  .clarify-backdrop { padding-block: 0; }
+  .qa-modal.clarify-panel { width: 100%; max-height: 90vh; }
+}
+
+/* Reduced motion — the expansion and hover lifts are decoration only. */
+@media (prefers-reduced-motion: reduce) {
+  .clarify-expand { animation: none; }
+  .clarify-btn-primary:hover:not(:disabled),
+  .clarify-btn-danger:hover:not(:disabled) { transform: none; }
+}

@@ -11,6 +11,16 @@ import {
 } from '../components/HeroVignette.jsx';
 import { LifeLocaleContext } from '../context/LocaleContext.jsx';
 
+/* styles.css is an ordered @import manifest of layers; resolve it into the
+   single stylesheet the build emits, in the same order. */
+function productionCss() {
+  const manifest = new URL('../styles.css', import.meta.url);
+  const text = readFileSync(manifest, 'utf8');
+  const layers = [...text.matchAll(/@import '([^']+)';/g)].map(match => match[1]);
+  expect(layers.length).toBeGreaterThan(0);
+  return layers.map(layer => readFileSync(new URL(layer, manifest), 'utf8')).join('');
+}
+
 describe('Hero vignette handoff integration', () => {
   it('renders local decorative scene layers and accessible page copy', () => {
     const html = renderToStaticMarkup(
@@ -54,7 +64,7 @@ describe('Hero vignette handoff integration', () => {
   });
 
   it('keeps the approved gradient, container breakpoint and motion fallback in production CSS', () => {
-    const css = readFileSync(new URL('../styles.css', import.meta.url), 'utf8');
+    const css = productionCss();
 
     expect(css).toContain('rgba(6, 10, 16, 0.82) 0%');
     expect(css).toContain('rgba(6, 10, 16, 0.66) 38%');
