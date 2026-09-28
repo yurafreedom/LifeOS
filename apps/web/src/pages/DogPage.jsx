@@ -1,4 +1,5 @@
 import React from 'react';
+import { PageHeader } from '../components/HeroVignette.jsx';
 import { LIcons } from '../components/icons.jsx';
 import { EditableField } from '../profile/EditableField.jsx';
 
@@ -26,12 +27,7 @@ function DogPage({ dog, onUpdate, locale, t }) {
 
   return (
     <div className="page dog-page">
-      <header className="page-head">
-        <div className="page-head-left">
-          <h2 className="page-title">{t('dog_title')}</h2>
-          <div className="page-sub mono">{t('dog_subtitle')}</div>
-        </div>
-      </header>
+      <PageHeader title={t('dog_title')} subtitle={t('dog_subtitle')} />
 
       {/* Live reminders rail */}
       <div className="dog-reminders">

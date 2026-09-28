@@ -1,4 +1,5 @@
 import React from 'react';
+import { PageHeader } from '../components/HeroVignette.jsx';
 import { LIcons } from '../components/icons.jsx';
 import { LifeLocaleContext } from '../context/LocaleContext.jsx';
 
@@ -21,12 +22,7 @@ function HealthPage() {
 
   return (
     <div className="page health-page">
-      <header className="page-head">
-        <div className="page-head-left">
-          <h2 className="page-title">{t('health_title')}</h2>
-          <div className="page-sub mono">{t('health_subtitle')}</div>
-        </div>
-      </header>
+      <PageHeader title={t('health_title')} subtitle={t('health_subtitle')} />
       <div className="health-grid">
         {sections.map(s => (
           <section className="pc-card health-card" key={s.id}>

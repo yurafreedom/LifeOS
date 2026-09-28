@@ -1,4 +1,5 @@
 import React from 'react';
+import { PageHeader } from '../components/HeroVignette.jsx';
 import { LIcons } from '../components/icons.jsx';
 import { LifeLocaleContext } from '../context/LocaleContext.jsx';
 
@@ -28,13 +29,11 @@ function QuickNotesPage({ notes, onAdd, onDelete, onPromote }) {
 
   return (
     <div className="page qn-page">
-      <header className="page-head">
-        <div className="page-head-left">
-          <h2 className="page-title">{t('qn_title')}</h2>
-          <div className="page-sub mono">{t('qn_subtitle')}</div>
-        </div>
-        <span className="page-count mono">{notes.length}</span>
-      </header>
+      <PageHeader
+        title={t('qn_title')}
+        subtitle={t('qn_subtitle')}
+        aside={<span className="page-count mono">{notes.length}</span>}
+      />
 
       <form className="qn-input" onSubmit={commit}>
         <span className="qn-input-prefix">{I.plus({ size: 16 })}</span>

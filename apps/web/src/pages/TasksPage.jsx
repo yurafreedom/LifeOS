@@ -1,4 +1,5 @@
 import React from 'react';
+import { PageHeader } from '../components/HeroVignette.jsx';
 import { LIcons } from '../components/icons.jsx';
 import { LifeLocaleContext } from '../context/LocaleContext.jsx';
 
@@ -45,12 +46,10 @@ function TasksPage({ tasks, onToggle, onAdd, onOpen }) {
 
   return (
     <div className="page tasks-page">
-      <header className="page-head">
-        <div className="page-head-left">
-          <h2 className="page-title">{t('tasks_page_title')}</h2>
-          <div className="page-sub mono">{t('tasks_page_meta', openCount, tasks.length)} · {t.pl('pl_task', openCount)}</div>
-        </div>
-      </header>
+      <PageHeader
+        title={t('tasks_page_title')}
+        subtitle={<>{t('tasks_page_meta', openCount, tasks.length)} · {t.pl('pl_task', openCount)}</>}
+      />
 
       <div className="tasks-toolbar">
         <div className="tasks-chips">

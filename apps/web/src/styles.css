@@ -1484,6 +1484,115 @@ button.habits-cell:hover .habits-cell-plus { opacity: 1; }
 }
 
 /* ============================================================
+   Hero vignette · Claude Design handoff variant 1b
+   Mounted by PageHeader only in paradise; dark/light retain the compact
+   page-head above. The fade belongs to the text block, so it grows with
+   wrapped copy and has no plate edge, border, blur or accent colour.
+   ============================================================ */
+.hero-scene {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  width: 100%;
+  min-height: 190px;
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  background: var(--bg-base);
+  isolation: isolate;
+  container-type: inline-size;
+}
+.hero-scene--tall { min-height: 240px; }
+.hero-scene__media-wrap {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.hero-scene__media {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  pointer-events: none;
+  transform-origin: center;
+  animation: hero-scene-breathe 28s ease-in-out infinite alternate;
+  transition: opacity 1.4s ease;
+  will-change: transform, opacity;
+}
+.hero-scene__media--day { opacity: 1; }
+.hero-scene__media--night { opacity: 0; }
+[data-scene="night"] .hero-scene__media--day { opacity: 0; }
+[data-scene="night"] .hero-scene__media--night { opacity: 1; }
+@keyframes hero-scene-breathe {
+  from { transform: scale(1); }
+  to { transform: scale(1.045) translateY(-1%); }
+}
+.hero-head {
+  position: relative;
+  z-index: 2;
+  padding: 64px 18px 16px;
+  background: linear-gradient(
+    to top,
+    rgba(6, 10, 16, 0.82) 0%,
+    rgba(6, 10, 16, 0.66) 38%,
+    rgba(6, 10, 16, 0.30) 72%,
+    rgba(6, 10, 16, 0) 100%
+  );
+}
+.hero-head__content {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+}
+.hero-head__copy { min-width: 0; }
+.hero-head__date {
+  margin: 0 0 8px;
+  font: 500 10px/1 var(--font-mono);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.60);
+}
+.hero-head__title {
+  margin: 0;
+  font: 800 32px/1 var(--font-display);
+  letter-spacing: -0.02em;
+  color: #fff;
+  text-shadow: 0 1px 16px rgba(0, 0, 0, 0.45),
+               0 1px 3px rgba(0, 0, 0, 0.55);
+  text-wrap: balance;
+}
+.hero-head__sub {
+  margin: 5px 0 0;
+  font: 400 var(--text-md)/1.4 var(--font-body);
+  color: rgba(255, 255, 255, 0.92);
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.50);
+  text-wrap: pretty;
+}
+.hero-head__aside {
+  flex: none;
+  max-width: 100%;
+  color: rgba(255, 255, 255, 0.92);
+}
+.hero-head__aside .page-count { color: rgba(255, 255, 255, 0.92); }
+@container (min-width: 720px) {
+  .hero-head { padding: 88px 24px 20px; }
+  .hero-head__title { font-size: 44px; }
+}
+@container (max-width: 520px) {
+  .hero-head__content { align-items: flex-start; flex-direction: column; gap: 12px; }
+  .hero-head__aside { width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-scene__media { animation: none; transition: none; }
+}
+
+/* ============================================================
    Quick Notes
    ============================================================ */
 .qn-page { gap: 18px; }
@@ -4450,18 +4559,10 @@ button.habits-cell:hover .habits-cell-plus { opacity: 1; }
    wordmark via the inline #F5F5F7 fill. Light theme is already dark. */
 [data-theme="paradise"][data-scene="day"] .sb-logo .logo-word { fill: #1a1f29; }
 
-/* Batch 1 rev · FIX 4 (FINAL) — "Hero-подложка" (variant 1a, from Claude
-   Design). Each over-scene header TEXT GROUP sits on ONE self-contained
-   rounded plate (its own radius + padding), NOT per-line rectangles — this
-   kills the old "black-marker / sticking-out corners" look. One treatment
-   covers BOTH paradise scenes (day + night); the hairline border keeps the
-   plate edge visible on the dark night scene. The two zones (Map names):
-     1. TopBar greeting group — .tb-left  (.tb-eyebrow + .tb-title)
-     2. Page header group     — .page-head (.page-title + .page-sub)
-   PARADISE ONLY: dark/light have a solid bg and need no plate (gated on
-   [data-theme="paradise"]). No backdrop-blur, no orange, hairline border. */
-[data-theme="paradise"] .tb-left,
-[data-theme="paradise"] .page-head {
+/* The TopBar greeting keeps its compact variant-1a plate. Generic page
+   headers now use the full-width variant-1b HeroVignette above; dark/light
+   never enter this paradise-only rule. */
+[data-theme="paradise"] .tb-left {
   background: linear-gradient(180deg, rgba(10,14,20,0.5), rgba(8,11,16,0.4));
   border: 1px solid rgba(255,255,255,0.14);
   border-radius: 16px;
@@ -4469,26 +4570,16 @@ button.habits-cell:hover .habits-cell-plus { opacity: 1; }
               inset 0 1px 0 rgba(255,255,255,0.06);
   padding: 12px 16px;
 }
-/* the plate replaces the page header's usual hairline underline + FIX-1
-   bottom padding under paradise (both are baked into the plate now). */
-[data-theme="paradise"] .page-head { border-bottom: none; }
-
 /* Text is white on any scene — the dark plate is the backing. */
 [data-theme="paradise"] .tb-eyebrow {
   color: rgba(255,255,255,0.72);
   text-transform: uppercase; letter-spacing: 0.16em;
   text-shadow: none;
 }
-[data-theme="paradise"] .tb-title,
-[data-theme="paradise"] .page-title {
+[data-theme="paradise"] .tb-title {
   color: #fff; letter-spacing: -0.02em;
   text-shadow: 0 1px 2px rgba(0,0,0,0.35);
 }
-[data-theme="paradise"] .page-sub {
-  color: rgba(255,255,255,0.82);
-  text-shadow: none;
-}
-
 /* search field floats over the scene — solid-ish surface, no blur */
 [data-theme="paradise"] .tb-cmd {
   -webkit-backdrop-filter: none;
