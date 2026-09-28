@@ -1583,6 +1583,15 @@ completeness is unverified reports unknown coverage, never reassurance.
 
 There is no notification centre, no polling and no Life Score.
 
+Post-Slice-3 correctness fix (project.forecast.revision, still v1):
+the rule reads the forecast VERSION HISTORY, not the live version. Its input
+is every non-tombstoned version of the user + project + completion-date grain,
+recorded_at <= as_of when as_of is given, ordered recorded_at, id. It must not
+use apply_as_of, which returns only the live row of a superseded chain.
+`from` = immediately previous surviving version; episode key = newest version.
+Report: Outputs/Implementations/
+lifeos-project-forecast-revision-signal-correctness_20260928-195351.md
+
 ====================================================================
 38. SLICE 4 — REVIEW / DEBRIEF — COMPLETED
 ====================================================================
