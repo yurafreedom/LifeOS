@@ -836,7 +836,9 @@ def test_m4_empty_roundtrip_preserves_every_earlier_table(engine, test_database_
     config = Config(str(Path(__file__).parents[1] / "alembic.ini"))
     config.set_main_option("sqlalchemy.url", test_database_url)
     script = ScriptDirectory.from_config(config)
-    assert script.get_heads() == ["20260928_0005"]
+    # M4 is no longer the newest migration, so this asserts its position in the
+    # chain rather than that it is head: it still sits directly on M3 and still
+    # downgrades cleanly off it (taking any later migration with it).
     assert script.get_revision("20260928_0005").down_revision == "20260910_0004"
 
     command.downgrade(config, "20260910_0004")

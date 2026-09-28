@@ -22,6 +22,7 @@ from app.models import (
 )
 from app.services.aa_comparison import SEMANTIC_TABLES
 from app.services.aa_facts import AAServiceError, FactNotFoundError
+from app.services.aa_reviews import redact_review_context
 
 logger = logging.getLogger(__name__)
 FACT_TABLES = {
@@ -30,8 +31,9 @@ FACT_TABLES = {
     "aa_source_coverage": AASourceCoverage,
 }
 Redactor = Callable[[Session, UUID, str, UUID], None]
-# Slice 4 will register its context-table adapter here. No Review table exists yet.
-SOURCE_REDACTORS: tuple[Redactor, ...] = ()
+# D1: hard erasure wins over frozen Review values. The Review adapter erases every
+# frozen context item derived from the deleted fact, inside this transaction.
+SOURCE_REDACTORS: tuple[Redactor, ...] = (redact_review_context,)
 
 
 class DeletionConflictError(AAServiceError):
@@ -129,6 +131,10 @@ def delete_fact(
                 )
                 for dependent_id in dependents:
                     redacted += _redact_provenance(db, user_id, dependent_id)
+                    # A cascading override decided a derived Review value too.
+                    redact_source_context(
+                        db, user_id, "aa_metric_membership_overrides", dependent_id
+                    )
             redact_source_context(db, user_id, table_name, fact_id)
             db.delete(row)
             receipt = AADeletionReceipt(

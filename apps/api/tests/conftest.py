@@ -65,6 +65,12 @@ def session_factory(engine: Engine) -> sessionmaker[Session]:
 # the migration, not per-test state, and truncating it would break every test
 # that records against a metric.
 TRUNCATED_TABLES: tuple[str, ...] = (
+    "aa_decisions",
+    "aa_review_factors",
+    "aa_review_context_sources",
+    "aa_review_context_items",
+    "aa_review_revisions",
+    "aa_reviews",
     "aa_expectation_versions",
     "aa_forecast_versions",
     "aa_baselines",
