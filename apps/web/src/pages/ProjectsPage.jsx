@@ -79,6 +79,7 @@ function ProjectsPage() {
                   onComplete={data.completeProject}
                   onArchive={data.archiveProject}
                   reviewEnabled={ANALYTICS_ROUTE_ENABLED}
+                  analyticsEnabled={ANALYTICS_ROUTE_ENABLED}
                 />
               ))}
             </div>

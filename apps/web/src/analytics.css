@@ -191,3 +191,17 @@ button.aa-tag { cursor: pointer; }
   .aa-actions { gap: 8px; }
   .aa-menu { left: 0; right: auto; }
 }
+
+/* Slice 5 · Project Analytics (G). Two AA delta rows: operands (3 cells) and
+   the dual delta (a pair). Both collapse to stacked cells on narrow screens. */
+.project-analytics-page .aa-section { gap: 12px; }
+.aa-pj-compare { display: grid; gap: 8px; }
+.aa-delta.is-pair { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.aa-narrow .aa-delta.is-pair { grid-template-columns: 1fr; }
+.aa-pj-strip .aa-quality-item { cursor: default; }
+.aa-pj-actual-head { margin-top: 10px; }
+.aa-pj-nav { display: flex; gap: 12px; }
+.aa-pj-review .set-btn-primary { text-decoration: none; }
+@media (max-width: 700px) {
+  .aa-delta.is-pair { grid-template-columns: 1fr; }
+}

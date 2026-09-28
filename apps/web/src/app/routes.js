@@ -20,6 +20,6 @@ const routes = [
 export const ANALYTICS_ROUTE_ENABLED = import.meta.env.MODE === 'test'
   || import.meta.env.VITE_LIFEOS_ANALYTICS_ENABLED === 'true';
 
-if (ANALYTICS_ROUTE_ENABLED) routes.push('analytics', 'analytics-history', 'review');
+if (ANALYTICS_ROUTE_ENABLED) routes.push('analytics', 'analytics-history', 'review', 'project-analytics');
 
 export const LIFE_ROUTES = new Set(routes);

@@ -12,6 +12,8 @@ function readRouteFromHash(hash = window.location.hash) {
   /* Slice 4 · review/{new/<subject>/<from>/<to> | <id>} → the Review surface
      reads its own parameters from the hash. */
   if (raw.startsWith('review/') && LIFE_ROUTES.has('review')) return 'review';
+  /* Slice 5 · project-analytics/<project id> → the page reads the id itself. */
+  if (raw.startsWith('project-analytics/') && LIFE_ROUTES.has('project-analytics')) return 'project-analytics';
   return LIFE_ROUTES.has(raw) ? raw : 'home';
 }
 

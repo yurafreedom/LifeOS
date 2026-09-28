@@ -5,6 +5,7 @@ import {
   getFinanceMonth,
   getFactProvenance,
   getMetricHistory,
+  getProjectAnalytics,
   getReview,
   getReviewContext,
   getSignals,
@@ -17,6 +18,7 @@ import type {
   AAFactProvenance,
   AAMeasurement,
   AAMetricHistory,
+  AAProjectAnalytics,
   AASubject,
   AAValue,
   CorrectMeasurementInput,
@@ -225,6 +227,21 @@ export class AnalyticsRepository {
       throw new TypeError('A review context read requires an explicit from/to window.');
     }
     return getReviewContext(query, signal);
+  }
+
+  /**
+   * Project Analytics: the server's forecast version history, the separate
+   * Actual and the dual delta. Current truth, or as LifeOS knew it at `asOf`.
+   */
+  readProjectAnalytics(
+    projectId: string,
+    query: { asOf?: string } = {},
+    signal?: AbortSignal,
+  ): Promise<AAProjectAnalytics> {
+    if (!projectId || projectId.includes(':')) {
+      throw new TypeError('A project id is non-empty and contains no colon.');
+    }
+    return getProjectAnalytics(projectId, query, signal);
   }
 
   readReview(reviewId: string, signal?: AbortSignal): Promise<AAReview> {

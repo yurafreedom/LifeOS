@@ -4,6 +4,7 @@ import {
   projectCompletionQueueRequest,
   projectForecastQueueRequest,
 } from '../analytics/projectFacts.ts';
+import { countPendingProjectWrites } from '../analytics/projectAnalytics.ts';
 import { AnalyticsRepository } from '../repositories/analyticsRepository.ts';
 import { AnalyticsSyncCoordinator } from '../repositories/analyticsSyncCoordinator.ts';
 import { AnalyticsWriteQueue } from '../repositories/analyticsWriteQueue.ts';
@@ -228,6 +229,20 @@ function AnalyticsProvider({ user, children }) {
     return repositoryRef.current.listReviews(subject, signal);
   }
 
+  /* Project Analytics reads the server-acknowledged history only. Pending local
+     writes for the project are counted separately (a read of the queue, never a
+     mutation) so the page can say so instead of mixing them into the history. */
+  function readProjectAnalytics(projectId, signal) {
+    if (!repositoryRef.current) return Promise.reject(new Error('Analytics repository is unavailable.'));
+    return repositoryRef.current.readProjectAnalytics(projectId, {}, signal);
+  }
+
+  async function pendingProjectWrites(projectId) {
+    if (!queueRef.current) return 0;
+    const records = await queueRef.current.list(user.id);
+    return countPendingProjectWrites(records, projectId);
+  }
+
   async function enqueueReview(request) {
     return enqueue(request.operation_type, request.route, request.payload);
   }
@@ -274,6 +289,8 @@ function AnalyticsProvider({ user, children }) {
     readReview,
     listReviews,
     enqueueReview,
+    readProjectAnalytics,
+    pendingProjectWrites,
     importLegacy,
     discardQueueFailure,
     exportQueueFailure,
