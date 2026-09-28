@@ -388,4 +388,3 @@ def test_another_accounts_forecasts_never_enter_the_history(
     assert card.rendered_values["revision_count"] == 2
     assert card.input_fingerprint == input_fingerprint(ids)
     assert "2026-08-3" not in repr(card.rendered_values)
-
