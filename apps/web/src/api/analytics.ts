@@ -4,6 +4,7 @@
 export * from './analytics/facts';
 export * from './analytics/finance';
 export * from './analytics/history';
+export * from './analytics/projects';
 export * from './analytics/semantic';
 export * from './analytics/signals';
 export * from './analytics/reviews';

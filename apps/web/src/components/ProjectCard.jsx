@@ -1,6 +1,7 @@
 import React from 'react';
 import { LifeLocaleContext, LifeStrings } from '../context/LocaleContext.jsx';
 import { newReviewHash, projectReviewWindow } from '../analytics/review';
+import { projectAnalyticsHash } from '../analytics/projectAnalytics';
 
 /* global React */
 const { useContext: useProjectLocale, useRef: useProjectRef, useState: useProjectState } = React;
@@ -30,7 +31,9 @@ function projectReviewHash(project) {
   return newReviewHash(`project:project:${project.id}`, from, to);
 }
 
-function ProjectCard({ project, onForecast, onComplete, onArchive, reviewEnabled = false }) {
+function ProjectCard({
+  project, onForecast, onComplete, onArchive, reviewEnabled = false, analyticsEnabled = false,
+}) {
   const { locale, t } = useProjectLocale(LifeLocaleContext);
   const [forecastDate, setForecastDate] = useProjectState(project.current_forecast_date || '');
   const [busyAction, setBusyAction] = useProjectState(null);
@@ -123,6 +126,10 @@ function ProjectCard({ project, onForecast, onComplete, onArchive, reviewEnabled
           <button className="set-btn-primary" type="button" onClick={complete} disabled={busyAction != null}>
             {busyAction === 'complete' ? t('project_saving') : t('project_complete')}
           </button>
+        ) : null}
+        {analyticsEnabled && !String(project.id).includes(':') ? (
+          /* Slice 5: the forecast history and dual delta, read from the server. */
+          <a className="set-btn-ghost" href={projectAnalyticsHash(String(project.id))}>{t('aa_pj_open')}</a>
         ) : null}
         {reviewEnabled && project.status === 'completed' ? (
           /* Frozen G: «открыть ревью» is the primary action once a project is closed. */

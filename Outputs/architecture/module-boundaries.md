@@ -31,6 +31,7 @@ reverse edges are the lazy imports inside `analytics/rules/__init__.py::_registr
 | fact append/correct/read | `services/aa_facts.py` (fan-in 16 — do not split) |
 | finance derivation | `services/aa_finance.py` |
 | signals evaluation | `services/aa_signals.py`; one rule = one module in `analytics/rules/` |
+| Project Analytics (forecast version history, Actual, dual delta; read-only) | `services/aa_project_analytics.py` + `routes/aa_projects.py` + `schemas/aa_projects.py` |
 | vocabulary / enums | `analytics/enums.py` (fan-in 30 — a flat vocabulary is the right shape) |
 
 ### Review / Debrief
@@ -75,7 +76,7 @@ deliberately: theme values are published through `LifeLocaleContext`.
 | I want to… | Go to |
 |---|---|
 | add a route id | `app/routes.js` (`LIFE_ROUTES`; pinned size in `smoke.test.jsx`) |
-| change hash parsing / sub-routes (`medications/<id>`, `review/…`) | `app/routeRegistry.js` (`readRouteFromHash`, `normalizeRoute`; pinned by `route-registry.test.ts`) |
+| change hash parsing / sub-routes (`medications/<id>`, `review/…`, `project-analytics/<id>`) | `app/routeRegistry.js` (`readRouteFromHash`, `normalizeRoute`; pinned by `route-registry.test.ts`) |
 | render a route | one `case` in `App.jsx::renderRoute()` |
 | make a route lazy / eager | `app/lazyRoutes.jsx` (`LAZY_ROUTE_LOADERS`; pinned by `lazy-routes.test.jsx`). Home, Login, ParadiseScene and shell chrome stay eager. One `Suspense` boundary around `renderRoute()`; its fallback is empty `.page` chrome — do not add a second loading design |
 | nav entries | `components/Sidebar.jsx`, `components/MobileBottomNav.jsx` + locale copy |
@@ -124,6 +125,7 @@ Facade: **`api/analytics.ts`** (`export *` of each domain).
 | expectation / forecast / baseline / target / preference / observation | `api/analytics/semantic.ts` |
 | signals | `api/analytics/signals.ts` |
 | Review / Debrief | `api/analytics/reviews.ts` |
+| Project Analytics | `api/analytics/projects.ts` |
 
 A new domain = a new module + one facade line. Domain modules import shared
 types from `facts.ts` only.
@@ -137,6 +139,7 @@ types from `facts.ts` only.
 | Page | Internals |
 |---|---|
 | `pages/analytics/ReviewPage.jsx` (route shell; re-exports the views) | `pages/analytics/review/{format.js, Evidence.jsx, Flow.jsx, SavedReview.jsx}` |
+| `pages/projects/ProjectAnalyticsPage.jsx` (route shell; exports the pure `ProjectAnalyticsView`) | `pages/projects/analytics/{ForecastComparison.jsx, ForecastHistory.jsx}`; helpers in `analytics/projectAnalytics.ts` |
 | `components/SettingsPage.jsx` (re-exports `ExportSection`) | `components/settings/{ExportSection.jsx, DangerSection.jsx, Row.jsx}`; small static sections stay in the page on purpose |
 
 ### Styles — the cascade is the product

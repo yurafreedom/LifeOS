@@ -5,6 +5,7 @@ import {
   FinanceAnalytics,
   MedicationsPage,
   MetricHistoryPage,
+  ProjectAnalyticsPage,
   ReviewPage,
   RouteFallback,
   SettingsPage,
@@ -245,6 +246,8 @@ function AppShell({ user }) {
         return <MetricHistoryPage onBack={() => setRoute('analytics')} />;
       case 'review':
         return <ReviewPage />;
+      case 'project-analytics':
+        return <ProjectAnalyticsPage />;
       case 'monthly':
         return <PlaceholderPage title={t('ph_monthly_title')} body={t('ph_monthly_body')} />;
       case 'annual':
