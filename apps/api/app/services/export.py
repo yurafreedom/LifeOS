@@ -29,6 +29,7 @@ from app.models import (
     AAMetricPolicyVersion,
     AAObservation,
     AAPreference,
+    AASignalEpisode,
     AASourceCoverage,
     AATarget,
     Base,
@@ -52,6 +53,9 @@ EXPORT_TABLES = {
     "aa_observations": AAObservation.__table__,
     "aa_metric_policy_versions": AAMetricPolicyVersion.__table__,
     "aa_metric_membership_overrides": AAMetricMembershipOverride.__table__,
+    # Episode state is personal data — the user's own acknowledgements — so it
+    # leaves with an account export like any fact.
+    "aa_signal_episodes": AASignalEpisode.__table__,
 }
 
 

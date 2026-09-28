@@ -74,6 +74,7 @@ TRUNCATED_TABLES: tuple[str, ...] = (
     "aa_metric_policy_versions",
     "aa_metric_membership_overrides",
     "aa_deletion_receipts",
+    "aa_signal_episodes",
     "aa_source_coverage",
     "aa_measurements",
     "user_snapshots",

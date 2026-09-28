@@ -15,6 +15,10 @@ class Membership:
     included: bool | None
     policy_known: bool
     basis: str
+    # The exact policy/override version this resolution read, when one existed.
+    # Signal evaluation folds it into the input fingerprint so a policy revision
+    # is auditable even though it changes no measurement.
+    version_id: str | None = None
 
 
 def record_policy(db, *, user_id, request):
@@ -86,7 +90,7 @@ def membership_as_of(db, *, user_id, metric_key, fact_id, as_of):
         as_of=as_of,
     )
     if override:
-        return Membership(override.included, True, "override")
+        return Membership(override.included, True, "override", str(override.id))
     model = AAMetricPolicyVersion
     policy = db.scalar(
         apply_as_of(
@@ -104,9 +108,11 @@ def membership_as_of(db, *, user_id, metric_key, fact_id, as_of):
     dimensions = fact.dimensions or {}
     if policy:
         if policy.policy["exclude_categories"] and "category_id" not in dimensions:
-            return Membership(None, True, "category_unknown")
+            return Membership(None, True, "category_unknown", str(policy.id))
         excluded = dimensions.get("category_id") in policy.policy["exclude_categories"]
-        return Membership(not excluded and policy.policy["default"] == "include", True, "policy")
+        return Membership(
+            not excluded and policy.policy["default"] == "include", True, "policy", str(policy.id)
+        )
     included = dimensions.get("included_by_default")
     return Membership(
         included if isinstance(included, bool) else None,

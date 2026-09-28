@@ -1,9 +1,11 @@
 import {
+  acknowledgeSignalEpisode,
   correctMeasurement,
   correctMeasurementByIdempotencyKey,
   getFinanceMonth,
   getFactProvenance,
   getMetricHistory,
+  getSignals,
   recordMeasurement,
   importLegacyTransactions,
 } from '../api/analytics';
@@ -18,6 +20,8 @@ import type {
   MetricHistoryQuery,
   RecordMeasurementInput,
   AAFinanceMonth,
+  AASignalEpisode,
+  AASignals,
   LegacyImportResult,
 } from '../api/analytics';
 import { requestJson } from '../api/client';
@@ -174,5 +178,29 @@ export class AnalyticsRepository {
     signal?: AbortSignal,
   ): Promise<AAFactProvenance> {
     return getFactProvenance(factTable, factId, signal);
+  }
+
+  readSignals(
+    query: { limit?: number; timezone?: string; asOf?: string } = {},
+    signal?: AbortSignal,
+  ): Promise<AASignals> {
+    if (query.limit != null && (!Number.isInteger(query.limit) || query.limit < 0)) {
+      throw new TypeError('A signal limit must be a non-negative integer.');
+    }
+    return getSignals(query, signal);
+  }
+
+  /**
+   * Acknowledge one episode.
+   *
+   * The fingerprint the card was rendered from travels with the request: the
+   * server refuses the acknowledgement if the signal has been re-evaluated since,
+   * so a user cannot dismiss something they were never shown.
+   */
+  acknowledgeSignal(episodeKey: string, inputFingerprint: string): Promise<AASignalEpisode> {
+    if (!/^[0-9a-f]{64}$/.test(inputFingerprint)) {
+      throw new TypeError('An episode acknowledgement requires the observed sha256 fingerprint.');
+    }
+    return acknowledgeSignalEpisode(episodeKey, inputFingerprint);
   }
 }

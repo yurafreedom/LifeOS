@@ -47,6 +47,9 @@ _ERROR_STATUS: dict[str, int] = {
     "metric_value_type_mismatch": status.HTTP_422_UNPROCESSABLE_CONTENT,
     "correction_conflict": status.HTTP_409_CONFLICT,
     "effective_order_conflict": status.HTTP_409_CONFLICT,
+    "episode_not_found": status.HTTP_404_NOT_FOUND,
+    "episode_changed": status.HTTP_409_CONFLICT,
+    "unsupported_resolution": status.HTTP_422_UNPROCESSABLE_CONTENT,
 }
 
 

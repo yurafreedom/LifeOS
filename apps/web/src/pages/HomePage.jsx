@@ -1,4 +1,6 @@
 import React from 'react';
+import AASignalCard from '../components/analytics/AASignalCard.jsx';
+import { AnalyticsContext } from '../context/AnalyticsContext.jsx';
 import { LifeDataContext } from '../context/LifeDataContext.jsx';
 import { LifeLocaleContext } from '../context/LocaleContext.jsx';
 import { LifeExpenseCats } from '../data/categories.js';
@@ -10,6 +12,74 @@ import { TrendChart } from './home/TrendChart.jsx';
 
 /* global React */
 const { useContext: useCtxHome, useMemo: useMemoHome } = React;
+
+/* ── системные сигналы ─────────────────────────────────────────────
+   A secondary observational layer, and deliberately not an alert centre: it
+   sits BELOW the first ordinary panel row (accepted Home decision), shows at
+   most three cards ranked by materiality, and never grows a badge, a counter or
+   a "see all" list.
+
+   The zero state is a first-class state and a truthful one. No active cards over
+   data whose completeness nobody vouched for reads «полнота данных не
+   подтверждена», not «всё в порядке» — reassurance the evidence cannot support
+   would be a comfortable lie. */
+const SIGNAL_ROUTE = { finance: 'finances', project: 'projects' };
+
+const ZERO_COPY = {
+  confident: 'aa_sig_zero_confident',
+  unknown_coverage: 'aa_sig_zero_unknown',
+  no_data: 'aa_sig_zero_no_data',
+};
+
+function HomeSignals({ analytics, projects, onNav, t }) {
+  const report = analytics && analytics.signals ? analytics.signals.data : null;
+  const dismissing = analytics && analytics.signals ? analytics.signals.dismissing : null;
+  const failed = analytics && analytics.signals ? analytics.signals.error : null;
+  const cards = (report && report.signals) || [];
+  const zero = (report && report.zero_state) || 'no_data';
+
+  /* A project's name lives in the snapshot the client already holds; AA stores
+     the subject reference, never a copy of the title. */
+  const titleFor = (signal) => {
+    if (signal.subject_domain !== 'project') return null;
+    const match = (projects || []).find(p => String(p.id) === String(signal.subject_id));
+    return match ? (match.title || null) : null;
+  };
+
+  const open = (signal) => {
+    const route = SIGNAL_ROUTE[signal.subject_domain];
+    if (route && onNav) onNav(route);
+  };
+
+  const dismiss = (signal) => {
+    if (!analytics || !analytics.acknowledgeSignal) return;
+    analytics.acknowledgeSignal(signal.episode_key, signal.input_fingerprint).catch(() => {});
+  };
+
+  return (
+    <section className="aa-section home-signals" aria-labelledby="home-signals-head">
+      <div className="aa-section-head">
+        <h2 className="aa-eyebrow" id="home-signals-head">{t('aa_sig_section')}</h2>
+      </div>
+      {cards.length === 0
+        ? <p className="aa-none">{t(ZERO_COPY[zero] || ZERO_COPY.no_data)}</p>
+        : (
+          <div className="aa-col">
+            {cards.map(signal => (
+              <AASignalCard
+                key={signal.episode_key}
+                signal={signal}
+                subjectTitle={titleFor(signal)}
+                busy={dismissing === signal.episode_key}
+                onOpen={open}
+                onDismiss={dismiss} />
+            ))}
+          </div>
+        )}
+      {failed ? <p className="aa-none" role="status">{t('aa_sig_dismiss_failed')}</p> : null}
+    </section>
+  );
+}
 
 /* HomePage — Sprint 2 stats dashboard.
    Batches:
@@ -30,6 +100,17 @@ const { useContext: useCtxHome, useMemo: useMemoHome } = React;
 function HomePage({ onNav, onOpenTask, emptyMode }) {
   const { t, locale } = useCtxHome(LifeLocaleContext);
   const data = React.useContext(LifeDataContext);
+  /* Absent outside the provider (and in tests that render Home alone), so every
+     read below is guarded rather than assumed. */
+  const analytics = useCtxHome(AnalyticsContext);
+  const signalsReady = !!(analytics && analytics.enabled && analytics.ready);
+
+  React.useEffect(() => {
+    if (!signalsReady || emptyMode) return undefined;
+    const controller = new window.AbortController();
+    analytics.loadSignals(controller.signal).catch(() => {});
+    return () => controller.abort();
+  }, [signalsReady, emptyMode]);
   const seed = emptyMode ? {} : (LifeDashSeed || {});
   const F = LifeFinance;
 
@@ -133,6 +214,15 @@ function HomePage({ onNav, onOpenTask, emptyMode }) {
                            onClick={c.onClick} />
         ))}
       </section>
+
+      {/* system signals — below the first ordinary panel row, never above it */}
+      {signalsReady && !emptyMode ? (
+        <HomeSignals
+          analytics={analytics}
+          projects={(data && data.state && data.state.projects) || []}
+          onNav={onNav}
+          t={t} />
+      ) : null}
 
       {/* charts row — trend (left) + categories (right). 50/50 ≥960px, stacked below. */}
       <section className="home-charts">

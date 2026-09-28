@@ -123,6 +123,63 @@ class Aggregation(StrEnum):
     SUM = "sum"
 
 
+class SignalMateriality(StrEnum):
+    """How much a signal asks to be looked at. Never desirability.
+
+    This is the ranking dimension of the Signal catalogue (plan §19). A rule may
+    set it; no rule may derive ``desire`` from it. ``NORMAL`` means "this held,
+    but it carries no elevated weight" — it is not "nothing happened", which is
+    the absence of a signal.
+    """
+
+    NORMAL = "normal"
+    INFO = "info"
+    MATERIAL = "material"
+
+
+class SignalState(StrEnum):
+    """The accepted Signal Card visual family. Derived read-time, never stored.
+
+    One card renders exactly one state. Materiality composes on top of it, which
+    is why ``INFO``/``MATERIAL`` appear here as well as in
+    :class:`SignalMateriality`: a stale card at the material tier is
+    ``STALE`` + material weight, not a third state.
+    """
+
+    NORMAL = "normal"
+    MATERIAL = "material"
+    INFO = "info"
+    STALE = "stale"
+    PARTIAL = "partial"
+    RESOLVED = "resolved"
+
+
+class SignalResolution(StrEnum):
+    """Why an episode is no longer an active card.
+
+    ``ACKNOWLEDGED`` is the user's own «скрыть»; ``WITHDRAWN`` is the rule
+    observing that its condition stopped holding. They are never conflated: a
+    withdrawn episode keeps whatever acknowledgement it already carried, because
+    the card disappearing is not a reason to forget that the user dismissed it.
+    """
+
+    ACKNOWLEDGED = "acknowledged"
+    WITHDRAWN = "withdrawn"
+
+
+class ZeroSignalState(StrEnum):
+    """What "no active signals" is allowed to mean. Derived, never stored.
+
+    ``CONFIDENT`` requires coverage evidence. Absence of cards over data whose
+    completeness is unknown is ``UNKNOWN_COVERAGE`` — reassurance the evidence
+    does not support would be a lie in the user's favour.
+    """
+
+    CONFIDENT = "confident"
+    UNKNOWN_COVERAGE = "unknown_coverage"
+    NO_DATA = "no_data"
+
+
 class DenominatorBasis(StrEnum):
     """What a coverage denominator counts."""
 
