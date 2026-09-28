@@ -12,6 +12,8 @@ that document.
 - `CLAUDE.md`: Claude-specific entry point; it must defer to this file rather
   than duplicate a conflicting policy.
 - `Outputs/`: authored discovery, plan, audit and implementation records.
+- `Outputs/architecture/module-boundaries.md`: where each responsibility lives
+  and which facade paths callers must import. Keep it current when a boundary moves.
 - `/Users/yurasachenko/LifeOS/design_handoff_*`: read-only design references,
   never development checkouts or runtime dependencies.
 
