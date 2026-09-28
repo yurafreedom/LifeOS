@@ -44,8 +44,9 @@ function installBrowserStubs() {
 
 describe('Life OS production module graph', () => {
   it('keeps the complete route registry', () => {
-    expect(LIFE_ROUTES.size).toBe(17);
+    expect(LIFE_ROUTES.size).toBe(18);
     expect(LIFE_ROUTES.has('home')).toBe(true);
+    expect(LIFE_ROUTES.has('projects')).toBe(true);
     expect(LIFE_ROUTES.has('settings')).toBe(true);
     expect(LIFE_ROUTES.has('analytics')).toBe(true);
   });
@@ -72,6 +73,7 @@ describe('Life OS production module graph', () => {
       syncPhase: 'saved',
       addTask: noop, updateTask: noop, deleteTask: noop, toggleTask: noop,
       addQuickNote: noop, deleteQuickNote: noop, updateProfile: noop, updateDog: noop,
+      addProject: noop, setProjectForecast: noop, completeProject: noop, archiveProject: noop,
     };
     const locale = {
       locale: 'ru', setLocale: noop, t: LifeMakeT('ru'),

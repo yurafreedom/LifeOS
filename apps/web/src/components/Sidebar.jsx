@@ -37,6 +37,7 @@ function Sidebar({ route, onNav, collapsed, setCollapsed, counts = {}, user, syn
       { id: 'tasks',  icon: 'listChecks', label: t('nav_tasks'),  count: counts.tasks },
       { id: 'habits', icon: 'repeat',     label: t('nav_habits'), count: counts.habits },
       { id: 'goals',  icon: 'target',     label: t('nav_goals'),  count: counts.goals },
+      { id: 'projects', icon: 'briefcase', label: t('nav_projects'), count: counts.projects },
       { id: 'health', icon: 'heart',      label: t('nav_health') },
       { id: 'dog',    icon: 'paw',        label: t('nav_dog') },
     ]},

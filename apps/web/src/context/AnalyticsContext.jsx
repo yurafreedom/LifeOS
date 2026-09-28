@@ -1,5 +1,9 @@
 import React from 'react';
 import { financeTransactionMeasurementPayload } from '../analytics/financeTransaction.ts';
+import {
+  projectCompletionQueueRequest,
+  projectForecastQueueRequest,
+} from '../analytics/projectFacts.ts';
 import { AnalyticsRepository } from '../repositories/analyticsRepository.ts';
 import { AnalyticsSyncCoordinator } from '../repositories/analyticsSyncCoordinator.ts';
 import { AnalyticsWriteQueue } from '../repositories/analyticsWriteQueue.ts';
@@ -70,6 +74,16 @@ function AnalyticsProvider({ user, children }) {
       '/api/v1/aa/measurements',
       financeTransactionMeasurementPayload(transaction, includedByDefault),
     );
+  }
+
+  async function enqueueProjectForecast(project, forecastDate) {
+    const request = projectForecastQueueRequest(project, forecastDate);
+    return enqueue(request.operation_type, request.route, request.payload);
+  }
+
+  async function enqueueProjectCompletion(project, completedAt) {
+    const request = projectCompletionQueueRequest(project, completedAt);
+    return enqueue(request.operation_type, request.route, request.payload);
   }
 
   async function enqueueCorrection(transaction, originalKey, reason) {
@@ -187,6 +201,8 @@ function AnalyticsProvider({ user, children }) {
     sync,
     finance,
     enqueueTransaction,
+    enqueueProjectForecast,
+    enqueueProjectCompletion,
     enqueueCorrection,
     enqueueMembership,
     enqueuePolicy,

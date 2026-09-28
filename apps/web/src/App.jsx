@@ -22,6 +22,7 @@ import { MedicationsPage } from './pages/MedicationsPage.jsx';
 import { LoginPage } from './pages/LoginPage.jsx';
 import { PlaceholderPage } from './pages/PlaceholderPage.jsx';
 import { ProfilePage } from './pages/ProfilePage.jsx';
+import { ProjectsPage } from './pages/ProjectsPage.jsx';
 import { QuickNotesPage } from './pages/QuickNotesPage.jsx';
 import { GoalsPage, HabitsPage } from './pages/RelocatedPages.jsx';
 import { TasksPage } from './pages/TasksPage.jsx';
@@ -231,6 +232,7 @@ function AppShell({ user }) {
      persisted state tree instead of local useState. */
   const tasks = persist.tasks || [];
   const quickNotes = persist.quickNotes || [];
+  const projects = persist.projects || [];
   const profile = persist.profile || {};
   const dog = persist.dog || {};
 
@@ -348,6 +350,7 @@ function AppShell({ user }) {
     tasks:  resolvedTasks.filter(x => !x.done).length,
     habits: 7,
     goals:  3,
+    projects: projects.filter(project => project.status === 'active').length,
   };
 
   function renderRoute() {
@@ -399,6 +402,8 @@ function AppShell({ user }) {
         return <HabitsPage emptyMode={emptyMode} />;
       case 'goals':
         return <GoalsPage emptyMode={emptyMode} />;
+      case 'projects':
+        return <ProjectsPage />;
       case 'health':
         return <HealthPage />;
       case 'dog':
