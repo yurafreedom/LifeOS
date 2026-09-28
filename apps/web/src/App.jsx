@@ -1,5 +1,9 @@
 import React from 'react';
-import { ANALYTICS_ROUTE_ENABLED, LIFE_ROUTES } from './app/routes.js';
+import { createClarifyHandlers } from './app/clarifyHandlers.js';
+import { useParadisePress } from './app/paradisePress.js';
+import { ANALYTICS_ROUTE_ENABLED, normalizeRoute, readRouteFromHash } from './app/routeRegistry.js';
+import { useSidebarCollapsed } from './app/useSidebarCollapsed.js';
+import { useTheme } from './app/useTheme.js';
 import { CalendarView } from './components/CalendarView.jsx';
 import { ClarifyPanel } from './components/ClarifyPanel.jsx';
 import { MobileBottomNav } from './components/MobileBottomNav.jsx';
@@ -46,155 +50,6 @@ const {
 const LIFE_DEBUG = typeof window !== 'undefined'
   && new URLSearchParams(window.location.search).has('debug');
 
-/* ── Routes ────────────────────────────────────────────────
-   v2 nav tree. Each route has an id used both as state key and as the
-   URL hash (#/<id>). Add a new tab → drop an entry here + render it in
-   the switch below + add a sidebar item. */
-function readRouteFromHash() {
-  const raw = (window.location.hash || '').replace(/^#\/?/, '');
-  /* Sprint 3A · medications sub-routes: /medications/{id} → still
-     dispatch the medications surface; the page reads the id itself. */
-  if (raw.startsWith('medications/') || raw === 'medications') return 'medications';
-  /* Slice 4 · review/{new/<subject>/<from>/<to> | <id>} → the Review surface
-     reads its own parameters from the hash. */
-  if (raw.startsWith('review/') && LIFE_ROUTES.has('review')) return 'review';
-  return LIFE_ROUTES.has(raw) ? raw : 'home';
-}
-
-/* ── Sidebar collapse persistence ──────────────────────────
-   localStorage.lifeOsSidebar = 'collapsed' | 'expanded' (default expanded).
-   Synced to <html> data-sb attribute so CSS can react if it ever needs to. */
-function useSidebarCollapsed() {
-  const [collapsed, setCollapsedRaw] = useStateApp(() => {
-    try { return localStorage.getItem('lifeOsSidebar') === 'collapsed'; }
-    catch (e) { return false; }
-  });
-  useEffectApp(() => {
-    try { localStorage.setItem('lifeOsSidebar', collapsed ? 'collapsed' : 'expanded'); }
-    catch (e) {}
-  }, [collapsed]);
-  function setCollapsed(next) {
-    setCollapsedRaw(typeof next === 'function' ? next : !!next);
-  }
-  return [collapsed, setCollapsed];
-}
-
-/* ── Theme controller ────────────────────────────────────── */
-function useTheme() {
-  const [prefMode, setPrefMode] = useStateApp(() => {
-    try {
-      const v = localStorage.getItem('lifeOsTheme');
-      if (v === 'dark' || v === 'light' || v === 'paradise') return v;
-    } catch (e) {}
-    return 'system';
-  });
-
-  const [systemTheme, setSystemTheme] = useStateApp(() =>
-    window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'
-  );
-
-  /* Manual paradise-scene override. localStorage.lifeOsScene =
-     'day' | 'night' forces that scene and disables the clock; absent /
-     any other value = 'auto' (clock-driven, the original behavior).
-     Kept in its own key like lifeOsTheme / lifeOsSidebar. */
-  const [scenePref, setScenePrefRaw] = useStateApp(() => {
-    try {
-      const v = localStorage.getItem('lifeOsScene');
-      if (v === 'day' || v === 'night') return v;
-    } catch (e) {}
-    return 'auto';
-  });
-
-  useEffectApp(() => {
-    if (!window.matchMedia) return;
-    const mq = window.matchMedia('(prefers-color-scheme: light)');
-    const handler = e => setSystemTheme(e.matches ? 'light' : 'dark');
-    mq.addEventListener ? mq.addEventListener('change', handler) : mq.addListener(handler);
-    return () => {
-      mq.removeEventListener ? mq.removeEventListener('change', handler) : mq.removeListener(handler);
-    };
-  }, []);
-
-  const effective = prefMode === 'system' ? systemTheme : prefMode;
-
-  useEffectApp(() => {
-    /* Suppress transitions across the theme swap. Translucent surfaces
-       fed by var(--surface) with a background-color transition otherwise
-       get "stuck" at the old value (custom-property transition repaint
-       bug) — disabling transitions makes the new tokens apply instantly,
-       then we restore them next frame for normal hover animation. */
-    const el = document.documentElement;
-    el.classList.add('theme-switching');
-    el.setAttribute('data-theme', effective);
-    void el.offsetHeight; /* force reflow with transitions off */
-    const id = requestAnimationFrame(() => el.classList.remove('theme-switching'));
-    return () => cancelAnimationFrame(id);
-  }, [effective]);
-
-  /* Sprint 3.6 · paradise scene clock — when paradise is active,
-     data-scene="day"|"night" is resolved from Kyiv time (day 06:00–19:59)
-     and re-checked every 60s. Removed entirely under dark/light.
-     scenePref === 'day'|'night' overrides the clock: it forces that scene
-     and SKIPS the recompute + 60s interval so the next tick can't revert
-     it. scenePref === 'auto' keeps the clock behavior exactly as before. */
-  useEffectApp(() => {
-    const el = document.documentElement;
-    if (effective !== 'paradise') {
-      el.removeAttribute('data-scene');
-      return;
-    }
-    /* Swap data-scene with the var()-fed-transition freeze (Sprint 3.5):
-       kill .app transitions for one frame around the scene token swap so
-       cards/sidebar snap to the new scene's values instead of freezing
-       mid-transition. The scene layers sit outside .app, so their 1.4s
-       crossfade is unaffected. */
-    function setScene(next) {
-      if (el.getAttribute('data-scene') === next) return;
-      el.classList.add('scene-switching');
-      el.setAttribute('data-scene', next);
-      void el.offsetHeight;
-      requestAnimationFrame(() => el.classList.remove('scene-switching'));
-    }
-    /* Manual override — force the chosen scene, no clock, no interval. */
-    if (scenePref === 'day' || scenePref === 'night') {
-      setScene(scenePref);
-      return;
-    }
-    /* Auto — original clock behavior. */
-    function kyivHour() {
-      try {
-        return parseInt(new Intl.DateTimeFormat('en-US',
-          { timeZone: 'Europe/Kiev', hour: 'numeric', hour12: false })
-          .format(new Date()), 10) % 24;
-      } catch (e) { return new Date().getHours(); }
-    }
-    function applyScene() {
-      const h = kyivHour();
-      setScene((h >= 20 || h < 6) ? 'night' : 'day');
-    }
-    applyScene();
-    const id = setInterval(applyScene, 60000);
-    return () => clearInterval(id);
-  }, [effective, scenePref]);
-
-  function setTheme(next) {
-    setPrefMode(next);
-    try {
-      if (next === 'system') localStorage.removeItem('lifeOsTheme');
-      else                   localStorage.setItem('lifeOsTheme', next);
-    } catch (e) {}
-  }
-
-  function setScenePref(next) {
-    setScenePrefRaw(next);
-    try {
-      if (next === 'day' || next === 'night') localStorage.setItem('lifeOsScene', next);
-      else                                     localStorage.removeItem('lifeOsScene');
-    } catch (e) {}
-  }
-
-  return [prefMode, effective, setTheme, scenePref, setScenePref];
-}
 
 /* AppShell · all the existing chrome + routing. Lives inside the
    LifeDataProvider so it can read tasks/quickNotes/profile/dog from
@@ -218,9 +73,8 @@ function AppShell({ user }) {
   const [emptyMode, setEmptyMode] = useStateApp(false);
 
   function setRoute(next) {
-    if (!LIFE_ROUTES.has(next) && !next.startsWith('medications/')) next = 'home';
-    setRouteRaw(LIFE_ROUTES.has(next) ? next : 'medications');
-    const target = '#/' + next;
+    const { route: nextRoute, hash: target } = normalizeRoute(next);
+    setRouteRaw(nextRoute);
     if (window.location.hash !== target) window.location.hash = target;
   }
   useEffectApp(() => {
@@ -273,49 +127,7 @@ function AppShell({ user }) {
     });
   }
 
-  /* ── Clarify ───────────────────────────────────────────
-     Each handler performs one real domain transition through the provider.
-     The provider validates and persists the destination before removing the
-     source note, both in a single state update — so a rejection here leaves
-     the Quick Note in the inbox and the ClarifyPanel shows the reason. The
-     global Quick Add path (addTaskFromUI / QuickAddModal) is untouched. */
-  function clarifyToast(key, arg) {
-    showToast({
-      kind: 'sys',
-      msg: t(key, arg),
-      ts: new Date().toTimeString().slice(0, 5) + ' · ' + t('nav_today'),
-    });
-  }
-
-  const clarifyHandlers = {
-    onDoNow(note) {
-      const task = data.clarifyQuickNoteToTask(note.id);
-      clarifyToast('clarify_toast_do_now', task.title);
-    },
-    onDelegate(note) {
-      const item = data.clarifyQuickNoteToWaiting(note.id);
-      clarifyToast('clarify_toast_delegate', item.title);
-    },
-    onDefer(note, deferDate) {
-      const task = data.clarifyQuickNoteToDeferredTask(note.id, deferDate);
-      clarifyToast('clarify_toast_defer', task.schedule.date);
-    },
-    onProject(note) {
-      const project = data.clarifyQuickNoteToProject(note.id);
-      clarifyToast('clarify_toast_project', project.title);
-    },
-    onReference(note) {
-      const reference = data.clarifyQuickNoteToReference(note.id);
-      clarifyToast('clarify_toast_reference', reference.text);
-    },
-    onDelete(note) {
-      /* Guarded like the other five so a stale panel reports the truth instead
-         of claiming a deletion that never applied. */
-      data.requireClarifiableQuickNote(note.id);
-      data.deleteQuickNote(note.id);
-      clarifyToast('clarify_toast_deleted');
-    },
-  };
+  const clarifyHandlers = createClarifyHandlers({ data, t, showToast });
 
   function showToast(toastObj) {
     setToast(toastObj);
@@ -353,49 +165,7 @@ function AppShell({ user }) {
     return () => window.removeEventListener('keydown', handler);
   });
 
-  /* Paradise capsule click physics (Sprint 3.6 Batch 2.5).
-     Delegated pointer listeners — covers capsule buttons inside
-     lazily-mounted modals/drawers without per-button wiring.
-     pointerdown → .pressing (CSS eases into scale+tilt);
-     pointerup/leave/cancel → .releasing (damped wobble keyframe,
-     removed on animationend). Paradise-only; under dark/light the
-     classes are never added. Under prefers-reduced-motion the CSS
-     neutralizes the transform/wobble (press = brightness dip). */
-  useEffectApp(() => {
-    const SEL = '.qa-btn-save, .set-btn-primary, .money-log, .medc-action-take, .btn--stakes, .btn--positive';
-    let pressed = null;
-    function release() {
-      if (!pressed) return;
-      const b = pressed;
-      pressed = null;
-      b.removeEventListener('pointerleave', release);
-      if (!b.classList.contains('pressing')) return;
-      b.classList.remove('pressing');
-      b.classList.add('releasing');
-    }
-    function down(e) {
-      if (document.documentElement.getAttribute('data-theme') !== 'paradise') return;
-      const b = e.target.closest ? e.target.closest(SEL) : null;
-      if (!b || b.disabled) return;
-      pressed = b;
-      b.classList.remove('releasing');
-      b.classList.add('pressing');
-      b.addEventListener('pointerleave', release);
-    }
-    function onAnimEnd(e) {
-      if (e.animationName === 'paradise-btn-wobble') e.target.classList.remove('releasing');
-    }
-    document.addEventListener('pointerdown', down, true);
-    window.addEventListener('pointerup', release, true);
-    window.addEventListener('pointercancel', release, true);
-    document.addEventListener('animationend', onAnimEnd, true);
-    return () => {
-      document.removeEventListener('pointerdown', down, true);
-      window.removeEventListener('pointerup', release, true);
-      window.removeEventListener('pointercancel', release, true);
-      document.removeEventListener('animationend', onAnimEnd, true);
-    };
-  }, []);
+  useParadisePress();
 
   const counts = {
     notes:  quickNotes.length,
