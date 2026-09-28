@@ -660,7 +660,7 @@ Current state:
 
 ONE Alembic head.
 
-No M4 yet.
+M4 (20260928_0005 · aa_signal_episodes) implemented and merged in Slice 3.
 
 ====================================================================
 16. METRIC CATALOGUE CURRENTLY RELEVANT
@@ -1930,9 +1930,9 @@ Only create a migration when the planned slice explicitly requires one.
 
 Current Alembic head:
 
-20260910_0004
+20260928_0005
 
-M4 has NOT been created.
+M4 (aa_signal_episodes) was created by Slice 3 and is merged.
 
 Clarify currently should not need an Alembic migration if its operational state
 is added to the snapshot.
@@ -1942,7 +1942,7 @@ outside the planned slice:
 
 STOP and explain why.
 
-Do not silently invent M4 early.
+Do not silently invent a future migration early.
 
 ====================================================================
 51. GIT SAFETY RULES
