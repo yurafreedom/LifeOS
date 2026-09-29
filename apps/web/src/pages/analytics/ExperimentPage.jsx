@@ -145,7 +145,9 @@ function DetailPage({ analytics, id }) {
     const controller = new window.AbortController();
     analytics.readExperiment(id, controller.signal)
       .then(data => setResult({ data, error: null }))
-      .catch(error => { if (error?.name !== 'AbortError') setResult({ data: null, error }); });
+      /* Offline, a failed re-read keeps the last acknowledged state on screen
+         (with the unconfirmed-records note) instead of blanking it. */
+      .catch(error => { if (error?.name !== 'AbortError') setResult(previous => ({ data: previous.data, error })); });
     return () => controller.abort();
   }, [ready, id, records.length]);
 
