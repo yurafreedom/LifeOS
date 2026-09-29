@@ -2,6 +2,7 @@ import React from 'react';
 import { createClarifyHandlers } from './app/clarifyHandlers.js';
 import {
   DogPage,
+  ExperimentPage,
   FinanceAnalytics,
   MedicationsPage,
   MetricHistoryPage,
@@ -248,6 +249,8 @@ function AppShell({ user }) {
         return <ReviewPage />;
       case 'project-analytics':
         return <ProjectAnalyticsPage />;
+      case 'experiment':
+        return <ExperimentPage />;
       case 'monthly':
         return <PlaceholderPage title={t('ph_monthly_title')} body={t('ph_monthly_body')} />;
       case 'annual':
@@ -274,7 +277,8 @@ function AppShell({ user }) {
           setCollapsed={setCollapsed}
           counts={counts}
           user={user}
-          syncPhase={data.syncPhase} />
+          syncPhase={data.syncPhase}
+          analyticsEnabled={ANALYTICS_ROUTE_ENABLED} />
 
         <main className="main">
           <TopBar onQuickAdd={() => openQuickAdd(false)} />

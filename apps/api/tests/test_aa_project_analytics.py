@@ -634,7 +634,9 @@ def test_no_project_table_no_migration_and_an_unchanged_export_registry(engine):
     assert not {"projects", "aa_projects"} & set(Base.metadata.tables)
     assert not {"projects", "aa_projects"} & set(inspect(engine).get_table_names())
     script = ScriptDirectory.from_config(Config("alembic.ini"))
-    assert script.get_heads() == ["20260928_0006"]
+    # Slice 5 added no migration: M5 is still reached from the head chain.
+    assert script.get_revision("20260929_0007").down_revision == "20260928_0006"
+    assert script.get_heads() == ["20260929_0007"]
     assert not any("project" in name for name in EXPORT_TABLES)
     mapped_aa = {name for name in Base.metadata.tables if name.startswith("aa_")}
     assert mapped_aa <= set(EXPORT_TABLES) | {"aa_metric_definitions"}

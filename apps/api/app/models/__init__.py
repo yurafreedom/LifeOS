@@ -2,6 +2,9 @@ from app.models.aa_baseline import AABaseline
 from app.models.aa_decision import AADecision
 from app.models.aa_deletion_receipt import AADeletionReceipt
 from app.models.aa_expectation_version import AAExpectationVersion
+from app.models.aa_experiment import AAExperiment
+from app.models.aa_experiment_adherence import AAExperimentAdherence
+from app.models.aa_experiment_observation import AAExperimentObservation
 from app.models.aa_forecast_version import AAForecastVersion
 from app.models.aa_measurement import AAMeasurement
 from app.models.aa_metric_definition import AAMetricDefinition
@@ -35,6 +38,9 @@ __all__ = [
     "AAMetricMembershipOverride",
     "AADecision",
     "AADeletionReceipt",
+    "AAExperiment",
+    "AAExperimentAdherence",
+    "AAExperimentObservation",
     "AAMeasurement",
     "AAMetricDefinition",
     "AAReview",

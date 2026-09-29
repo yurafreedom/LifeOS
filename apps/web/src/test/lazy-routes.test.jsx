@@ -7,6 +7,7 @@ import { LIFE_ROUTES } from '../app/routeRegistry.js';
 import { SettingsPage } from '../components/SettingsPage.jsx';
 import { DogPage } from '../pages/DogPage.jsx';
 import { MedicationsPage } from '../pages/MedicationsPage.jsx';
+import ExperimentPage from '../pages/analytics/ExperimentPage.jsx';
 import MetricHistoryPage from '../pages/analytics/MetricHistoryPage.jsx';
 import ReviewPage from '../pages/analytics/ReviewPage.jsx';
 import FinanceAnalytics from '../pages/finances/FinanceAnalytics.jsx';
@@ -22,6 +23,7 @@ const EAGER = {
   'analytics-history': MetricHistoryPage,
   review: ReviewPage,
   'project-analytics': ProjectAnalyticsPage,
+  experiment: ExperimentPage,
 };
 
 describe('route-level lazy loading', () => {

@@ -581,6 +581,10 @@ Slice 5:
 Outputs/Implementations/
 lifeos-adaptive-analytics-slice-5-project-analytics_20260929-001128.md
 
+Slice 6:
+Outputs/Implementations/
+lifeos-adaptive-analytics-slice-6-experiments_20260929-205427.md
+
 Before implementing a relevant slice:
 
 READ the current plan/report/code directly.
@@ -654,8 +658,8 @@ AA semantic comparison
 
 Current single Alembic head:
 
-20260928_0006
-(M5 · Review / Debrief · Slice 4; down_revision 20260928_0005)
+20260929_0007
+(M6 · Experiments · Slice 6; down_revision 20260928_0006)
 
 M3 added concept tables including:
 
@@ -677,6 +681,10 @@ M4 (20260928_0005 · aa_signal_episodes) implemented and merged in Slice 3.
 M5 (20260928_0006 · aa_reviews, aa_review_revisions, aa_review_context_items,
 aa_review_context_sources, aa_review_factors, aa_decisions) implemented in
 Slice 4.
+
+M6 (20260929_0007 · aa_experiments, aa_experiment_adherence,
+aa_experiment_observations; widens aa_decisions and aa_review_factors by scope)
+implemented in Slice 6. AA table count: 22.
 
 ====================================================================
 16. METRIC CATALOGUE CURRENTLY RELEVANT
@@ -1519,15 +1527,16 @@ Clarify Panel ✅
 3 ✅
 4 ✅
 5 ✅
+6 ✅
 
 NEXT SLICE:
 
-Slice 6 — Experiment
+Slice 7 — Trade-off / System Review, after a serial reverify and any owner
+decisions it needs.
 
 Then, unless the owner changes priorities:
 
-Slice 6
-→ Slice 7
+Slice 7
 → Slice 8
 
 Do not implement a later slice merely because its prerequisites exist.
@@ -1689,24 +1698,43 @@ cause, duration KPI.
 Validation at completion: 420 pytest, 316 Vitest (31 files).
 
 ====================================================================
-40. SLICE 6 — FUTURE EXPERIMENT
+40. SLICE 6 — EXPERIMENT — COMPLETED
 ====================================================================
 
-Experiment is a first-class entity.
+Implementation report:
 
-Lifecycle includes:
+Outputs/Implementations/
+lifeos-adaptive-analytics-slice-6-experiments_20260929-205427.md
 
-DRAFT
-RUNNING
-COMPLETED_AWAITING_REVIEW
-REVIEWED
-ABANDONED
+Migration M6: 20260929_0007_aa_experiments (down_revision 20260928_0006).
+AA tables 19 → 22: aa_experiments (state), aa_experiment_adherence,
+aa_experiment_observations. No aa_experiment_factors.
 
-ABANDONED is terminal.
+Scoped decisions/factors: aa_decisions and aa_review_factors carry
+scope review|experiment with an exactly-one-parent CHECK. Vocabularies are pinned
+per scope: Review keep|adjust|later|inconclusive, Experiment
+keep|modify|longer|reject|inconclusive (NULL = «Пока без решения» in both).
+Experiment decisions have their own idempotency_key and are the experiment's
+revision ledger for its factors. No row ≠ NULL ≠ inconclusive.
 
-Outcome/decision is orthogonal and may remain null.
+Lifecycle: DRAFT → RUNNING → COMPLETED_AWAITING_REVIEW → REVIEWED; ABANDONED from
+the first three. REVIEWED and ABANDONED terminal. D4 preserved: lifecycle ≠
+outcome; a decision never moves lifecycle; ABANDONED is not failure. A request for
+a state already entered is a 200 no-op; an illegal edge is 409; a CAS loser never
+re-decides. Client occurred_at is stored; completion only after window_end in the
+experiment's IANA zone.
 
-Do not collapse lifecycle into result.
+Adherence stores kept|missed|unknown only; future / not_recorded /
+not_run_after_stop are derived; post-stop days leave the denominator; future days
+cannot be written. Result neutral (no grounding), never causal; baseline in
+aa_baselines, conditions in aa_observations, no catalogue metric.
+
+Queue: client-minted UUID v4 at create so children queue before the ACK; existing
+FIFO/head-blocking queue unchanged. Route #/experiment, one analytics-gated Sidebar
+item. PENDING_LIFECYCLES (DRAFT, RUNNING, COMPLETED_AWAITING_REVIEW) is exported
+for Slice 7.
+
+Validation at completion: 602 pytest, 375 Vitest (33 files).
 
 ====================================================================
 41. SLICE 7 — FUTURE TRADE-OFF
@@ -1983,10 +2011,11 @@ Only create a migration when the planned slice explicitly requires one.
 
 Current Alembic head:
 
-20260928_0006
+20260929_0007
 
 M4 (aa_signal_episodes) was created by Slice 3 and is merged.
 M5 (Review / Debrief) was created by Slice 4.
+M6 (Experiments) was created by Slice 6.
 
 Clarify currently should not need an Alembic migration if its operational state
 is added to the snapshot.
@@ -2351,13 +2380,14 @@ A BLOCKED result is better than silently corrupting product semantics.
 65. CURRENT NEXT STEP
 ====================================================================
 
-Slice P, Clarify, Slice 3, Slice 4 (Review / Debrief) and Slice 5 (Project
-Analytics) are complete. Verify the exact current main SHA live; do not trust a
+Slice P, Clarify, Slice 3, Slice 4 (Review / Debrief), Slice 5 (Project
+Analytics) and Slice 6 (Experiments) are complete. Verify the exact current main SHA live; do not trust a
 SHA written here.
 
 The next major product task is:
 
-Adaptive Analytics Slice 6 — Experiment (see §40)
+Adaptive Analytics Slice 7 — Trade-off / System Review (see §41), after a
+serial reverify against current main
 
 Follow the Discovery → Plan → Implementation gates on an ordinary feature
 branch in the canonical checkout after fast-forwarding local `main`.

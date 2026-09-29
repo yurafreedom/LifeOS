@@ -27,6 +27,10 @@ describe('readRouteFromHash', () => {
     ['#/project-analytics/project-1f3c', 'project-analytics'],
     ['#/project-analytics/project%2D1f3c', 'project-analytics'],
     ['#/projects/project-1f3c', 'home'],
+    ['#/experiment', 'experiment'],
+    ['#/experiment/new', 'experiment'],
+    ['#/experiment/7c1d0f7e-2b1a-4c1e-9a55-0d7f5b1c2e11', 'experiment'],
+    ['#/experiments', 'home'],
     ['#/tasks/extra', 'home'],
   ])('%s → %s', (hash, route) => {
     expect(readRouteFromHash(hash)).toBe(route);
@@ -34,7 +38,7 @@ describe('readRouteFromHash', () => {
 
   it('re-exports the same registry as app/routes.js', () => {
     expect(LIFE_ROUTES).toBe(ROUTES_SOURCE);
-    expect(LIFE_ROUTES.size).toBe(20);
+    expect(LIFE_ROUTES.size).toBe(21);
   });
 });
 

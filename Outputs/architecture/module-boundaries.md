@@ -32,6 +32,7 @@ reverse edges are the lazy imports inside `analytics/rules/__init__.py::_registr
 | finance derivation | `services/aa_finance.py` |
 | signals evaluation | `services/aa_signals.py`; one rule = one module in `analytics/rules/` |
 | Project Analytics (forecast version history, Actual, dual delta; read-only) | `services/aa_project_analytics.py` + `routes/aa_projects.py` + `schemas/aa_projects.py` |
+| Experiments (lifecycle, adherence, evidence, decision; Slice 6) | facade `services/aa_experiments.py` + `routes/aa_experiments.py` + `schemas/aa_experiments.py` |
 | vocabulary / enums | `analytics/enums.py` (fan-in 30 — a flat vocabulary is the right shape) |
 
 ### Review / Debrief
@@ -51,6 +52,25 @@ Facade: **`app/services/aa_reviews.py`** — import only from here
 
 Internal direction: `errors`, `values` → `contracts` → `context` → `persistence`;
 `redaction` → `contracts`; `read_model` → `contracts`, `values`, `errors`.
+
+### Experiments
+
+Facade: **`app/services/aa_experiments.py`** — import only from here
+(`routes/aa_experiments.py`, tests).
+
+| I want to change… | Go to `app/services/experiments/` |
+|---|---|
+| an error code or message | `errors.py` (status map in `routes/aa_measurements.py::_ERROR_STATUS`) |
+| legal edges, pending/evidence/decision lifecycles, limits, skew | `contracts.py` |
+| the server clock, IANA local days, adherence classification | `days.py` (leaf; tests pin `server_now` here) |
+| create / transition (replay, no-op, legality, CAS) | `lifecycle.py` |
+| adherence, outcome/context observations, baseline, conditions | `evidence.py` |
+| decision revisions and experiment-scoped factors | `decisions.py` |
+| detail / list payloads (pure reads) | `read_model.py` |
+
+Internal direction: `errors`, `days` → `contracts` → `lifecycle`/`evidence`/`decisions`
+→ `read_model`. Decisions and factors share `aa_decisions` / `aa_review_factors`
+with Review through a `scope` column; each scope keeps its own vocabulary.
 
 ---
 
@@ -76,7 +96,7 @@ deliberately: theme values are published through `LifeLocaleContext`.
 | I want to… | Go to |
 |---|---|
 | add a route id | `app/routes.js` (`LIFE_ROUTES`; pinned size in `smoke.test.jsx`) |
-| change hash parsing / sub-routes (`medications/<id>`, `review/…`, `project-analytics/<id>`) | `app/routeRegistry.js` (`readRouteFromHash`, `normalizeRoute`; pinned by `route-registry.test.ts`) |
+| change hash parsing / sub-routes (`medications/<id>`, `review/…`, `project-analytics/<id>`, `experiment/{new,<uuid>}`) | `app/routeRegistry.js` (`readRouteFromHash`, `normalizeRoute`; pinned by `route-registry.test.ts`) |
 | render a route | one `case` in `App.jsx::renderRoute()` |
 | make a route lazy / eager | `app/lazyRoutes.jsx` (`LAZY_ROUTE_LOADERS`; pinned by `lazy-routes.test.jsx`). Home, Login, ParadiseScene and shell chrome stay eager. One `Suspense` boundary around `renderRoute()`; its fallback is empty `.page` chrome — do not add a second loading design |
 | nav entries | `components/Sidebar.jsx`, `components/MobileBottomNav.jsx` + locale copy |
@@ -126,6 +146,7 @@ Facade: **`api/analytics.ts`** (`export *` of each domain).
 | signals | `api/analytics/signals.ts` |
 | Review / Debrief | `api/analytics/reviews.ts` |
 | Project Analytics | `api/analytics/projects.ts` |
+| Experiments (reads; writes are queue builders in `analytics/experimentFacts.ts`, queue reads in `analytics/experimentQueue.ts`) | `api/analytics/experiments.ts` |
 
 A new domain = a new module + one facade line. Domain modules import shared
 types from `facts.ts` only.
@@ -140,6 +161,7 @@ types from `facts.ts` only.
 |---|---|
 | `pages/analytics/ReviewPage.jsx` (route shell; re-exports the views) | `pages/analytics/review/{format.js, Evidence.jsx, Flow.jsx, SavedReview.jsx}` |
 | `pages/projects/ProjectAnalyticsPage.jsx` (route shell; exports the pure `ProjectAnalyticsView`) | `pages/projects/analytics/{ForecastComparison.jsx, ForecastHistory.jsx}`; helpers in `analytics/projectAnalytics.ts` |
+| `pages/analytics/ExperimentPage.jsx` (route shell; re-exports `ExperimentDetailView`, `ExperimentListView`) | `pages/analytics/experiment/{format.js, ExperimentList.jsx, CreateForm.jsx, Detail.jsx, EvidenceForms.jsx, DecisionStep.jsx}`; shared `components/analytics/{AAExpStages, AAAdherence}.jsx` |
 | `components/SettingsPage.jsx` (re-exports `ExportSection`) | `components/settings/{ExportSection.jsx, DangerSection.jsx, Row.jsx}`; small static sections stay in the page on purpose |
 
 ### Styles — the cascade is the product

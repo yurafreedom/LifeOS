@@ -8,6 +8,7 @@ from app.db import create_engine_from_settings, create_session_factory
 from app.middleware.body_limit import SnapshotBodyLimitMiddleware
 from app.routes import (
     aa_comparison,
+    aa_experiments,
     aa_facts,
     aa_finance,
     aa_history,
@@ -71,4 +72,5 @@ def create_app(
     app.include_router(aa_reviews.router)
     app.include_router(aa_subjects.router)
     app.include_router(aa_projects.router)
+    app.include_router(aa_experiments.router)
     return app

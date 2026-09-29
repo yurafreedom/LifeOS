@@ -10,7 +10,7 @@ const { useContext: useCtxSB, useEffect: useEffectSB } = React;
    Two states: expanded (220px) and collapsed (60px, icons only).
    Active state = orange icon glow (not a ring around the icon).
    Counts come from props.counts so each route can update its own. */
-function Sidebar({ route, onNav, collapsed, setCollapsed, counts = {}, user, syncPhase = 'saved' }) {
+function Sidebar({ route, onNav, collapsed, setCollapsed, counts = {}, user, syncPhase = 'saved', analyticsEnabled = false }) {
   const { t } = useCtxSB(LifeLocaleContext);
   const I = LIcons;
 
@@ -40,6 +40,8 @@ function Sidebar({ route, onNav, collapsed, setCollapsed, counts = {}, user, syn
       { id: 'projects', icon: 'briefcase', label: t('nav_projects'), count: counts.projects },
       { id: 'health', icon: 'heart',      label: t('nav_health') },
       { id: 'dog',    icon: 'paw',        label: t('nav_dog') },
+      /* Slice 6 · the one Experiment entry, only where analytics is enabled. */
+      ...(analyticsEnabled ? [{ id: 'experiment', icon: 'flag', label: t('nav_experiments') }] : []),
     ]},
     { id: 'money', items: [
       { id: 'finances',    icon: 'wallet',        label: t('nav_finances') },
