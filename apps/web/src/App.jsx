@@ -1,6 +1,7 @@
 import React from 'react';
 import { createClarifyHandlers } from './app/clarifyHandlers.js';
 import {
+  CalendarPage,
   DogPage,
   ExperimentPage,
   FinanceAnalytics,
@@ -15,7 +16,6 @@ import { useParadisePress } from './app/paradisePress.js';
 import { ANALYTICS_ROUTE_ENABLED, normalizeRoute, readRouteFromHash } from './app/routeRegistry.js';
 import { useSidebarCollapsed } from './app/useSidebarCollapsed.js';
 import { useTheme } from './app/useTheme.js';
-import { CalendarView } from './components/CalendarView.jsx';
 import { ClarifyPanel } from './components/ClarifyPanel.jsx';
 import { MobileBottomNav } from './components/MobileBottomNav.jsx';
 import { ParadiseScene } from './components/ParadiseScene.jsx';
@@ -194,9 +194,7 @@ function AppShell({ user }) {
                     due: row.when ? (row.when['label_' + locale] || row.when.label_ru) : '',
                   })} />;
       case 'calendar':
-        return <CalendarView
-                  onAddSlot={() => openQuickAdd(false)}
-                  onOpenTask={(task) => setDetail({ id: task.id })} />;
+        return <CalendarPage />;
       case 'notes':
         return (
           <QuickNotesPage

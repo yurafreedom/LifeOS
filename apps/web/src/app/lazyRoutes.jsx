@@ -13,6 +13,7 @@ const LAZY_ROUTE_LOADERS = {
   review: () => import('../pages/analytics/ReviewPage.jsx'),
   'project-analytics': () => import('../pages/projects/ProjectAnalyticsPage.jsx'),
   experiment: () => import('../pages/analytics/ExperimentPage.jsx'),
+  calendar: () => import('../pages/calendar/CalendarPage.jsx'),
 };
 
 const MedicationsPage = React.lazy(LAZY_ROUTE_LOADERS.medications);
@@ -23,6 +24,7 @@ const MetricHistoryPage = React.lazy(LAZY_ROUTE_LOADERS['analytics-history']);
 const ReviewPage = React.lazy(LAZY_ROUTE_LOADERS.review);
 const ProjectAnalyticsPage = React.lazy(LAZY_ROUTE_LOADERS['project-analytics']);
 const ExperimentPage = React.lazy(LAZY_ROUTE_LOADERS.experiment);
+const CalendarPage = React.lazy(LAZY_ROUTE_LOADERS.calendar);
 
 /* The one Suspense fallback: empty page chrome, no second loading design. */
 function RouteFallback() {
@@ -30,6 +32,7 @@ function RouteFallback() {
 }
 
 export {
+  CalendarPage,
   DogPage,
   ExperimentPage,
   FinanceAnalytics,

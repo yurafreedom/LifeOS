@@ -194,12 +194,7 @@
   --nav-bg: rgba(14,17,23,0.92);
 
   /* ── calendar ─────────────────────────────── */
-  --cal-routine-bg: rgba(34,158,217,0.18);
-  --cal-routine-hover: rgba(34,158,217,0.28);
-  --cal-stakes-bg: rgba(255,138,30,0.14);
-  --cal-stakes-hover: rgba(255,138,30,0.24);
   --cal-today-col: rgba(34,158,217,0.04);
-  --cal-today-cell-hover: rgba(34,158,217,0.05);
 
   /* ── ambient (page glow) ──────────────────── */
   --ambient:
@@ -320,12 +315,7 @@
   --toast-bg: #FFFFFF;
   --nav-bg: rgba(255,255,255,0.92);
 
-  --cal-routine-bg: #E1F1FA;
-  --cal-routine-hover: #C9E5F4;
-  --cal-stakes-bg: #FFF1E3;
-  --cal-stakes-hover: #FFE4CF;
   --cal-today-col: rgba(27,138,196,0.06);
-  --cal-today-cell-hover: rgba(27,138,196,0.10);
 
   --border-soft: rgba(0,0,0,0.06);
   --ambient: none; /* @kind color */
