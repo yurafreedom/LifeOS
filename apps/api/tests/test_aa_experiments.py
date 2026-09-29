@@ -468,7 +468,7 @@ def test_t14_export_carries_every_experiment_row_and_registries_agree(
             name: [json.loads(line) for line in archive.read(f"{name}.ndjson").splitlines()]
             for name in (*EXPERIMENT_TABLES, "aa_decisions", "aa_review_factors")
         }
-    assert manifest["alembic_revision"] == "20260929_0007"
+    assert manifest["alembic_revision"] == "20260930_0008"
     assert len(rows["aa_experiments"]) == 1
     assert {r["status"] for r in rows["aa_experiment_adherence"]} == {"active", "superseded"}
     assert len(rows["aa_experiment_observations"]) == 1
@@ -478,7 +478,8 @@ def test_t14_export_carries_every_experiment_row_and_registries_agree(
     assert [r["scope"] for r in rows["aa_review_factors"]] == ["experiment"]
     mapped = {name for name in Base.metadata.tables if name.startswith("aa_")}
     in_database = {name for name in inspect(engine).get_table_names() if name.startswith("aa_")}
-    assert len(mapped) == len(EXPORT_TABLES) == len(in_database) == 22
+    # 22 after Slice 6; Slice 7 (M7) adds five.
+    assert len(mapped) == len(EXPORT_TABLES) == len(in_database) == 27
     assert mapped == set(EXPORT_TABLES) == in_database
 
 

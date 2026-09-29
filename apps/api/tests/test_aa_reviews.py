@@ -642,7 +642,7 @@ def test_export_contains_every_review_table(client, settings, account_factory, s
             assert manifest["tables"][table]["rows"] >= 1, table
             assert table in manifest["aa_columns"]
         reviews = [json.loads(line) for line in archive.read("aa_reviews.ndjson").splitlines()]
-    assert manifest["alembic_revision"] == "20260929_0007"
+    assert manifest["alembic_revision"] == "20260930_0008"
     assert [row["id"] for row in reviews] == [review["id"]]
 
 
@@ -736,7 +736,9 @@ def test_m5_roundtrip_leaves_earlier_schema_untouched(engine, test_database_url)
     config.set_main_option("sqlalchemy.url", test_database_url)
     script = ScriptDirectory.from_config(config)
     # M6 (Slice 6) sits directly on M5; the M5 chain position is unchanged.
-    assert script.get_heads() == ["20260929_0007"]
+    # M7 (Slice 7) sits on M6; the M5 chain position is unchanged.
+    assert script.get_heads() == ["20260930_0008"]
+    assert script.get_revision("20260930_0008").down_revision == "20260929_0007"
     assert script.get_revision("20260929_0007").down_revision == "20260928_0006"
     assert script.get_revision("20260928_0006").down_revision == "20260928_0005"
     command.downgrade(config, "20260928_0005")

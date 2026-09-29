@@ -24,6 +24,7 @@ from app.models import (
 from app.services.aa_comparison import SEMANTIC_TABLES
 from app.services.aa_facts import AAServiceError, FactNotFoundError
 from app.services.aa_reviews import redact_review_context
+from app.services.aa_system_review import SLICE_7_REDACTORS
 
 logger = logging.getLogger(__name__)
 FACT_TABLES = {
@@ -37,7 +38,9 @@ FACT_TABLES = {
 Redactor = Callable[[Session, UUID, str, UUID], None]
 # D1: hard erasure wins over frozen Review values. The Review adapter erases every
 # frozen context item derived from the deleted fact, inside this transaction.
-SOURCE_REDACTORS: tuple[Redactor, ...] = (redact_review_context,)
+# Slice 7 adds three: frozen System Review items, relation endpoints/evidence and
+# importance ratings that name the erased row.
+SOURCE_REDACTORS: tuple[Redactor, ...] = (redact_review_context, *SLICE_7_REDACTORS)
 
 
 class DeletionConflictError(AAServiceError):

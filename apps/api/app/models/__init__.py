@@ -1,11 +1,14 @@
 from app.models.aa_baseline import AABaseline
+from app.models.aa_cross_reference import AACrossReference, AARelationFeedback
 from app.models.aa_decision import AADecision
 from app.models.aa_deletion_receipt import AADeletionReceipt
 from app.models.aa_expectation_version import AAExpectationVersion
 from app.models.aa_experiment import AAExperiment
 from app.models.aa_experiment_adherence import AAExperimentAdherence
 from app.models.aa_experiment_observation import AAExperimentObservation
+from app.models.aa_finance_context import AAFinanceContext
 from app.models.aa_forecast_version import AAForecastVersion
+from app.models.aa_importance_rating import AAImportanceRating
 from app.models.aa_measurement import AAMeasurement
 from app.models.aa_metric_definition import AAMetricDefinition
 from app.models.aa_metric_membership_override import AAMetricMembershipOverride
@@ -21,6 +24,7 @@ from app.models.aa_review import (
 )
 from app.models.aa_signal_episode import AASignalEpisode
 from app.models.aa_source_coverage import AASourceCoverage
+from app.models.aa_system_review_revision import AASystemReviewRevision
 from app.models.aa_target import AATarget
 from app.models.base import Base
 from app.models.session import UserSession
@@ -36,20 +40,25 @@ __all__ = [
     "AAObservation",
     "AAMetricPolicyVersion",
     "AAMetricMembershipOverride",
+    "AACrossReference",
     "AADecision",
     "AADeletionReceipt",
     "AAExperiment",
     "AAExperimentAdherence",
     "AAExperimentObservation",
+    "AAFinanceContext",
+    "AAImportanceRating",
     "AAMeasurement",
     "AAMetricDefinition",
     "AAReview",
     "AAReviewContextItem",
     "AAReviewContextSource",
     "AAReviewFactor",
+    "AARelationFeedback",
     "AAReviewRevision",
     "AASignalEpisode",
     "AASourceCoverage",
+    "AASystemReviewRevision",
     "Base",
     "User",
     "UserSession",
