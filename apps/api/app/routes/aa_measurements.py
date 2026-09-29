@@ -73,6 +73,28 @@ _ERROR_STATUS: dict[str, int] = {
     "observation_outside_window": status.HTTP_422_UNPROCESSABLE_CONTENT,
     "outcome_shape_mismatch": status.HTTP_422_UNPROCESSABLE_CONTENT,
     "baseline_window_invalid": status.HTTP_422_UNPROCESSABLE_CONTENT,
+    # Slice 7 · System Review, relations, importance, finance context
+    "invalid_relation": status.HTTP_422_UNPROCESSABLE_CONTENT,
+    "invalid_response": status.HTTP_422_UNPROCESSABLE_CONTENT,
+    "causal_relation_forbidden": status.HTTP_422_UNPROCESSABLE_CONTENT,
+    "self_relation": status.HTTP_422_UNPROCESSABLE_CONTENT,
+    "invalid_ref": status.HTTP_422_UNPROCESSABLE_CONTENT,
+    "ref_not_found": status.HTTP_404_NOT_FOUND,
+    "relation_not_found": status.HTTP_404_NOT_FOUND,
+    "relation_not_deletable": status.HTTP_409_CONFLICT,
+    "relation_id_unavailable": status.HTTP_409_CONFLICT,
+    "proposal_not_current": status.HTTP_409_CONFLICT,
+    "invalid_importance": status.HTTP_422_UNPROCESSABLE_CONTENT,
+    "invalid_period": status.HTTP_422_UNPROCESSABLE_CONTENT,
+    "period_in_future": status.HTTP_422_UNPROCESSABLE_CONTENT,
+    "period_not_ended": status.HTTP_422_UNPROCESSABLE_CONTENT,
+    "revision_conflict": status.HTTP_409_CONFLICT,
+    "revision_not_found": status.HTTP_404_NOT_FOUND,
+    "invalid_system_review": status.HTTP_422_UNPROCESSABLE_CONTENT,
+    "invalid_finance_context": status.HTTP_422_UNPROCESSABLE_CONTENT,
+    "finance_context_not_found": status.HTTP_404_NOT_FOUND,
+    "finance_context_conflict": status.HTTP_409_CONFLICT,
+    "invalid_export_format": status.HTTP_422_UNPROCESSABLE_CONTENT,
 }
 
 
