@@ -36,12 +36,23 @@ export function deltaText(delta, t) {
   return `${number > 0 ? '+' : number < 0 ? '−' : ''}${text}`;
 }
 
-export function periodTitle(period, t) {
+export function periodTitle(period, t, { lower = false } = {}) {
   if (/^\d{4}$/.test(period)) return t('aa_sr_year_title', period);
   const [year, month] = period.split('-').map(Number);
   const name = new Intl.DateTimeFormat(t('_intl_locale'), { month: 'long', timeZone: 'UTC' })
     .format(Date.UTC(year, month - 1, 15));
-  return `${name.charAt(0).toUpperCase()}${name.slice(1)} ${year}`;
+  return `${lower ? name : `${name.charAt(0).toUpperCase()}${name.slice(1)}`} ${year}`;
+}
+
+/** Several reviews' names in one lookup (the waiting list spans months). */
+export function mergeLookups(lookups) {
+  const merged = { lookup: new Map(), transactions: new Map(), projects: new Map() };
+  for (const names of lookups) {
+    for (const [key, value] of names.lookup) merged.lookup.set(key, { ...(merged.lookup.get(key) ?? {}), ...value });
+    for (const [key, value] of names.transactions) merged.transactions.set(key, value);
+    for (const [key, value] of names.projects) merged.projects.set(key, value);
+  }
+  return merged;
 }
 
 export function instantText(value, t) {
@@ -113,7 +124,8 @@ export function refText(ref, names, t) {
       return `${changeLabel(kind, t)}${title ? ` · ${title}` : ''}`;
     }
     if (kind === 'experiment_lifecycle') {
-      return `${changeLabel(kind, t)} · ${known?.item?.details?.title ?? ''}`.trim();
+      const title = known?.item?.details?.title;
+      return title ? `${changeLabel(kind, t)} · ${title}` : changeLabel(kind, t);
     }
     return `${changeLabel(kind, t)} · ${periodTitle(period, t)}`;
   }

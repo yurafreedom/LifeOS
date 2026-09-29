@@ -18,7 +18,7 @@ function availableHref(item) {
 function availableText(item, t) {
   if (item.kind === 'experiment') return t('aa_sr_wait_experiment', item.title);
   if (item.kind === 'annual_review') return t('aa_sr_wait_annual', item.period);
-  return t('aa_sr_wait_monthly', periodTitle(item.period, t));
+  return t('aa_sr_wait_monthly', periodTitle(item.period, t, { lower: true }));
 }
 
 export function WaitingView({ waiting, error, pending, actions, names }) {

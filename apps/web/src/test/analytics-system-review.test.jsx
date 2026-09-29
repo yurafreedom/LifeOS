@@ -170,6 +170,22 @@ describe('System Review view', () => {
     expect(html).not.toMatch(/диагноз|саботаж|расстройств/);
   });
 
+  it('a saved self-check shows the exact answers that raised its note', () => {
+    const data = review();
+    data.sections.consequences.self_check = { offered: true, highlighted: false, entity_id: EXPENSE_CTX, result: {
+      questionnaire: 'lifeos_debt_selfcheck_v1', not_clinical: true, questions: Array(7).fill('q'),
+      answers: { q_repayment_plan: 'no', q_new_spend_on_credit: 'yes' }, answered: 2,
+      rule: { threshold: 2, indicators: {} }, flag: 'repayment_friction_pattern_worth_reviewing',
+      triggered_by: [{ question: 'q_repayment_plan', answer: 'no' }, { question: 'q_new_spend_on_credit', answer: 'yes' }] } };
+    const html = reviewView(data);
+    expect(html).toContain('Есть конкретный план погашения?');
+    expect(html).toContain('Возможно, есть повторяющееся затруднение с погашением');
+    expect(html).toContain('отметка появляется при 2 и более индикаторах из 7');
+    expect(html).not.toContain('aa_sr_');
+    expect(html).toContain('покрытие неизвестно');
+    expect(html).not.toContain('частичные данные');
+  });
+
   it('a pending answer is shown as pending and not as answered', () => {
     const pending = pendingIndex([{ queue_id: 1, state: 'pending', operation_type: 'relation.respond',
       route: '/api/v1/aa/relations/proposals/respond', payload: { proposal_key: candidate.proposal_key, response: 'approved' } }]);

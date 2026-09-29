@@ -398,3 +398,9 @@ a.aa-tag { text-decoration: none; }
 @media (prefers-reduced-motion: reduce) {
   .aa-checkline, .aa-sr-proposal { transition: none; }
 }
+/* A native <select> sizes itself to its longest option; inside the review it
+   must shrink with the column instead of widening the page on narrow screens. */
+.aa-sr select.aa-input, .aa-sr-link-dialog select.aa-input { max-width: 100%; min-width: 0; text-overflow: ellipsis; }
+.aa-sr .aa-field, .aa-sr .aa-exp-form-row, .aa-sr .aa-sr-filter, .aa-sr .card { min-width: 0; }
+.aa-sr .aa-actions-right { flex-wrap: wrap; }
+.aa-sr-rel > .aa-tag { justify-self: start; }

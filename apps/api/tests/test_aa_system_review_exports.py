@@ -70,6 +70,8 @@ def test_s7_43_markdown(client, settings, account_factory):
     assert "Месяц с концертом" in body
     assert "Проекция погашения долга" in body
     assert "фиксированный ежемесячный платёж" in body  # assumptions travel with it
+    assert "незапланировано · кредит" in body  # coded answers in words, never raw codes
+    assert "funding_credit" not in body and "a_as_entered" not in body
     uk = _export(client, "md", "uk").content.decode("utf-8")
     assert uk.startswith("# Огляд системи · Вересень 2026") and "джерело видалено" in uk
 

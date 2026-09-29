@@ -89,6 +89,48 @@ def _changed_rows(items: list[dict], L: dict, locale: str) -> tuple[tuple[Cell, 
     return tuple(rows)
 
 
+RESULT_ORDER = [
+    "month_actual", "target", "over_target", "expectation", "vs_expectation", "expense_amount",
+    "monthly", "twelve_months", "a_as_entered", "b_with_this_expense", "c_if_repeated",
+    "delta_days_b", "delta_days_c", "reserve", "after_this_expense", "threshold", "monthly_draw",
+    "months_until_threshold", "coverage_months_now", "coverage_months_after", "draw",
+]
+
+
+def _enum_text(locale: str, value: Any) -> str:
+    """A coded answer in words; the user's own text stays exactly as typed."""
+    code = f"value.{value}"
+    text = term(locale, code)
+    return str(value) if text == code else text
+
+
+def _projection_text(entry: dict[str, Any], locale: str) -> str:
+    if entry.get("payoff_date"):
+        return entry["payoff_date"]
+    return term(locale, f"payoff.{entry.get('state')}")
+
+
+def _result_lines(result: dict[str, Any], locale: str) -> str:
+    """One line per result, in its own unit; projections as dates, shifts in days."""
+    lines = []
+    # JSONB does not keep key order; results read in a fixed, meaningful order.
+    ordered = sorted(result.items(), key=lambda pair: (
+        RESULT_ORDER.index(pair[0]) if pair[0] in RESULT_ORDER else len(RESULT_ORDER), pair[0]))
+    for key, value in ordered:
+        if value is None:
+            continue
+        label = term(locale, f"res.{key}")
+        if isinstance(value, dict) and "type" in value:
+            lines.append(f"{label}: {_value(value).text}")
+        elif isinstance(value, dict):
+            lines.append(f"{label}: {_projection_text(value, locale)}")
+        elif key.startswith("delta_days"):
+            lines.append(f"{label}: {'+' if value > 0 else ''}{value} {term(locale, 'unit.days')}")
+        else:
+            lines.append(f"{label}: {value}")
+    return "; ".join(lines)
+
+
 def _impact_rows(analysis: dict, L: dict, locale: str) -> tuple[tuple[Cell, ...], ...]:
     rows = []
     for impact in analysis.get("impacts", []):
@@ -96,26 +138,16 @@ def _impact_rows(analysis: dict, L: dict, locale: str) -> tuple[tuple[Cell, ...]
             rows.append(_redacted_row(8, L["redacted"]))
             continue
         inputs = "; ".join(
-            f"{entry['name']}={_text(entry['value'])}" for entry in impact.get("inputs", [])
+            f"{term(locale, entry['name'])}: {_text(entry['value'])}"
+            for entry in impact.get("inputs", [])
         )
-        result = impact.get("result") or {}
-        rendered = "; ".join(
-            f"{key}={_text(value)}"
-            for key, value in result.items()
-            if not isinstance(value, dict) or "type" in value
-        )
-        for key, value in result.items():
-            if isinstance(value, dict) and "type" not in value and value:
-                rendered += f"; {key}: " + ", ".join(
-                    f"{k}={v}" for k, v in value.items() if v is not None
-                )
         rows.append((
             Cell(term(locale, impact.get("kind"))),
             Cell(L.get(f"state.{impact.get('state')}", impact.get("state") or "")),
             Cell(inputs or "—"),
             Cell(_terms(locale, impact.get("assumptions", []))),
             Cell((impact.get("calculation") or {}).get("formula") or "—"),
-            Cell(rendered or "—"),
+            Cell(_result_lines(impact.get("result") or {}, locale) or "—"),
             Cell(_terms(locale, impact.get("missing_inputs", []))),
             Cell(_terms(locale, impact.get("limitations", []))),
         ))
@@ -253,11 +285,12 @@ def build_report(row: AASystemReviewRevision, locale: str = "ru") -> ReportDocum
         expense = analysis.get("expense", {})
         context = analysis.get("context", {})
         heading = (f"{_value(expense.get('amount')).text} · {expense.get('date')} · "
-                   f"{context.get('plannedness') or L['unknown']} · "
-                   f"{context.get('funding_source') or L['unknown']}")
+                   f"{term(locale, 'plan.' + str(context.get('plannedness') or 'unknown'))} · "
+                   f"{term(locale, 'fund.' + str(context.get('funding_source') or 'unknown'))}")
         consequence_blocks.append(Table(impact_columns, _impact_rows(analysis, L, locale),
                                         title=heading, sheet="Consequences"))
-        details = [f"{key}: {value}" for key, value in context.items()
+        details = [f"{term(locale, 'field.' + key)}: {_enum_text(locale, value)}"
+                   for key, value in context.items()
                    if value not in (None, "") and key != "obligation_entity_id"]
         if details:
             consequence_blocks.append(BulletList(tuple(details)))

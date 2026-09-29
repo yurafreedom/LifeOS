@@ -8,7 +8,7 @@ import { PageHeader } from '../../components/HeroVignette.jsx';
 import { useAAText } from '../../components/analytics/useAAText.js';
 import { AnalyticsContext } from '../../context/AnalyticsContext.jsx';
 import { LifeDataContext } from '../../context/LifeDataContext.jsx';
-import { buildLookup, periodTitle } from './system/format.js';
+import { buildLookup, mergeLookups, periodTitle } from './system/format.js';
 import { ReviewView } from './system/ReviewView.jsx';
 import { RevisionView } from './system/RevisionView.jsx';
 import { WaitingView } from './system/Waiting.jsx';
@@ -172,14 +172,24 @@ function RevisionPage({ analytics, view, narrow }) {
 function WaitingPage({ analytics }) {
   const t = useAAText();
   const life = React.useContext(LifeDataContext)?.state;
-  const names = React.useMemo(() => buildLookup(null, life), [life]);
+  const [reviews, setReviews] = React.useState([]);
+  const names = React.useMemo(
+    () => mergeLookups([buildLookup(null, life), ...reviews.map(review => buildLookup(review, life))]),
+    [life, reviews],
+  );
   const [records, refreshQueue] = useQueue(analytics);
   const [result, setResult] = React.useState({ data: null, error: null });
   React.useEffect(() => {
     if (!analytics?.ready) return undefined;
     const controller = new window.AbortController();
     analytics.readSystemReviewWaiting(controller.signal)
-      .then(data => setResult({ data, error: null }))
+      .then(data => {
+        setResult({ data, error: null });
+        /* Name the proposals' items: read (never write) the reviews they come from. */
+        const periods = [...new Set(data.requires_confirmation.items.map(item => item.period))];
+        return Promise.all(periods.map(period => analytics.readSystemReview(period, controller.signal)));
+      })
+      .then(loaded => { if (loaded) setReviews(loaded); })
       .catch(error => { if (error?.name !== 'AbortError') setResult(previous => ({ data: previous.data, error })); });
     return () => controller.abort();
   }, [analytics?.ready, records.length]);

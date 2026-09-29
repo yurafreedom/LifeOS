@@ -107,8 +107,8 @@ export function ChangeCard({ item, names, importance, pendingImportance, onImpor
     <div className="aa-change-top">
       <span className="aa-signal-dot" />
       <span className="aa-change-dom">{t(`aa_sr_domain_${item.domain}`)}</span>
-      {item.coverage && (item.coverage.partial > 0 || item.coverage.unknown_coverage > 0)
-        ? <span className="aa-tag" data-kind="maybe">{t('aa_sr_partial')}</span> : null}
+      {item.coverage?.partial > 0 ? <span className="aa-tag" data-kind="maybe">{t('aa_sr_partial')}</span> : null}
+      {item.coverage?.unknown_coverage > 0 ? <span className="aa-tag" data-kind="unknown">{t('aa_sr_coverage_unknown')}</span> : null}
       <DesireChip item={item} />
     </div>
     <div className="aa-sr-text">{label}</div>

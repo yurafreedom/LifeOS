@@ -37,7 +37,7 @@ export function SelfCheck({ period, block, onSave, busy }) {
       <p className="aa-sr-text">{saved.flag ? t('aa_sr_selfcheck_flag') : t('aa_sr_selfcheck_no_flag')}</p>
       {saved.triggered_by.length ? <ul className="aa-sr-conditions">
         {saved.triggered_by.map(entry => <li key={entry.question}>
-          {t(`aa_sr_q_${entry.question}`)} — <b>{t(`aa_sr_ans_${entry.answer}`)}</b>
+          {t(`aa_sr_${entry.question}`)} — <b>{t(`aa_sr_ans_${entry.answer}`)}</b>
         </li>)}
       </ul> : null}
       <p className="aa-quiet">{t('aa_sr_selfcheck_rule', saved.rule.threshold, saved.questions.length)}</p>
@@ -50,8 +50,8 @@ export function SelfCheck({ period, block, onSave, busy }) {
     </div> : null}
     {editing ? <form className="aa-col" onSubmit={submit} aria-label={t('aa_sr_selfcheck_title')}>
       {SELF_CHECK_QUESTIONS.map(question => <fieldset className="aa-exp-fieldset" key={question}>
-        <legend className="aa-sr-text">{t(`aa_sr_q_${question}`)}</legend>
-        <div className="aa-choice aa-sr-choice-row" role="radiogroup" aria-label={t(`aa_sr_q_${question}`)}>
+        <legend className="aa-sr-text">{t(`aa_sr_${question}`)}</legend>
+        <div className="aa-choice aa-sr-choice-row" role="radiogroup" aria-label={t(`aa_sr_${question}`)}>
           {ANSWERS.map(answer => <button type="button" role="radio" key={answer}
             aria-checked={answers[question] === answer}
             className={`aa-choice-btn${answers[question] === answer ? ' is-on' : ''}`}
