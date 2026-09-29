@@ -39,7 +39,9 @@ function baseState(overrides: Record<string, unknown> = {}): Record<string, any>
 
 describe('Clarify · Do Now', () => {
   it('creates a normal open Task with no invented due date, schedule, stakes or category', () => {
-    const task = createClarifiedTaskRecord(NOTE.text, 900);
+    /* created_at is the recorded creation instant (Calendar History), not an
+       invented value — it is the clock the record was built with. */
+    const task = createClarifiedTaskRecord(NOTE.text, 900, '2026-09-29T09:00:00.000Z');
     expect(task).toEqual({
       id: 900,
       title: NOTE.text,
@@ -50,6 +52,7 @@ describe('Clarify · Do Now', () => {
       due: '',
       schedule: null,
       notes: '',
+      created_at: '2026-09-29T09:00:00.000Z',
     });
   });
 
@@ -184,6 +187,7 @@ describe('Clarify · Defer', () => {
       due: '2026-10-05',
       schedule: { date: '2026-10-05', time: '' },
       notes: '',
+      created_at: NOW,
     });
   });
 

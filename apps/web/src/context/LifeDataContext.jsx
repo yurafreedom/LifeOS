@@ -23,6 +23,18 @@ import { LifeLocaleContext } from './LocaleContext.jsx';
 import { AnalyticsContext } from './AnalyticsContext.jsx';
 import { buildInitialState } from './lifeData/initialState.js';
 import { buildLegacyPreview, migrateStateCopy } from './lifeData/migrate.js';
+import {
+  archiveTask as archiveTaskRecord,
+  closeTaskUnresolved as closeTaskRecord,
+  completeTask as completeTaskRecord,
+  findTask,
+  moveTask as moveTaskRecord,
+  patchTask,
+  reorderDay,
+  restoreTask as restoreTaskRecord,
+  setTaskDone,
+  withCreatedAt,
+} from '../domain/tasks.ts';
 
 /* global React */
 /* LifeDataProvider · central state tree
@@ -186,29 +198,86 @@ function LifeDataProvider({ user, onSessionExpired, onLogout, children }) {
   function toggleTask(id) {
     /* Single-pass mutation. We read the task off the *previous* tree
        inside the updater (NOT the stale `state` closure), flip its
-       done flag, and emit the right action label in the same tx. */
+       done flag, and emit the right action label in the same tx.
+       Completing stamps completed_at and clears any closure; reopening
+       clears completed_at (domain/tasks.ts::setTaskDone). */
     setStateRaw(prev => {
-      const tasks = prev.tasks.map(x => x.id === id ? { ...x, done: !x.done } : x);
-      const before = prev.tasks.find(x => x.id === id);
-      const log = before ? {
-        entity_type: 'task', entity_id: id,
+      const before = findTask(prev.tasks, id);
+      if (!before) return prev;
+      const tasks = setTaskDone(prev.tasks, id, !before.done);
+      const log = {
+        entity_type: 'task', entity_id: before.id,
         action: before.done ? 'reopened' : 'completed',
         details: { title: before.title || before.titleKey },
-      } : null;
-      const next = { ...prev, tasks };
-      if (log) next.activityLog = LifeActivity.append(next.activityLog, log);
-      return next;
+      };
+      return { ...prev, tasks, activityLog: LifeActivity.append(prev.activityLog, log) };
     });
   }
   function addTask(task) {
-    mutate(prev => ({ tasks: [...prev.tasks, task] }),
-      { entity_type: 'task', entity_id: task.id, action: 'created',
-        details: { title: task.title, stakes: !!task.stakes } });
+    const record = withCreatedAt(task);
+    mutate(prev => ({ tasks: [...prev.tasks, record] }),
+      { entity_type: 'task', entity_id: record.id, action: 'created',
+        details: { title: record.title, stakes: !!record.stakes } });
+  }
+  /* One task transition + one activity entry in a single state update. The
+     transition is a pure domain/tasks.ts function over the task array. */
+  function transitionTask(id, action, transition, details = {}) {
+    setStateRaw(prev => {
+      const before = findTask(prev.tasks, id);
+      if (!before) return prev;
+      const log = {
+        entity_type: 'task', entity_id: before.id, action,
+        details: { title: before.title || before.titleKey, ...details },
+      };
+      return {
+        ...prev,
+        tasks: transition(prev.tasks),
+        activityLog: LifeActivity.append(prev.activityLog, log),
+      };
+    });
+  }
+  function completeTask(id) {
+    transitionTask(id, 'completed', tasks => completeTaskRecord(tasks, id));
+  }
+  function closeTaskUnresolved(id) {
+    transitionTask(id, 'closed_unresolved', tasks => closeTaskRecord(tasks, id));
+  }
+  function archiveTask(id) {
+    transitionTask(id, 'archived', tasks => archiveTaskRecord(tasks, id));
+  }
+  function restoreTask(id) {
+    transitionTask(id, 'restored', tasks => restoreTaskRecord(tasks, id));
+  }
+  /* Calendar edit: schedule change (same id, appended to the new day) plus
+     the other edited fields, as one state change. */
+  function moveTask(id, schedule, patch = {}) {
+    transitionTask(id, 'edited', tasks => moveTaskRecord(tasks, id, schedule, patch),
+      { fields: [...Object.keys(patch), 'schedule'], date: schedule && schedule.date ? schedule.date : null });
+  }
+  function reorderTaskInDay(date, id, direction) {
+    transitionTask(id, 'reordered', tasks => reorderDay(tasks, date, id, direction), { date });
   }
   function updateTask(task) {
     mutate(prev => ({ tasks: prev.tasks.map(x => x.id === task.id ? { ...x, ...task } : x) }),
       { entity_type: 'task', entity_id: task.id, action: 'edited',
         details: { title: task.title } });
+  }
+  /* Edit path for every task editor: merge ONLY the changed fields onto the
+     persisted task by id (see domain/tasks.ts::patchTask). */
+  function updateTaskFields(id, patch) {
+    setStateRaw(prev => {
+      const before = findTask(prev.tasks, id);
+      if (!before) return prev;
+      const log = {
+        entity_type: 'task', entity_id: before.id, action: 'edited',
+        details: { title: patch.title || before.title || before.titleKey, fields: Object.keys(patch) },
+      };
+      return {
+        ...prev,
+        tasks: patchTask(prev.tasks, id, patch),
+        activityLog: LifeActivity.append(prev.activityLog, log),
+      };
+    });
   }
   function deleteTask(id) {
     setStateRaw(prev => {
@@ -631,7 +700,9 @@ function LifeDataProvider({ user, onSessionExpired, onLogout, children }) {
 
   const value = useMemoDP(() => ({
     state,
-    /* tasks */ toggleTask, addTask, updateTask, deleteTask,
+    /* tasks */ toggleTask, addTask, updateTask, updateTaskFields, deleteTask,
+                completeTask, closeTaskUnresolved, archiveTask, restoreTask,
+                moveTask, reorderTaskInDay,
     /* transactions */ addTransaction, updateTransaction, correctTransaction,
                        toggleTransactionInclusion, toggleCategoryInclusion,
     /* projects */ addProject, setProjectForecast, completeProject, archiveProject,

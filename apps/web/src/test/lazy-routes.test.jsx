@@ -8,6 +8,7 @@ import { SettingsPage } from '../components/SettingsPage.jsx';
 import { DogPage } from '../pages/DogPage.jsx';
 import { MedicationsPage } from '../pages/MedicationsPage.jsx';
 import ExperimentPage from '../pages/analytics/ExperimentPage.jsx';
+import CalendarPage from '../pages/calendar/CalendarPage.jsx';
 import MetricHistoryPage from '../pages/analytics/MetricHistoryPage.jsx';
 import ReviewPage from '../pages/analytics/ReviewPage.jsx';
 import FinanceAnalytics from '../pages/finances/FinanceAnalytics.jsx';
@@ -24,6 +25,7 @@ const EAGER = {
   review: ReviewPage,
   'project-analytics': ProjectAnalyticsPage,
   experiment: ExperimentPage,
+  calendar: CalendarPage,
 };
 
 describe('route-level lazy loading', () => {

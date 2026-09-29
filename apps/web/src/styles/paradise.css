@@ -129,12 +129,7 @@
   --toast-bg: rgba(255,251,246,0.94);
   --nav-bg: rgba(255,251,246,0.88);
 
-  --cal-routine-bg: rgba(27,138,196,0.16);
-  --cal-routine-hover: rgba(27,138,196,0.26);
-  --cal-stakes-bg: rgba(219,90,12,0.14);
-  --cal-stakes-hover: rgba(219,90,12,0.22);
   --cal-today-col: rgba(27,138,196,0.06);
-  --cal-today-cell-hover: rgba(27,138,196,0.10);
 
   --border-soft: rgba(10,20,40,0.08);
   --ambient: none; /* @kind color */
@@ -275,8 +270,7 @@ html.scene-switching .app *::before, html.scene-switching .app *::after {
 }
 [data-theme="paradise"] .set-nav { padding: 8px; }
 [data-theme="paradise"] .set-body { padding: 4px 18px 14px; }
-[data-theme="paradise"] .set-h,
-[data-theme="paradise"] .cal-title {
+[data-theme="paradise"] .set-h {
   color: #fff;
   text-shadow: 0 2px 8px rgba(0,0,0,0.4);
 }

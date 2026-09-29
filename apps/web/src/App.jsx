@@ -1,6 +1,7 @@
 import React from 'react';
 import { createClarifyHandlers } from './app/clarifyHandlers.js';
 import {
+  CalendarPage,
   DogPage,
   ExperimentPage,
   FinanceAnalytics,
@@ -15,7 +16,6 @@ import { useParadisePress } from './app/paradisePress.js';
 import { ANALYTICS_ROUTE_ENABLED, normalizeRoute, readRouteFromHash } from './app/routeRegistry.js';
 import { useSidebarCollapsed } from './app/useSidebarCollapsed.js';
 import { useTheme } from './app/useTheme.js';
-import { CalendarView } from './components/CalendarView.jsx';
 import { ClarifyPanel } from './components/ClarifyPanel.jsx';
 import { MobileBottomNav } from './components/MobileBottomNav.jsx';
 import { ParadiseScene } from './components/ParadiseScene.jsx';
@@ -29,6 +29,7 @@ import { LifeDataContext, LifeDataProvider } from './context/LifeDataContext.jsx
 import { AuthProvider, useAuth } from './context/AuthContext.jsx';
 import { AnalyticsProvider } from './context/AnalyticsContext.jsx';
 import { LifeLocaleContext, LifeLocales, LifeMakeT } from './context/LocaleContext.jsx';
+import { createQuickAddTaskRecord } from './domain/tasks.ts';
 import { FinancesPage } from './pages/FinancesPage.jsx';
 import { HealthPage } from './pages/HealthPage.jsx';
 import { HomePage } from './pages/HomePage.jsx';
@@ -112,17 +113,15 @@ function AppShell({ user }) {
   , [tasks, t]);
 
   function addTaskFromUI({ title, stakes, category, schedule, notes, fromNoteId }) {
-    const task = {
-      id: Date.now(),
+    /* schedule.date is the Calendar date; due is the non-localised label. */
+    const task = createQuickAddTaskRecord({
       title,
-      done: false,
       stakes,
-      tag: stakes ? 'today' : (category ? null : 'inbox'),
+      category,
       tagLabel: category ? category.name[locale] : null,
-      due: stakes ? t('due_eod') : (schedule && schedule.time ? schedule.time : ''),
       schedule,
       notes,
-    };
+    });
     data.addTask(task);
     if (fromNoteId != null) data.deleteQuickNote(fromNoteId);
     showToast({
@@ -195,16 +194,7 @@ function AppShell({ user }) {
                     due: row.when ? (row.when['label_' + locale] || row.when.label_ru) : '',
                   })} />;
       case 'calendar':
-        return <CalendarView
-                  onAddSlot={() => openQuickAdd(false)}
-                  onOpenTask={(task) => setDetail({
-                    id: task.id,
-                    title: task.titleKey ? t(task.titleKey) : (task.title || ''),
-                    done: !!task.done,
-                    stakes: !!task.stakes,
-                    tag: task.tag || (task.stakes ? 'stakes' : 'today'),
-                    due: task.due || '',
-                  })} />;
+        return <CalendarPage onAddForDay={(date) => openQuickAdd(false, { date })} />;
       case 'notes':
         return (
           <QuickNotesPage
@@ -315,7 +305,8 @@ function AppShell({ user }) {
         <QuickAddModal
           open={quickOpen}
           defaultStakes={quickStakes}
-          defaultTitle={quickSeed ? quickSeed.title : ''}
+          defaultTitle={quickSeed && quickSeed.title ? quickSeed.title : ''}
+          defaultDate={quickSeed && quickSeed.date ? quickSeed.date : ''}
           onClose={() => { setQuickOpen(false); setQuickSeed(null); }}
           onSave={(payload) => {
             addTaskFromUI({ ...payload, fromNoteId: quickSeed ? quickSeed.fromNoteId : undefined });
@@ -334,9 +325,11 @@ function AppShell({ user }) {
 
         {detailTask && (
           <TaskDetailModal
-            task={detailTask}
+            /* Always the persisted task: list rows carry display-resolved
+               copies (localised title/due) that must never be saved back. */
+            task={tasks.find(x => String(x.id) === String(detailTask.id)) || detailTask}
             onClose={() => setDetail(null)}
-            onUpdate={(t2) => data.updateTask(t2)}
+            onUpdate={(id, patch) => data.updateTaskFields(id, patch)}
             onComplete={(id) => data.toggleTask(id)}
             onDelete={(id) => data.deleteTask(id)}
           />

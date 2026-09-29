@@ -585,6 +585,10 @@ Slice 6:
 Outputs/Implementations/
 lifeos-adaptive-analytics-slice-6-experiments_20260929-205427.md
 
+Calendar cube redesign:
+Outputs/Implementations/
+lifeos-calendar-cube-redesign_20260929-223750.md
+
 Before implementing a relevant slice:
 
 READ the current plan/report/code directly.
@@ -1737,6 +1741,39 @@ for Slice 7.
 Validation at completion: 602 pytest, 375 Vitest (33 files).
 
 ====================================================================
+40b. CALENDAR CUBE REDESIGN — COMPLETED (operational, not AA)
+====================================================================
+
+Implementation report:
+
+Outputs/Implementations/
+lifeos-calendar-cube-redesign_20260929-223750.md
+
+Owner intent was recovered from the old Claude archive (conversation
+3cfa1a74-079e-44e1-ae3c-bdec673f3b08, message 019f1e07-…) and kept in
+Outputs/Discoveries/lifeos-calendar-recovered-source-of-truth_20260929-214917.md.
+
+Calendar = day cubes of a month (exactly 28–31, number + weekday only, no task
+content, no filler) → click → Day Manager; zoom out to the 12 months of a year and
+30-year windows up to 2100 (lower bound: min(current Kyiv year, earliest dated
+task)). Route: one id `calendar` with sub-paths YYYY / YYYY-MM / YYYY-MM-DD /
+years[/YYYY] / history. No fabricated events, no dog feedings.
+
+Task date authority is task.schedule.date (+ schedule.time); `due` is only a
+non-localised legacy label. Optional task fields (additive, never backfilled):
+created_at, completed_at, closure ('closed_unresolved'|'archived'), closed_at,
+order (per day). Snapshot version 2 / server schema_version 2 unchanged; no
+Alembic migration.
+
+OD-1 (owner-resolved 2026-09-29): «Выполнить» → done + completed_at; «Закрыть без
+выполнения» → closed_unresolved; «В архив» → archived; mutually exclusive. An
+overdue task nobody marked stays active on its day. Delete is permanent and never
+in History. History is derived from state.tasks (never activityLog). Restore
+returns the SAME id to active.
+
+Validation at completion: 602 pytest, 495 Vitest (39 files).
+
+====================================================================
 41. SLICE 7 — FUTURE TRADE-OFF
 ====================================================================
 
@@ -2381,13 +2418,14 @@ A BLOCKED result is better than silently corrupting product semantics.
 ====================================================================
 
 Slice P, Clarify, Slice 3, Slice 4 (Review / Debrief), Slice 5 (Project
-Analytics) and Slice 6 (Experiments) are complete. Verify the exact current main SHA live; do not trust a
-SHA written here.
+Analytics), Slice 6 (Experiments) and the Calendar cube redesign (§40b) are
+complete. Verify the exact current main SHA live; do not trust a SHA written here.
 
 The next major product task is:
 
 Adaptive Analytics Slice 7 — Trade-off / System Review (see §41), after a
-serial reverify against current main
+serial reverify against current main; then F3 cursor correctness; then
+Slice 8 retention
 
 Follow the Discovery → Plan → Implementation gates on an ordinary feature
 branch in the canonical checkout after fast-forwarding local `main`.

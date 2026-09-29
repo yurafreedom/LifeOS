@@ -64,6 +64,7 @@ export type ClarifiedTask = {
   due: string;
   schedule: { date: string; time: string } | null;
   notes: string;
+  created_at: string;
 };
 
 type UnknownRecord = Record<string, unknown>;
@@ -215,6 +216,7 @@ export function createReferenceRecord(
 export function createClarifiedTaskRecord(
   title: string,
   id: number = Date.now(),
+  now: string | number | Date = new Date(),
 ): ClarifiedTask {
   return {
     id,
@@ -226,6 +228,8 @@ export function createClarifiedTaskRecord(
     due: '',
     schedule: null,
     notes: '',
+    /* The creation instant is a recorded fact, not an invented field. */
+    created_at: validInstant(now),
   };
 }
 
@@ -260,7 +264,7 @@ export function createDeferredTaskRecord(
 ): ClarifiedTask {
   const date = assertFutureDeferDate(deferDate, now);
   return {
-    ...createClarifiedTaskRecord(title, id),
+    ...createClarifiedTaskRecord(title, id, now),
     due: date,
     schedule: { date, time: '' },
   };

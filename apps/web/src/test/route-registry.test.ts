@@ -31,6 +31,14 @@ describe('readRouteFromHash', () => {
     ['#/experiment/new', 'experiment'],
     ['#/experiment/7c1d0f7e-2b1a-4c1e-9a55-0d7f5b1c2e11', 'experiment'],
     ['#/experiments', 'home'],
+    ['#/calendar', 'calendar'],
+    ['#/calendar/2026-10', 'calendar'],
+    ['#/calendar/2026-10-14', 'calendar'],
+    ['#/calendar/2026', 'calendar'],
+    ['#/calendar/years', 'calendar'],
+    ['#/calendar/years/2056', 'calendar'],
+    ['#/calendar/history', 'calendar'],
+    ['#/calendars', 'home'],
     ['#/tasks/extra', 'home'],
   ])('%s → %s', (hash, route) => {
     expect(readRouteFromHash(hash)).toBe(route);

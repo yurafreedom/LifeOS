@@ -96,7 +96,7 @@ deliberately: theme values are published through `LifeLocaleContext`.
 | I want to… | Go to |
 |---|---|
 | add a route id | `app/routes.js` (`LIFE_ROUTES`; pinned size in `smoke.test.jsx`) |
-| change hash parsing / sub-routes (`medications/<id>`, `review/…`, `project-analytics/<id>`, `experiment/{new,<uuid>}`) | `app/routeRegistry.js` (`readRouteFromHash`, `normalizeRoute`; pinned by `route-registry.test.ts`) |
+| change hash parsing / sub-routes (`medications/<id>`, `review/…`, `project-analytics/<id>`, `experiment/{new,<uuid>}`, `calendar/…`) | `app/routeRegistry.js` (`readRouteFromHash`, `normalizeRoute`; pinned by `route-registry.test.ts`). The Calendar's own grammar (`calendar/{YYYY,YYYY-MM,YYYY-MM-DD,years[/YYYY],history}`) is `pages/calendar/calendarRoute.js` |
 | render a route | one `case` in `App.jsx::renderRoute()` |
 | make a route lazy / eager | `app/lazyRoutes.jsx` (`LAZY_ROUTE_LOADERS`; pinned by `lazy-routes.test.jsx`). Home, Login, ParadiseScene and shell chrome stay eager. One `Suspense` boundary around `renderRoute()`; its fallback is empty `.page` chrome — do not add a second loading design |
 | nav entries | `components/Sidebar.jsx`, `components/MobileBottomNav.jsx` + locale copy |
@@ -130,6 +130,8 @@ Both dictionaries are loaded synchronously (12 modules read
 | change seeds / the initial snapshot | `context/lifeData/initialState.js` |
 | change snapshot migration / validation | `context/lifeData/migrate.js` (snapshot `version` stays 2) |
 | add a domain action | `LifeDataContext.jsx` provider body. Projects/transactions enqueue the durable AA write **before** mutating the snapshot — keep that order |
+| task semantics (Calendar date = `schedule.date`, completion/closure/restore, move, per-day `order`, `created_at`, optional-field validators) | `domain/tasks.ts` (pure; the provider only wires actions). History is derived from `state.tasks`, never `activityLog` |
+| Calendar date math (month lengths, weekdays, 30-year windows, bounds ≤ 2100, Kyiv today) | `domain/calendarModel.ts` |
 
 `buildInitialState` / `migrateStateCopy` are re-exported from `LifeDataContext.jsx`.
 
@@ -162,6 +164,7 @@ types from `facts.ts` only.
 | `pages/analytics/ReviewPage.jsx` (route shell; re-exports the views) | `pages/analytics/review/{format.js, Evidence.jsx, Flow.jsx, SavedReview.jsx}` |
 | `pages/projects/ProjectAnalyticsPage.jsx` (route shell; exports the pure `ProjectAnalyticsView`) | `pages/projects/analytics/{ForecastComparison.jsx, ForecastHistory.jsx}`; helpers in `analytics/projectAnalytics.ts` |
 | `pages/analytics/ExperimentPage.jsx` (route shell; re-exports `ExperimentDetailView`, `ExperimentListView`) | `pages/analytics/experiment/{format.js, ExperimentList.jsx, CreateForm.jsx, Detail.jsx, EvidenceForms.jsx, DecisionStep.jsx}`; shared `components/analytics/{AAExpStages, AAAdherence}.jsx` |
+| `pages/calendar/CalendarPage.jsx` (lazy route shell; exports the pure `CalendarView`) | `pages/calendar/{calendarRoute.js, CubeGrids.jsx, DayManagerModal.jsx, CalendarTaskEditor.jsx, CalendarHistory.jsx}`; stacked-dialog behaviour in `components/useDialog.js` |
 | `components/SettingsPage.jsx` (re-exports `ExportSection`) | `components/settings/{ExportSection.jsx, DangerSection.jsx, Row.jsx}`; small static sections stay in the page on purpose |
 
 ### Styles — the cascade is the product
@@ -179,11 +182,11 @@ reorder**; add a rule to the layer that owns the component.
 | `pages-core.css` | page chrome, hero vignette, quick notes, Clarify panel |
 | `pages-life.css` | tasks toolbar, inline field, profile, dog, health, medications (read-only) |
 | `home.css` | home dashboard, charts, upcoming, telegram footer |
-| `calendar-nav.css` | calendar week view, mobile bottom nav |
+| `calendar-nav.css` | calendar toolbar chrome (level tabs, navigation), mobile bottom nav |
 | `responsive.css` | < 640 px single column |
 | `theme-light.css` | the second light-theme override block |
 | `medications.css` | interactive medications, config drawer, detail/journal |
-| `finance-calendar.css` | flexible finance, calendar pills, day detail |
+| `finance-calendar.css` | flexible finance, calendar cubes, Day Manager, nested editor, History |
 | `glass.css` | **cross-cutting glass-card layer — must stay second-to-last** |
 | `paradise.css` | **paradise theme — must stay last** |
 

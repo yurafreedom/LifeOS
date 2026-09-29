@@ -62,9 +62,4 @@
   }
   .toast { right: 12px; bottom: 96px; }
 
-  /* calendar collapses time col width */
-  .cal-grid { grid-template-columns: 44px repeat(7, 1fr); }
-  .cal-day-num { font-size: var(--text-lg); }
-  .cal-day-num.is-today { min-width: 24px; height: 24px; font-size: var(--text-sm); }
-  .cal-time { font-size: 12px; padding: 4px 4px; }
 }
