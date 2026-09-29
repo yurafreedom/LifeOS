@@ -58,6 +58,21 @@ _ERROR_STATUS: dict[str, int] = {
     "invalid_factor": status.HTTP_422_UNPROCESSABLE_CONTENT,
     "empty_revision": status.HTTP_422_UNPROCESSABLE_CONTENT,
     "invalid_review": status.HTTP_422_UNPROCESSABLE_CONTENT,
+    "experiment_not_found": status.HTTP_404_NOT_FOUND,
+    "invalid_transition": status.HTTP_409_CONFLICT,
+    "experiment_id_unavailable": status.HTTP_409_CONFLICT,
+    "experiment_not_accepting_evidence": status.HTTP_409_CONFLICT,
+    "experiment_not_awaiting_decision": status.HTTP_409_CONFLICT,
+    "adherence_day_recorded": status.HTTP_409_CONFLICT,
+    "invalid_experiment": status.HTTP_422_UNPROCESSABLE_CONTENT,
+    "invalid_time": status.HTTP_422_UNPROCESSABLE_CONTENT,
+    "window_not_elapsed": status.HTTP_422_UNPROCESSABLE_CONTENT,
+    "window_already_ended": status.HTTP_422_UNPROCESSABLE_CONTENT,
+    "adherence_day_future": status.HTTP_422_UNPROCESSABLE_CONTENT,
+    "adherence_day_outside_window": status.HTTP_422_UNPROCESSABLE_CONTENT,
+    "observation_outside_window": status.HTTP_422_UNPROCESSABLE_CONTENT,
+    "outcome_shape_mismatch": status.HTTP_422_UNPROCESSABLE_CONTENT,
+    "baseline_window_invalid": status.HTTP_422_UNPROCESSABLE_CONTENT,
 }
 
 
