@@ -214,7 +214,7 @@
    Hover / keyboard focus: thin gradient edge + ~2px lift.
    ============================================================ */
 .cal-cubes {
-  list-style: none; margin: 0; padding: 0;
+  list-style: none; margin: 0; padding: 0; min-width: 0;
   display: grid; grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
   gap: 8px;
 }
@@ -351,12 +351,19 @@
 .cal-input:focus-visible { outline: 2px solid var(--primary-l); outline-offset: 0; }
 .cal-editor .qa-notes-input { width: 100%; box-sizing: border-box; }
 .cal-field-err { font-size: var(--text-xs); color: var(--red); }
+.cal-editor .qa-foot { flex-wrap: wrap; gap: 8px; }
+.cal-editor .qa-foot-actions { margin-left: auto; }
+@media (max-width: 640px) {
+  .cal-editor .qa-foot-hints { display: none; }
+}
 
 /* ============================================================
    Calendar · History (derived from state.tasks)
    ============================================================ */
 .cal-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 .cal-history-wrap:focus { outline: none; }
+.cal-history-wrap > .cal-status { margin: 0 0 6px; min-height: 0; }
+.cal-history-wrap > .cal-status:empty { display: none; }
 .cal-history-empty { padding: 18px 4px; color: var(--fg3); font-size: var(--text-sm); }
 .cal-history { width: 100%; border-collapse: collapse; font-size: var(--text-sm); }
 .cal-history th {
@@ -374,7 +381,10 @@
 .cal-state.is-completed { background: var(--success-soft, rgba(29,158,117,0.14)); color: var(--success); }
 .cal-state.is-closed_unresolved { background: var(--red-tint); color: var(--red); }
 .cal-state.is-archived { background: var(--hover-tint); color: var(--fg2); border: 1px solid var(--border); }
-@media (max-width: 640px) {
+/* Stacks by its OWN width (container query), so a narrow content column
+   next to the sidebar at 768–1024px never forces a horizontal scroll. */
+.cal-history-wrap { container-type: inline-size; min-width: 0; }
+@container (max-width: 640px) {
   .cal-history thead { display: none; }
   .cal-history, .cal-history tbody { display: block; }
   .cal-history tr {
@@ -382,7 +392,7 @@
     padding: 10px 0; border-bottom: 1px solid var(--border);
   }
   .cal-history td { display: block; padding: 0; border: 0; }
-  .cal-history .cal-history-title { grid-column: 1 / -1; font-size: var(--text-md); }
+  .cal-history .cal-history-title { grid-column: 1 / -1; order: -1; font-size: var(--text-md); }
   .cal-history td[data-label]::before {
     content: attr(data-label) " · "; color: var(--fg3); font-size: var(--text-xs);
   }

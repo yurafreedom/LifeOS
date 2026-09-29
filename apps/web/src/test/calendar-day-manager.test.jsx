@@ -59,6 +59,9 @@ describe('Day Manager rows', () => {
       expect(html).toContain(text);
     }
     expect(html).toContain('aria-checked="true" class="qa-toggle-btn is-stakes is-on"');
+    /* focus follows the moved row via these hooks (verified in the browser) */
+    expect(html).toContain('data-move="up"');
+    expect(html).toContain('data-move="down"');
   });
 
   it('C31 · an overdue unmarked task stays on its day with the overdue mark and close action', () => {

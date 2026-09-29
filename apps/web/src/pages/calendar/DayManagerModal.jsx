@@ -39,6 +39,22 @@ export function DayManagerModal({ date, tasks, today, intl, t, actions, onClose,
     setTimeout(() => headingRef.current && headingRef.current.focus(), 0);
   }
 
+  /* Keep keyboard focus on the moved row: its button in the same direction,
+     or — once it reached the top/bottom and that button is disabled — the
+     opposite one (a disabled button would drop focus to the page). */
+  function reorder(id, direction) {
+    actions.reorder(date, id, direction);
+    setStatus({ text: t(direction < 0 ? 'cal_status_moved_up' : 'cal_status_moved_down') });
+    setTimeout(() => {
+      const row = dialogRef.current && dialogRef.current.querySelector(`[data-task-id="${id}"]`);
+      if (!row) return;
+      const same = row.querySelector(`[data-move="${direction < 0 ? 'up' : 'down'}"]`);
+      const other = row.querySelector(`[data-move="${direction < 0 ? 'down' : 'up'}"]`);
+      const target = same && !same.disabled ? same : other;
+      if (target) target.focus();
+    }, 0);
+  }
+
   function saveEdit(id, patch, schedule) {
     setEditingId(null);
     if (schedule === undefined) {
@@ -133,8 +149,9 @@ export function DayManagerModal({ date, tasks, today, intl, t, actions, onClose,
                             className="cal-act is-icon"
                             aria-label={t('cal_move_up_aria', title)}
                             title={t('cal_move_up')}
+                            data-move="up"
                             disabled={index === 0}
-                            onClick={() => { actions.reorder(date, task.id, -1); setStatus({ text: t('cal_status_moved_up') }); }}>
+                            onClick={() => reorder(task.id, -1)}>
                             <span aria-hidden="true" className="cal-chev-up">{I.chevDown({ size: 13 })}</span>
                           </button>
                           <button
@@ -142,8 +159,9 @@ export function DayManagerModal({ date, tasks, today, intl, t, actions, onClose,
                             className="cal-act is-icon"
                             aria-label={t('cal_move_down_aria', title)}
                             title={t('cal_move_down')}
+                            data-move="down"
                             disabled={index === rows.length - 1}
-                            onClick={() => { actions.reorder(date, task.id, 1); setStatus({ text: t('cal_status_moved_down') }); }}>
+                            onClick={() => reorder(task.id, 1)}>
                             <span aria-hidden="true">{I.chevDown({ size: 13 })}</span>
                           </button>
                           <button type="button" className="cal-act" onClick={() => setEditingId(task.id)}>
