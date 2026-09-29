@@ -119,7 +119,8 @@ function AppShell({ user }) {
       stakes,
       tag: stakes ? 'today' : (category ? null : 'inbox'),
       tagLabel: category ? category.name[locale] : null,
-      due: stakes ? t('due_eod') : (schedule && schedule.time ? schedule.time : ''),
+      /* Semantic code, never a localised label — resolvedTasks renders it. */
+      due: stakes ? 'eod' : (schedule && schedule.time ? schedule.time : ''),
       schedule,
       notes,
     };
@@ -197,14 +198,7 @@ function AppShell({ user }) {
       case 'calendar':
         return <CalendarView
                   onAddSlot={() => openQuickAdd(false)}
-                  onOpenTask={(task) => setDetail({
-                    id: task.id,
-                    title: task.titleKey ? t(task.titleKey) : (task.title || ''),
-                    done: !!task.done,
-                    stakes: !!task.stakes,
-                    tag: task.tag || (task.stakes ? 'stakes' : 'today'),
-                    due: task.due || '',
-                  })} />;
+                  onOpenTask={(task) => setDetail({ id: task.id })} />;
       case 'notes':
         return (
           <QuickNotesPage
@@ -334,9 +328,11 @@ function AppShell({ user }) {
 
         {detailTask && (
           <TaskDetailModal
-            task={detailTask}
+            /* Always the persisted task: list rows carry display-resolved
+               copies (localised title/due) that must never be saved back. */
+            task={tasks.find(x => String(x.id) === String(detailTask.id)) || detailTask}
             onClose={() => setDetail(null)}
-            onUpdate={(t2) => data.updateTask(t2)}
+            onUpdate={(id, patch) => data.updateTaskFields(id, patch)}
             onComplete={(id) => data.toggleTask(id)}
             onDelete={(id) => data.deleteTask(id)}
           />

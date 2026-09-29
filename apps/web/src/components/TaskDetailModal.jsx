@@ -7,20 +7,39 @@ import { LIcons } from './icons.jsx';
 /* global React */
 const { useState: useStateTD, useEffect: useEffectTD, useContext: useCtxTD, useRef: useRefTD } = React;
 
+/* The title as shown: a literal title, else the localised seed key. */
+function taskDisplayTitle(task, t) {
+  return task.title != null ? task.title : (task.titleKey ? t(task.titleKey) : '');
+}
+
+/* Only the fields the user actually changed. The modal receives the persisted
+   task, and this patch is merged onto it by id — untouched fields (schedule,
+   due, created_at, …) are never rewritten, and a seed task keeps its titleKey
+   (so it stays localised) unless its title was edited. */
+function taskDetailPatch(task, draft, t, cats) {
+  const patch = {};
+  const nextTitle = draft.title.trim();
+  if (nextTitle && nextTitle !== taskDisplayTitle(task, t)) patch.title = nextTitle;
+  if (draft.stakes !== !!task.stakes) patch.stakes = draft.stakes;
+  const currentCatId = task.category ? task.category.id : null;
+  if (draft.catId !== currentCatId) patch.category = cats.find(c => c.id === draft.catId) || null;
+  const currentSubs = Array.isArray(task.subtasks) ? task.subtasks : [];
+  if (JSON.stringify(draft.subtasks) !== JSON.stringify(currentSubs)) patch.subtasks = draft.subtasks;
+  if (draft.notes !== (task.notes || '')) patch.notes = draft.notes;
+  return patch;
+}
+
 function TaskDetailModal({ task, onClose, onUpdate, onComplete, onDelete }) {
   const { t, locale } = useCtxTD(LifeLocaleContext);
   const I = LIcons;
   const cats = LifeExpenseCats;
 
-  const [title, setTitle]     = useStateTD(task ? task.title : '');
+  const [title, setTitle]     = useStateTD(task ? taskDisplayTitle(task, t) : '');
   const [stakes, setStakes]   = useStateTD(task ? !!task.stakes : false);
   const [catId, setCatId]     = useStateTD(task && task.category ? task.category.id : null);
   const [catOpen, setCatOpen] = useStateTD(false);
-  const [subtasks, setSubs]   = useStateTD(task && task.subtasks ? task.subtasks : [
-    { id: 1, title: 'набросать первый экран', done: true  },
-    { id: 2, title: 'свести цвета',           done: true  },
-    { id: 3, title: 'подключить аналитику',   done: false },
-  ]);
+  /* A task without subtasks has none — never a demo list. */
+  const [subtasks, setSubs]   = useStateTD(task && Array.isArray(task.subtasks) ? task.subtasks : []);
   const [newSub, setNewSub]   = useStateTD('');
   const [notes, setNotes]     = useStateTD(task ? (task.notes || '') : '');
   const [confirmDel, setCD]   = useStateTD(false);
@@ -50,7 +69,8 @@ function TaskDetailModal({ task, onClose, onUpdate, onComplete, onDelete }) {
   if (!task) return null;
 
   function commit() {
-    onUpdate({ ...task, title: title.trim() || task.title, stakes, category: cats.find(c => c.id === catId) || null, subtasks, notes });
+    const patch = taskDetailPatch(task, { title, stakes, catId, subtasks, notes }, t, cats);
+    if (Object.keys(patch).length > 0) onUpdate(task.id, patch);
     onClose();
   }
   function toggleSub(id) {
@@ -202,4 +222,4 @@ function TaskDetailModal({ task, onClose, onUpdate, onComplete, onDelete }) {
   );
 }
 
-export { TaskDetailModal };
+export { TaskDetailModal, taskDetailPatch, taskDisplayTitle };

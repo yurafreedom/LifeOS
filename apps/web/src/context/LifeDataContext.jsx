@@ -23,6 +23,7 @@ import { LifeLocaleContext } from './LocaleContext.jsx';
 import { AnalyticsContext } from './AnalyticsContext.jsx';
 import { buildInitialState } from './lifeData/initialState.js';
 import { buildLegacyPreview, migrateStateCopy } from './lifeData/migrate.js';
+import { findTask, patchTask } from '../domain/tasks.ts';
 
 /* global React */
 /* LifeDataProvider · central state tree
@@ -209,6 +210,23 @@ function LifeDataProvider({ user, onSessionExpired, onLogout, children }) {
     mutate(prev => ({ tasks: prev.tasks.map(x => x.id === task.id ? { ...x, ...task } : x) }),
       { entity_type: 'task', entity_id: task.id, action: 'edited',
         details: { title: task.title } });
+  }
+  /* Edit path for every task editor: merge ONLY the changed fields onto the
+     persisted task by id (see domain/tasks.ts::patchTask). */
+  function updateTaskFields(id, patch) {
+    setStateRaw(prev => {
+      const before = findTask(prev.tasks, id);
+      if (!before) return prev;
+      const log = {
+        entity_type: 'task', entity_id: before.id, action: 'edited',
+        details: { title: patch.title || before.title || before.titleKey, fields: Object.keys(patch) },
+      };
+      return {
+        ...prev,
+        tasks: patchTask(prev.tasks, id, patch),
+        activityLog: LifeActivity.append(prev.activityLog, log),
+      };
+    });
   }
   function deleteTask(id) {
     setStateRaw(prev => {
@@ -631,7 +649,7 @@ function LifeDataProvider({ user, onSessionExpired, onLogout, children }) {
 
   const value = useMemoDP(() => ({
     state,
-    /* tasks */ toggleTask, addTask, updateTask, deleteTask,
+    /* tasks */ toggleTask, addTask, updateTask, updateTaskFields, deleteTask,
     /* transactions */ addTransaction, updateTransaction, correctTransaction,
                        toggleTransactionInclusion, toggleCategoryInclusion,
     /* projects */ addProject, setProjectForecast, completeProject, archiveProject,
