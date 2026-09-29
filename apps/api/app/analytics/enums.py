@@ -367,6 +367,114 @@ class ReviewSourceState(StrEnum):
     REDACTED = "redacted"
 
 
+class Importance(StrEnum):
+    """How much a change matters to the user. User-owned; never inferred.
+
+    There is no numeric mapping anywhere: importance orders nothing on its own
+    and is never combined with anything. No row means «не решил»; ``NONE`` is the
+    user explicitly resetting to undecided.
+    """
+
+    NONE = "none"
+    MATTERS = "matters"
+    OK = "ok"
+    IGNORE = "ignore"
+
+
+class RelationEpistemicKind(StrEnum):
+    """What kind of claim a relation is. A relation is never a fact and never proof.
+
+    ``ASSOCIATION`` — two things occurred together or the user sees them as
+    connected. ``HYPOTHESIS`` — one *may* bear on the other; always labelled so.
+    Facts are the endpoints themselves; projections are derived consequences, not
+    relations; the user's confirmation is the relation's status.
+    """
+
+    ASSOCIATION = "association"
+    HYPOTHESIS = "hypothesis"
+
+
+class RelationType(StrEnum):
+    """Controlled, extensible relation vocabulary. No member asserts causation."""
+
+    RELATED = "related"
+    TEMPORALLY_ASSOCIATED = "temporally_associated"
+    CO_OCCURS_WITH = "co_occurs_with"
+    CONFLICTS_WITH = "conflicts_with"
+    SUPPORTS = "supports"
+    PRECEDED_BY = "preceded_by"
+    FOLLOWED_BY = "followed_by"
+    MAY_CONTRIBUTE_TO = "may_contribute_to"
+    MAY_INCREASE_RISK_OF = "may_increase_risk_of"
+    MAY_REDUCE_PROBABILITY_OF = "may_reduce_probability_of"
+
+
+HYPOTHESIS_RELATION_TYPES: frozenset[str] = frozenset(
+    {
+        RelationType.MAY_CONTRIBUTE_TO,
+        RelationType.MAY_INCREASE_RISK_OF,
+        RelationType.MAY_REDUCE_PROBABILITY_OF,
+    }
+)
+SYMMETRIC_RELATION_TYPES: frozenset[str] = frozenset(
+    {
+        RelationType.RELATED,
+        RelationType.TEMPORALLY_ASSOCIATED,
+        RelationType.CO_OCCURS_WITH,
+        RelationType.CONFLICTS_WITH,
+    }
+)
+
+
+def relation_epistemic_kind(relation_type: str) -> RelationEpistemicKind:
+    if relation_type in HYPOTHESIS_RELATION_TYPES:
+        return RelationEpistemicKind.HYPOTHESIS
+    return RelationEpistemicKind.ASSOCIATION
+
+
+class RelationStatus(StrEnum):
+    """Where a relation stands with the user. Only a user response leaves PROPOSED."""
+
+    PROPOSED = "proposed"
+    APPROVED = "approved"
+    REJECTED = "rejected"
+    UNSURE = "unsure"
+
+
+class RelationResponse(StrEnum):
+    APPROVED = "approved"
+    REJECTED = "rejected"
+    UNSURE = "unsure"
+
+
+class RelationSource(StrEnum):
+    """Who proposed a relation. ``AI`` is reserved for a future accepted provider."""
+
+    USER = "user"
+    RULE = "rule"
+    AI = "ai"
+
+
+class FinanceContextKind(StrEnum):
+    """Explicit, user-authored finance context. Never inferred from behaviour."""
+
+    EXPENSE_CONTEXT = "expense_context"
+    OBLIGATION = "obligation"
+    RESERVE = "reserve"
+    ESSENTIALS = "essentials"
+    SELF_CHECK = "self_check"
+
+
+class ReviewPeriodKind(StrEnum):
+    MONTH = "month"
+    YEAR = "year"
+
+
+class SystemReviewRevisionStatus(StrEnum):
+    DRAFT = "draft"
+    FINALIZED = "finalized"
+
+
 def members(enum_cls: type[StrEnum]) -> tuple[str, ...]:
     return tuple(member.value for member in enum_cls)
 

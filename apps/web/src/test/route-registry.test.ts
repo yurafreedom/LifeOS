@@ -46,7 +46,7 @@ describe('readRouteFromHash', () => {
 
   it('re-exports the same registry as app/routes.js', () => {
     expect(LIFE_ROUTES).toBe(ROUTES_SOURCE);
-    expect(LIFE_ROUTES.size).toBe(21);
+    expect(LIFE_ROUTES.size).toBe(22);
   });
 });
 

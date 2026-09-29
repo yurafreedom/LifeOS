@@ -33,6 +33,7 @@ reverse edges are the lazy imports inside `analytics/rules/__init__.py::_registr
 | signals evaluation | `services/aa_signals.py`; one rule = one module in `analytics/rules/` |
 | Project Analytics (forecast version history, Actual, dual delta; read-only) | `services/aa_project_analytics.py` + `routes/aa_projects.py` + `schemas/aa_projects.py` |
 | Experiments (lifecycle, adherence, evidence, decision; Slice 6) | facade `services/aa_experiments.py` + `routes/aa_experiments.py` + `schemas/aa_experiments.py` |
+| System Review, relations, importance, finance context, exports (Slice 7) | facade `services/aa_system_review.py` + `routes/aa_system_review.py` + `schemas/aa_system_review.py` |
 | vocabulary / enums | `analytics/enums.py` (fan-in 30 — a flat vocabulary is the right shape) |
 
 ### Review / Debrief
@@ -72,6 +73,33 @@ Internal direction: `errors`, `days` → `contracts` → `lifecycle`/`evidence`/
 → `read_model`. Decisions and factors share `aa_decisions` / `aa_review_factors`
 with Review through a `scope` column; each scope keeps its own vocabulary.
 
+### System Review (Slice 7)
+
+Facade: **`app/services/aa_system_review.py`** — import only from here
+(`routes/aa_system_review.py`, `services/aa_deletion.py`, tests). Its clock
+(`server_now`) resolves `system_review/periods.server_now` at call time; tests pin that.
+
+| I want to change… | Go to `app/services/system_review/` |
+|---|---|
+| an error code or message | `errors.py` (status map in `routes/aa_measurements.py::_ERROR_STATUS`) |
+| ref-key grammar (`change|…`, `subject|…`, `fact|…`, `context|…`) | `refs.py` (leaf) · ownership: `resolve.py` |
+| limits, causal denylist, typed-value helpers, advisory lock | `contracts.py` |
+| periods, logical status, the clock | `periods.py` (leaf) |
+| user links, answers, feedback log, filters, ranking input | `relations.py` |
+| rule-based proposals (families, key, fingerprint, ranking) | `candidates.py` (read-only) |
+| what changed / improved / quality | `changes.py` · recurrence over the four rules: `repeated.py` |
+| projections (budget, repeat, debt, reserve, essentials, priorities) | `consequences.py` · self-check: `selfcheck.py` |
+| explicit finance context (versions, deletion) | `contexts.py` |
+| live review + waiting assembly (pure reads) | `read_model.py` |
+| saved revisions (freeze, append, read) | `revisions.py` |
+| **D1 redaction of revisions / relations / importance** | `redaction.py` — registered in `aa_deletion.SOURCE_REDACTORS` through the facade |
+| PDF / DOCX / XLSX / MD | `exports/` (`document.py` model → `report.py` builder → one writer per format; `labels.py` = the only server copy; `fonts/` DejaVu + license) |
+
+Internal direction: `errors`, `refs`, `periods` → `contracts` → `resolve` →
+`importance`/`relations`/`contexts` → `changes` → `consequences` → `candidates`/`repeated`
+→ `read_model` → `revisions`; `redaction` → models + `refs`; `exports` → models only.
+A GET never writes (READ ONLY transaction in the route).
+
 ---
 
 ## Frontend (`apps/web/src`)
@@ -96,7 +124,7 @@ deliberately: theme values are published through `LifeLocaleContext`.
 | I want to… | Go to |
 |---|---|
 | add a route id | `app/routes.js` (`LIFE_ROUTES`; pinned size in `smoke.test.jsx`) |
-| change hash parsing / sub-routes (`medications/<id>`, `review/…`, `project-analytics/<id>`, `experiment/{new,<uuid>}`, `calendar/…`) | `app/routeRegistry.js` (`readRouteFromHash`, `normalizeRoute`; pinned by `route-registry.test.ts`). The Calendar's own grammar (`calendar/{YYYY,YYYY-MM,YYYY-MM-DD,years[/YYYY],history}`) is `pages/calendar/calendarRoute.js` |
+| change hash parsing / sub-routes (`medications/<id>`, `review/…`, `project-analytics/<id>`, `experiment/{new,<uuid>}`, `calendar/…`, `system-review/…`) | `app/routeRegistry.js` (`readRouteFromHash`, `normalizeRoute`; pinned by `route-registry.test.ts`). The Calendar's own grammar (`calendar/{YYYY,YYYY-MM,YYYY-MM-DD,years[/YYYY],history}`) is `pages/calendar/calendarRoute.js` |
 | render a route | one `case` in `App.jsx::renderRoute()` |
 | make a route lazy / eager | `app/lazyRoutes.jsx` (`LAZY_ROUTE_LOADERS`; pinned by `lazy-routes.test.jsx`). Home, Login, ParadiseScene and shell chrome stay eager. One `Suspense` boundary around `renderRoute()`; its fallback is empty `.page` chrome — do not add a second loading design |
 | nav entries | `components/Sidebar.jsx`, `components/MobileBottomNav.jsx` + locale copy |
@@ -149,6 +177,7 @@ Facade: **`api/analytics.ts`** (`export *` of each domain).
 | Review / Debrief | `api/analytics/reviews.ts` |
 | Project Analytics | `api/analytics/projects.ts` |
 | Experiments (reads; writes are queue builders in `analytics/experimentFacts.ts`, queue reads in `analytics/experimentQueue.ts`) | `api/analytics/experiments.ts` |
+| System Review (reads + export download; writes are queue builders in `analytics/systemReviewFacts.ts`, queue reads in `analytics/systemReviewQueue.ts`) | `api/analytics/systemReview.ts` |
 
 A new domain = a new module + one facade line. Domain modules import shared
 types from `facts.ts` only.
@@ -164,6 +193,7 @@ types from `facts.ts` only.
 | `pages/analytics/ReviewPage.jsx` (route shell; re-exports the views) | `pages/analytics/review/{format.js, Evidence.jsx, Flow.jsx, SavedReview.jsx}` |
 | `pages/projects/ProjectAnalyticsPage.jsx` (route shell; exports the pure `ProjectAnalyticsView`) | `pages/projects/analytics/{ForecastComparison.jsx, ForecastHistory.jsx}`; helpers in `analytics/projectAnalytics.ts` |
 | `pages/analytics/ExperimentPage.jsx` (route shell; re-exports `ExperimentDetailView`, `ExperimentListView`) | `pages/analytics/experiment/{format.js, ExperimentList.jsx, CreateForm.jsx, Detail.jsx, EvidenceForms.jsx, DecisionStep.jsx}`; shared `components/analytics/{AAExpStages, AAAdherence}.jsx` |
+| `pages/analytics/SystemReviewPage.jsx` (lazy route shell; exports `ReviewView`, `pendingIndex`) | `pages/analytics/system/{format.js, ReviewView.jsx, Sections.jsx, Tradeoff.jsx, Relations.jsx, LinkDialog.jsx, Consequences.jsx, ContextForms.jsx, SelfCheck.jsx, SavedReview.jsx, RevisionView.jsx, Waiting.jsx}`; shared `components/analytics/AAImportance.jsx` |
 | `pages/calendar/CalendarPage.jsx` (lazy route shell; exports the pure `CalendarView`) | `pages/calendar/{calendarRoute.js, CubeGrids.jsx, DayManagerModal.jsx, CalendarTaskEditor.jsx, CalendarHistory.jsx}`; stacked-dialog behaviour in `components/useDialog.js` |
 | `components/SettingsPage.jsx` (re-exports `ExportSection`) | `components/settings/{ExportSection.jsx, DangerSection.jsx, Row.jsx}`; small static sections stay in the page on purpose |
 

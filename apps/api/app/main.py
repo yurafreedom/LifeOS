@@ -18,6 +18,7 @@ from app.routes import (
     aa_reviews,
     aa_signals,
     aa_subjects,
+    aa_system_review,
     account,
     auth,
     export,
@@ -73,4 +74,5 @@ def create_app(
     app.include_router(aa_subjects.router)
     app.include_router(aa_projects.router)
     app.include_router(aa_experiments.router)
+    app.include_router(aa_system_review.router)
     return app

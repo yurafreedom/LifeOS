@@ -20,19 +20,23 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from app.models import (
     AABaseline,
+    AACrossReference,
     AADecision,
     AADeletionReceipt,
     AAExpectationVersion,
     AAExperiment,
     AAExperimentAdherence,
     AAExperimentObservation,
+    AAFinanceContext,
     AAForecastVersion,
+    AAImportanceRating,
     AAMeasurement,
     AAMetricDefinition,
     AAMetricMembershipOverride,
     AAMetricPolicyVersion,
     AAObservation,
     AAPreference,
+    AARelationFeedback,
     AAReview,
     AAReviewContextItem,
     AAReviewContextSource,
@@ -40,6 +44,7 @@ from app.models import (
     AAReviewRevision,
     AASignalEpisode,
     AASourceCoverage,
+    AASystemReviewRevision,
     AATarget,
     Base,
     User,
@@ -80,6 +85,15 @@ EXPORT_TABLES = {
     "aa_experiments": AAExperiment.__table__,
     "aa_experiment_adherence": AAExperimentAdherence.__table__,
     "aa_experiment_observations": AAExperimentObservation.__table__,
+    # System Review (Slice 7): every importance rating (superseded included), every
+    # relation with every answer the user gave, every version of the finance
+    # context the user entered, and every saved review revision exactly as stored
+    # (redaction markers, never erased values).
+    "aa_importance_ratings": AAImportanceRating.__table__,
+    "aa_cross_references": AACrossReference.__table__,
+    "aa_relation_feedback": AARelationFeedback.__table__,
+    "aa_finance_contexts": AAFinanceContext.__table__,
+    "aa_system_review_revisions": AASystemReviewRevision.__table__,
 }
 
 

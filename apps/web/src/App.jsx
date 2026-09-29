@@ -11,6 +11,7 @@ import {
   ReviewPage,
   RouteFallback,
   SettingsPage,
+  SystemReviewPage,
 } from './app/lazyRoutes.jsx';
 import { useParadisePress } from './app/paradisePress.js';
 import { ANALYTICS_ROUTE_ENABLED, normalizeRoute, readRouteFromHash } from './app/routeRegistry.js';
@@ -241,6 +242,8 @@ function AppShell({ user }) {
         return <ProjectAnalyticsPage />;
       case 'experiment':
         return <ExperimentPage />;
+      case 'system-review':
+        return <SystemReviewPage />;
       case 'monthly':
         return <PlaceholderPage title={t('ph_monthly_title')} body={t('ph_monthly_body')} />;
       case 'annual':

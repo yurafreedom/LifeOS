@@ -589,6 +589,10 @@ Calendar cube redesign:
 Outputs/Implementations/
 lifeos-calendar-cube-redesign_20260929-223750.md
 
+Slice 7:
+Outputs/Implementations/
+lifeos-adaptive-analytics-slice-7-system-review-intelligence_20260930-010850.md
+
 Before implementing a relevant slice:
 
 READ the current plan/report/code directly.
@@ -662,8 +666,8 @@ AA semantic comparison
 
 Current single Alembic head:
 
-20260929_0007
-(M6 · Experiments · Slice 6; down_revision 20260928_0006)
+20260930_0008
+(M7 · System Review · Slice 7; down_revision 20260929_0007)
 
 M3 added concept tables including:
 
@@ -689,6 +693,10 @@ Slice 4.
 M6 (20260929_0007 · aa_experiments, aa_experiment_adherence,
 aa_experiment_observations; widens aa_decisions and aa_review_factors by scope)
 implemented in Slice 6. AA table count: 22.
+
+M7 (20260930_0008 · aa_importance_ratings, aa_cross_references,
+aa_relation_feedback, aa_finance_contexts, aa_system_review_revisions)
+implemented in Slice 7. AA table count: 27.
 
 ====================================================================
 16. METRIC CATALOGUE CURRENTLY RELEVANT
@@ -1532,16 +1540,13 @@ Clarify Panel ✅
 4 ✅
 5 ✅
 6 ✅
+7 ✅
 
-NEXT SLICE:
+NEXT:
 
-Slice 7 — Trade-off / System Review, after a serial reverify and any owner
-decisions it needs.
-
-Then, unless the owner changes priorities:
-
-Slice 7
-→ Slice 8
+F3 cursor correctness
+→ Slice 8 retention
+→ final LifeOS completion audit
 
 Do not implement a later slice merely because its prerequisites exist.
 
@@ -1774,16 +1779,53 @@ returns the SAME id to active.
 Validation at completion: 602 pytest, 495 Vitest (39 files).
 
 ====================================================================
-41. SLICE 7 — FUTURE TRADE-OFF
+41. SLICE 7 — SYSTEM REVIEW + RELATIONSHIP / CONSEQUENCE INTELLIGENCE — COMPLETED
 ====================================================================
 
-Trade-offs retain incompatible dimensions.
+Implementation report:
 
-No global composite score.
+Outputs/Implementations/
+lifeos-adaptive-analytics-slice-7-system-review-intelligence_20260930-010850.md
 
-Contradictions can coexist.
+Plan / reconciliation: Outputs/Plans/…-slice-7-system-review-intelligence-final-plan_20260929-234900.md,
+Outputs/Discoveries/…-slice-7-final-reconciliation_20260929-234900.md.
 
-Importance should remain user-owned.
+Owner decisions (2026-09-29, resolved): OD-7.1 manual «Связать» + rule proposals with
+approve / reject / unsure, durable feedback, deterministic acceptance-history ranking (no ML),
+richer typed vocabulary with explicit epistemic kind, causal wording forbidden, hypotheses
+marked; OD-7.2 = B + C (live derived review + saved append-only revisions); OD-7.3 «Ревью
+доступно» = concrete reviewable objects only, «Требует подтверждения» separate, no fifth rule.
+
+Settled semantics:
+
+- no global score, no composite, no moral label, no diagnosis; importance user-owned
+  (none/matters/ok/ignore, no number);
+- Live System Review: GET /api/v1/aa/system-review?period=YYYY-MM|YYYY, monthly + annual,
+  READ ONLY transaction, zero writes with the gate open; «Что повторилось» re-evaluates the
+  existing four rules as pure modules (never aa_signal_episodes);
+- Saved System Review: append-only revisions (draft / finalized / revise), base_revision
+  concurrency (409 revision_conflict), frozen redactable context + source manifest;
+  corrections change the live review only; never auto-finalized;
+- relations: FACT (endpoints) ≠ ASSOCIATION/HYPOTHESIS (epistemic_kind tied to type) ≠
+  PROJECTION (consequences) ≠ USER CONFIRMATION (status); system can never approve its own
+  proposal (DB CHECK); proposal_key = occurrence, input_fingerprint = exact evidence; answered
+  keys are never re-proposed; ranking changes order only;
+- consequences: explicit user-authored finance context (aa_finance_contexts); projections show
+  inputs/assumptions/calculation/horizon/missing/limitations, refuse with needs_input, one
+  currency only; income not modeled; «Самопроверка LifeOS» is a custom transparent
+  questionnaire, not a clinical test;
+- review available = experiments COMPLETED_AWAITING_REVIEW + ended months (12) / previous
+  year with evidence and no finalized revision; requires confirmation = unanswered proposals
+  of the current + 2 previous months;
+- exports of a saved revision: PDF/DOCX/XLSX/MD (stdlib writers, embedded DejaVu subset, XLSX
+  formula-safe); account JSON export includes all five tables; D1 redaction adapters for
+  revisions / relation endpoints / importance;
+- retention: unlimited by default; full retention mechanics remain Slice 8.
+
+Frontend: route system-review (#/system-review[/YYYY-MM|YYYY][/tradeoff|/revisions/<n>] |
+/waiting), analytics-gated, lazy, Sidebar «обзор системы»; LIFE_ROUTES 22.
+
+Validation at completion: 674 pytest, 522 Vitest (41 files).
 
 ====================================================================
 42. SLICE 8 — FUTURE RETENTION
@@ -2048,11 +2090,12 @@ Only create a migration when the planned slice explicitly requires one.
 
 Current Alembic head:
 
-20260929_0007
+20260930_0008
 
 M4 (aa_signal_episodes) was created by Slice 3 and is merged.
 M5 (Review / Debrief) was created by Slice 4.
 M6 (Experiments) was created by Slice 6.
+M7 (System Review, relations, importance, finance context) was created by Slice 7.
 
 Clarify currently should not need an Alembic migration if its operational state
 is added to the snapshot.
@@ -2418,14 +2461,13 @@ A BLOCKED result is better than silently corrupting product semantics.
 ====================================================================
 
 Slice P, Clarify, Slice 3, Slice 4 (Review / Debrief), Slice 5 (Project
-Analytics), Slice 6 (Experiments) and the Calendar cube redesign (§40b) are
-complete. Verify the exact current main SHA live; do not trust a SHA written here.
+Analytics), Slice 6 (Experiments), the Calendar cube redesign (§40b) and
+Slice 7 (System Review, §41) are complete. Verify the exact current main SHA live; do not trust a SHA written here.
 
 The next major product task is:
 
-Adaptive Analytics Slice 7 — Trade-off / System Review (see §41), after a
-serial reverify against current main; then F3 cursor correctness; then
-Slice 8 retention
+F3 cursor correctness; then Slice 8 retention; then the final LifeOS
+completion audit (Slice 7 is complete, see §41)
 
 Follow the Discovery → Plan → Implementation gates on an ordinary feature
 branch in the canonical checkout after fast-forwarding local `main`.

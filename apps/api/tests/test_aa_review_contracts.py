@@ -83,4 +83,12 @@ def test_facade_exposes_every_caller_symbol() -> None:
 
 
 def test_review_redactor_is_registered_through_the_facade() -> None:
-    assert aa_deletion.SOURCE_REDACTORS == (aa_reviews.redact_review_context,)
+    from app.services import aa_system_review
+
+    # Review first, then the three Slice 7 adapters — each through its own facade.
+    assert aa_deletion.SOURCE_REDACTORS == (
+        aa_reviews.redact_review_context,
+        aa_system_review.redact_system_review_sources,
+        aa_system_review.redact_relation_endpoints,
+        aa_system_review.erase_importance_for_source,
+    )

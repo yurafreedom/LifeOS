@@ -19,6 +19,9 @@ function readRouteFromHash(hash = window.location.hash) {
   if (raw.startsWith('calendar/')) return 'calendar';
   /* Slice 6 · experiment/{new | <uuid>} → the Experiment surface reads its own view. */
   if ((raw === 'experiment' || raw.startsWith('experiment/')) && LIFE_ROUTES.has('experiment')) return 'experiment';
+  /* Slice 7 · system-review/{<period>[/tradeoff | /revisions/<n>] | waiting}
+     → the System Review page reads its own view (analytics/systemReviewFacts.ts). */
+  if (raw.startsWith('system-review/') && LIFE_ROUTES.has('system-review')) return 'system-review';
   return LIFE_ROUTES.has(raw) ? raw : 'home';
 }
 
