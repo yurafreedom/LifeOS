@@ -10,7 +10,13 @@ import {
   getReview,
   getReviewContext,
   getSignals,
+  getSystemReview,
+  getSystemReviewWaiting,
+  getRevision,
   listExperiments,
+  listFinanceContexts,
+  listRelations,
+  listRevisions,
   listReviews,
   recordMeasurement,
   importLegacyTransactions,
@@ -35,6 +41,13 @@ import type {
   AAReview,
   AAReviewContext,
   AAReviewList,
+  AARevision,
+  AARevisionSummary,
+  AASystemReview,
+  AAWaiting,
+  AAFinanceContext,
+  AARelation,
+  RelationFilters,
   LegacyImportResult,
 } from '../api/analytics';
 import { requestJson } from '../api/client';
@@ -277,5 +290,34 @@ export class AnalyticsRepository {
       if (!EXPERIMENT_LIFECYCLES.includes(lifecycle)) throw new TypeError(`Unknown lifecycle: ${lifecycle}`);
     }
     return listExperiments({ lifecycles: query.lifecycles, limit }, signal);
+  }
+
+  /** The live System Review for a month or a year. A pure server read. */
+  readSystemReview(period: string, signal?: AbortSignal): Promise<AASystemReview> {
+    return getSystemReview(period, 'Europe/Kyiv', signal);
+  }
+
+  readSystemReviewWaiting(signal?: AbortSignal): Promise<AAWaiting> {
+    return getSystemReviewWaiting(signal);
+  }
+
+  listRelations(
+    filters: RelationFilters, signal?: AbortSignal,
+  ): Promise<{ relations: AARelation[]; limit: number }> {
+    return listRelations(filters, signal);
+  }
+
+  listFinanceContexts(kinds: string[] = [], signal?: AbortSignal): Promise<{ contexts: AAFinanceContext[] }> {
+    return listFinanceContexts(kinds, signal);
+  }
+
+  listRevisions(
+    period: string, signal?: AbortSignal,
+  ): Promise<{ period: string; period_kind: string; revisions: AARevisionSummary[] }> {
+    return listRevisions(period, signal);
+  }
+
+  readRevision(period: string, revision: number, compare = false, signal?: AbortSignal): Promise<AARevision> {
+    return getRevision(period, revision, compare, signal);
   }
 }

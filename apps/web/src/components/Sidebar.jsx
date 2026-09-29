@@ -42,6 +42,8 @@ function Sidebar({ route, onNav, collapsed, setCollapsed, counts = {}, user, syn
       { id: 'dog',    icon: 'paw',        label: t('nav_dog') },
       /* Slice 6 · the one Experiment entry, only where analytics is enabled. */
       ...(analyticsEnabled ? [{ id: 'experiment', icon: 'flag', label: t('nav_experiments') }] : []),
+      /* Slice 7 · System Review (live + saved), only where analytics is enabled. */
+      ...(analyticsEnabled ? [{ id: 'system-review', icon: 'eye', label: t('nav_system_review') }] : []),
     ]},
     { id: 'money', items: [
       { id: 'finances',    icon: 'wallet',        label: t('nav_finances') },

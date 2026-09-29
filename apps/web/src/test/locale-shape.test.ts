@@ -19,8 +19,8 @@ describe('locale dictionary shape', () => {
   it('keeps uk a subset of ru, with the one known ru-only flag', () => {
     const ru = Object.keys(LifeStrings.ru);
     const uk = Object.keys(LifeStrings.uk);
-    expect(ru).toHaveLength(1118);
-    expect(uk).toHaveLength(1117);
+    expect(ru).toHaveLength(1624);
+    expect(uk).toHaveLength(1623);
     expect(uk.filter((key) => !(key in LifeStrings.ru))).toEqual([]);
     expect(ru.filter((key) => !(key in LifeStrings.uk))).toEqual(['today_date_uppercase']);
     expect(LifeStrings.ru.today_date_uppercase).toBe(true);

@@ -13,6 +13,7 @@ import MetricHistoryPage from '../pages/analytics/MetricHistoryPage.jsx';
 import ReviewPage from '../pages/analytics/ReviewPage.jsx';
 import FinanceAnalytics from '../pages/finances/FinanceAnalytics.jsx';
 import ProjectAnalyticsPage from '../pages/projects/ProjectAnalyticsPage.jsx';
+import SystemReviewPage from '../pages/analytics/SystemReviewPage.jsx';
 
 /* A lazily-loaded route must resolve to exactly the page component the
    eager import used to render, under the same route id. */
@@ -26,6 +27,7 @@ const EAGER = {
   'project-analytics': ProjectAnalyticsPage,
   experiment: ExperimentPage,
   calendar: CalendarPage,
+  'system-review': SystemReviewPage,
 };
 
 describe('route-level lazy loading', () => {

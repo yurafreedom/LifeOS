@@ -6,6 +6,7 @@ import {
 } from '../analytics/projectFacts.ts';
 import { countPendingProjectWrites } from '../analytics/projectAnalytics.ts';
 import { pendingCreates, pendingExperimentRecords } from '../analytics/experimentQueue.ts';
+import { pendingSystemReviewRecords } from '../analytics/systemReviewQueue.ts';
 import { AnalyticsRepository } from '../repositories/analyticsRepository.ts';
 import { AnalyticsSyncCoordinator } from '../repositories/analyticsSyncCoordinator.ts';
 import { AnalyticsWriteQueue } from '../repositories/analyticsWriteQueue.ts';
@@ -271,6 +272,47 @@ function AnalyticsProvider({ user, children }) {
     return experimentId == null ? pendingCreates(records) : pendingExperimentRecords(records, experimentId);
   }
 
+  /* System Review (Slice 7). Reads are pure server reads; every write is one
+     durable queue record, and the page re-reads server truth after the queue
+     drains — a pending answer is shown as pending, never as already counted. */
+  function withRepository(read) {
+    if (!repositoryRef.current) return Promise.reject(new Error('Analytics repository is unavailable.'));
+    return read(repositoryRef.current);
+  }
+
+  function readSystemReview(period, signal) {
+    return withRepository(repository => repository.readSystemReview(period, signal));
+  }
+
+  function readSystemReviewWaiting(signal) {
+    return withRepository(repository => repository.readSystemReviewWaiting(signal));
+  }
+
+  function listRelations(filters, signal) {
+    return withRepository(repository => repository.listRelations(filters, signal));
+  }
+
+  function listFinanceContexts(kinds, signal) {
+    return withRepository(repository => repository.listFinanceContexts(kinds, signal));
+  }
+
+  function listRevisions(period, signal) {
+    return withRepository(repository => repository.listRevisions(period, signal));
+  }
+
+  function readRevision(period, revision, compare, signal) {
+    return withRepository(repository => repository.readRevision(period, revision, compare, signal));
+  }
+
+  async function enqueueSystemReview(request) {
+    return enqueue(request.operation_type, request.route, request.payload);
+  }
+
+  async function pendingSystemReviewWrites() {
+    if (!queueRef.current) return [];
+    return pendingSystemReviewRecords(await queueRef.current.list(user.id));
+  }
+
   async function importLegacy() {
     if (!repositoryRef.current) throw new Error('Analytics repository is unavailable.');
     const result = await repositoryRef.current.importLegacyTransactions('Europe/Kyiv');
@@ -319,6 +361,14 @@ function AnalyticsProvider({ user, children }) {
     readExperiment,
     listExperiments,
     pendingExperimentWrites,
+    readSystemReview,
+    readSystemReviewWaiting,
+    listRelations,
+    listFinanceContexts,
+    listRevisions,
+    readRevision,
+    enqueueSystemReview,
+    pendingSystemReviewWrites,
     importLegacy,
     discardQueueFailure,
     exportQueueFailure,
