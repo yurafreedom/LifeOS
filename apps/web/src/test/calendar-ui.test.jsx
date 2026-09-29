@@ -125,3 +125,56 @@ describe('C35 · no fabricated Calendar data', () => {
     }
   });
 });
+
+describe('History view (C16, C17, C30, C36)', () => {
+  const tasks = [
+    { id: 1, title: 'выполненная', done: true, completed_at: '2026-10-12T09:00:00.000Z', created_at: '2026-10-01T09:00:00.000Z', schedule: { date: '2026-10-12', time: '' } },
+    { id: 2, title: 'закрытая', done: false, closure: 'closed_unresolved', closed_at: '2026-10-13T09:00:00.000Z', created_at: '2026-10-02T09:00:00.000Z', schedule: { date: '2026-10-05', time: '' } },
+    { id: 3, title: 'архивная', done: false, closure: 'archived', closed_at: '2026-10-11T09:00:00.000Z' },
+    { id: 4, title: 'старая сделанная', done: true },
+    { id: 5, title: 'просроченная активная', done: false, schedule: { date: '2026-10-01', time: '' } },
+  ];
+
+  function history(locale = 'ru', list = tasks) {
+    const t = LifeMakeT(locale);
+    return withLocale(<CalendarView view={{ view: 'history', valid: true }} bounds={bounds}
+      intl={LifeStrings[locale]._intl_locale} t={t} onNavigate={() => {}} tasks={list} onRestore={() => {}} />, locale);
+  }
+
+  it('lists the three accepted closure states, newest first, with Restore', () => {
+    const html = history();
+    const order = ['закрытая', 'выполненная', 'архивная', 'старая сделанная'].map(title => html.indexOf(`>${title}<`));
+    expect(order.every(index => index > 0)).toBe(true);
+    expect([...order].sort((a, b) => a - b)).toEqual(order);
+    expect(html).toContain('>Выполнена<');
+    expect(html).toContain('>Закрыта, не выполнена<');
+    expect(html).toContain('>В архиве<');
+    expect(html).toContain('восстановить: закрытая');
+    expect(html).not.toContain('просроченная активная');
+  });
+
+  it('shows creation, task and closing dates, and «—» for unknown legacy timestamps', () => {
+    const html = history();
+    expect(html).toContain('1 окт. 2026 г.');
+    expect(html).toContain('13 окт. 2026 г.');
+    const legacyRow = html.slice(html.indexOf('data-task-id="4"'));
+    expect(legacyRow.match(/>—</g)?.length).toBeGreaterThanOrEqual(3);
+  });
+
+  it('renders Ukrainian labels', () => {
+    const html = history('uk');
+    expect(html).toContain('>Виконана<');
+    expect(html).toContain('>Закрита, не виконана<');
+    expect(html).toContain('>В архіві<');
+    expect(html).toContain('>відновити<');
+  });
+
+  it('has a truthful empty state', () => {
+    expect(history('ru', [])).toContain('здесь появятся выполненные');
+  });
+
+  it('never reads activityLog', () => {
+    const source = readFileSync(new URL('../pages/calendar/CalendarHistory.jsx', import.meta.url), 'utf8');
+    expect(source).not.toMatch(/\.activityLog|LifeActivity|lib\/activity/);
+  });
+});

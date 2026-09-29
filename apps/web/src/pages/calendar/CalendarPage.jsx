@@ -6,6 +6,7 @@ import { LifeLocaleContext, LifeStrings } from '../../context/LocaleContext.jsx'
 import { calendarBounds, formatMonth, monthKey, shiftMonth, yearInBounds, yearWindow } from '../../domain/calendarModel.ts';
 import { calendarHash, parseCalendarHash } from './calendarRoute.js';
 import { DayCubes, MonthCubes, YearCubes } from './CubeGrids.jsx';
+import { CalendarHistory } from './CalendarHistory.jsx';
 import { DayManagerModal } from './DayManagerModal.jsx';
 
 /* Calendar — route shell (one route id, `calendar`; the hash carries the
@@ -37,7 +38,7 @@ function contextYear(view, bounds) {
 }
 
 /** Pure view: everything below the route shell, for rendering and tests. */
-export function CalendarView({ view, bounds, intl, t, onNavigate }) {
+export function CalendarView({ view, bounds, intl, t, onNavigate, tasks = [], onRestore = () => {} }) {
   const I = LIcons;
   const todayYear = bounds.currentYear;
   const [todayY, todayM] = bounds.today.split('-').map(Number);
@@ -98,6 +99,8 @@ export function CalendarView({ view, bounds, intl, t, onNavigate }) {
     prevKey = 'cal_prev_window';
     nextKey = 'cal_next_window';
     grid = <YearCubes years={range.years} currentYear={todayYear} onOpen={year => onNavigate({ view: 'year', year })} />;
+  } else if (view.view === 'history') {
+    grid = <CalendarHistory tasks={tasks} intl={intl} t={t} onRestore={onRestore} />;
   }
 
   const activeLevel = view.view;
@@ -207,7 +210,14 @@ function CalendarPage({ onAddForDay = () => {} }) {
   return (
     <div className="page calendar-page">
       <PageHeader title={t('cal_title')} subtitle={t(SUBTITLE[view.view])} />
-      <CalendarView view={view} bounds={bounds} intl={intl} t={t} onNavigate={navigate} />
+      <CalendarView
+        view={view}
+        bounds={bounds}
+        intl={intl}
+        t={t}
+        onNavigate={navigate}
+        tasks={tasks}
+        onRestore={id => data.restoreTask(id)} />
       {view.view === 'month' && view.day ? (
         <DayManagerModal
           key={view.day}
