@@ -593,6 +593,10 @@ Slice 7:
 Outputs/Implementations/
 lifeos-adaptive-analytics-slice-7-system-review-intelligence_20260930-010850.md
 
+F3 AA history cursor correctness:
+Outputs/Implementations/
+lifeos-aa-history-cursor-correctness_20260930-020750.md
+
 Before implementing a relevant slice:
 
 READ the current plan/report/code directly.
@@ -1541,11 +1545,12 @@ Clarify Panel ✅
 5 ✅
 6 ✅
 7 ✅
+F3 cursor correctness ✅ (actual history keyset uses SQL `tuple_(occurred_at, id)`;
+equal-timestamp pagination regression pinned)
 
 NEXT:
 
-F3 cursor correctness
-→ Slice 8 retention
+Slice 8 retention
 → final LifeOS completion audit
 
 Do not implement a later slice merely because its prerequisites exist.
@@ -2462,12 +2467,13 @@ A BLOCKED result is better than silently corrupting product semantics.
 
 Slice P, Clarify, Slice 3, Slice 4 (Review / Debrief), Slice 5 (Project
 Analytics), Slice 6 (Experiments), the Calendar cube redesign (§40b) and
-Slice 7 (System Review, §41) are complete. Verify the exact current main SHA live; do not trust a SHA written here.
+Slice 7 (System Review, §41) and the F3 AA history cursor fix are complete. Verify the exact current main SHA live; do not trust a SHA written here.
 
 The next major product task is:
 
-F3 cursor correctness; then Slice 8 retention; then the final LifeOS
-completion audit (Slice 7 is complete, see §41)
+Slice 8 retention; then the final LifeOS completion audit (Slice 7 and F3
+cursor correctness are complete; the Actual-history cursor continues on the
+SQL row value `(occurred_at, id)`, pinned by an equal-timestamp regression)
 
 Follow the Discovery → Plan → Implementation gates on an ordinary feature
 branch in the canonical checkout after fast-forwarding local `main`.
