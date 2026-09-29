@@ -1,6 +1,8 @@
 """Recording and reading one Measurement through the API."""
 
+from datetime import datetime
 from decimal import Decimal
+from uuid import UUID
 
 from fastapi.testclient import TestClient
 
@@ -204,6 +206,64 @@ def test_history_pages_by_keyset(
     assert second["next_cursor"] is None
     first_ids = {row["id"] for row in first["actual"]}
     assert first_ids.isdisjoint({row["id"] for row in second["actual"]})
+
+
+def test_history_keyset_keeps_the_id_tie_break_for_equal_timestamps(
+    client: TestClient, account_factory, settings: Settings
+) -> None:
+    # F3: rows sharing one `occurred_at` are ordered by `id`, so a page boundary
+    # that falls inside that group must resume on `(occurred_at, id)`, not on
+    # `occurred_at` alone, or the rest of the group is silently skipped.
+    account = account_factory("paging-ties@example.com")
+    authenticate(client, settings, account)
+
+    occurred = [
+        *["2026-08-10T00:00:00+00:00"] * 4,
+        "2026-08-11T00:00:00+00:00",
+    ]
+    created = []
+    for index, occurred_at in enumerate(occurred):
+        response = client.post(
+            "/api/v1/aa/measurements",
+            json=measurement_payload(
+                subject={**SUBJECT_TRANSACTION, "id": f"tie{index:02d}"},
+                occurred_at=occurred_at,
+                idempotency_key=f"idem-tie-{index}",
+            ),
+        )
+        assert response.status_code == 201
+        created.append(response.json())
+    expected = [
+        row["id"]
+        for row in sorted(
+            created, key=lambda row: (datetime.fromisoformat(row["occurred_at"]), UUID(row["id"]))
+        )
+    ]
+
+    params = {
+        "from": "2026-08-01T00:00:00+00:00",
+        "to": "2026-08-31T23:59:59+00:00",
+        "limit": 2,
+    }
+    pages: list[list[str]] = []
+    cursor = None
+    for _ in range(len(occurred) + 1):
+        page = client.get(
+            f"/api/v1/aa/metrics/{METRIC_TRANSACTION}/history",
+            params={**params, **({"cursor": cursor} if cursor else {})},
+        )
+        assert page.status_code == 200
+        pages.append([row["id"] for row in page.json()["actual"]])
+        cursor = page.json()["next_cursor"]
+        if cursor is None:
+            break
+    assert cursor is None, "pagination did not terminate"
+
+    # The first page ends inside the four-row equal-timestamp group.
+    assert pages[0] == expected[:2]
+    returned = [fact_id for page in pages for fact_id in page]
+    assert len(returned) == len(set(returned))
+    assert returned == expected
 
 
 def test_provenance_is_readable_for_a_fact(

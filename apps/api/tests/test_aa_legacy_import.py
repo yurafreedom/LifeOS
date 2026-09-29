@@ -138,3 +138,55 @@ def test_legacy_import_keeps_category_policy_separate_from_sparse_fact_override(
         assert policy.policy == {"exclude_categories": ["food"], "default": "include"}
         assert len(overrides) == 1
         assert overrides[0].source_fact_id == measurements["fact-excluded"].id
+
+
+def test_legacy_imports_sharing_one_local_date_are_all_reachable_through_history(
+    client, settings, account_factory, session_factory
+):
+    # F3: every legacy transaction on one date normalizes to the same local
+    # midnight, so history paging must fall back to the `id` tie-break.
+    owner = account_factory("legacy-ties@example.com")
+    with session_factory.begin() as db:
+        db.add(UserSnapshot(
+            user_id=owner.user_id,
+            schema_version=2,
+            revision=1,
+            payload={
+                "transactions": [
+                    {"id": f"legacy-tie-{index}", "amount": 10 + index, "date": "2026-08-10",
+                     "category_id": "food", "source": "manual"}
+                    for index in range(3)
+                ],
+                "categoryOverrides": {},
+            },
+        ))
+    authenticate(client, settings, owner)
+    imported = client.post(
+        "/api/v1/aa/import/legacy-transactions", json={"timezone": "Europe/Kyiv", "coverage": []}
+    )
+    assert imported.status_code == 200, imported.text
+    assert imported.json()["transactions_imported"] == 3
+    with session_factory() as db:
+        rows = list(db.scalars(select(AAMeasurement).where(AAMeasurement.user_id == owner.user_id)))
+        assert len({row.occurred_at for row in rows}) == 1
+        expected = [str(row.id) for row in sorted(rows, key=lambda row: row.id)]
+
+    params = {
+        "from": "2026-08-01T00:00:00+03:00",
+        "to": "2026-08-31T23:59:59+03:00",
+        "limit": 1,
+    }
+    returned: list[str] = []
+    cursor = None
+    for _ in range(len(expected) + 1):
+        page = client.get(
+            "/api/v1/aa/metrics/finance.transaction_amount/history",
+            params={**params, **({"cursor": cursor} if cursor else {})},
+        )
+        assert page.status_code == 200, page.text
+        returned.extend(row["id"] for row in page.json()["actual"])
+        cursor = page.json()["next_cursor"]
+        if cursor is None:
+            break
+    assert cursor is None, "pagination did not terminate"
+    assert returned == expected
