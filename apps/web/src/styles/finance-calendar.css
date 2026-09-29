@@ -319,6 +319,8 @@
 .cal-act:hover:not(:disabled) { background: var(--hover-tint); color: var(--fg1); border-color: var(--border-s); }
 .cal-act:disabled { opacity: 0.35; cursor: default; }
 .cal-act.is-icon { width: 28px; padding: 0; justify-content: center; }
+.cal-chev-up { display: inline-flex; transform: rotate(180deg); }
+.cal-task .task-check:hover { border-color: var(--success); background: var(--success-soft); }
 .cal-act.is-danger { color: var(--red); }
 .cal-act.is-danger-solid { background: var(--red); border-color: var(--red); color: #fff; }
 .cal-act:focus-visible, .cal-task-title:focus-visible { outline: 2px solid var(--primary-l); outline-offset: 1px; }

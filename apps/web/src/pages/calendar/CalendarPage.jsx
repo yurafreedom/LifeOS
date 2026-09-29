@@ -3,9 +3,10 @@ import { PageHeader } from '../../components/HeroVignette.jsx';
 import { LIcons } from '../../components/icons.jsx';
 import { LifeDataContext } from '../../context/LifeDataContext.jsx';
 import { LifeLocaleContext, LifeStrings } from '../../context/LocaleContext.jsx';
-import { calendarBounds, formatMonth, shiftMonth, yearInBounds, yearWindow } from '../../domain/calendarModel.ts';
+import { calendarBounds, formatMonth, monthKey, shiftMonth, yearInBounds, yearWindow } from '../../domain/calendarModel.ts';
 import { calendarHash, parseCalendarHash } from './calendarRoute.js';
 import { DayCubes, MonthCubes, YearCubes } from './CubeGrids.jsx';
+import { DayManagerModal } from './DayManagerModal.jsx';
 
 /* Calendar — route shell (one route id, `calendar`; the hash carries the
  * level and date, see calendarRoute.js).
@@ -141,14 +142,16 @@ export function CalendarView({ view, bounds, intl, t, onNavigate }) {
   );
 }
 
-function CalendarPage() {
+function CalendarPage({ onAddForDay = () => {} }) {
   const { t, locale } = useContext(LifeLocaleContext);
   const data = useContext(LifeDataContext);
   const tasks = (data.state && data.state.tasks) || [];
   const intl = LifeStrings[locale]._intl_locale;
   const bounds = useMemo(() => calendarBounds(tasks), [tasks]);
   const [hash, setHash] = useState(readHash);
-  const dayPushed = useRef(false);
+  /* Month a day was opened from by a history push — closing the Day Manager
+     then goes Back to it, exactly like the browser Back button. */
+  const pushedFrom = useRef(null);
 
   useEffect(() => {
     function onHash() { setHash(readHash()); }
@@ -166,15 +169,58 @@ function CalendarPage() {
   }, [view.valid]);
 
   function navigate(target, { day = false } = {}) {
-    dayPushed.current = day;
+    pushedFrom.current = day ? monthKey(target.year, target.month) : null;
     const next = calendarHash(target);
     if (window.location.hash !== next) window.location.hash = next;
   }
+
+  function replaceWith(target) {
+    const next = calendarHash(target);
+    window.history.replaceState(null, '', next);
+    setHash(next);
+  }
+
+  function closeDay() {
+    if (pushedFrom.current === monthKey(view.year, view.month)) {
+      pushedFrom.current = null;
+      window.history.back();
+      return;
+    }
+    replaceWith({ view: 'month', year: view.year, month: view.month, day: null });
+  }
+
+  function openDay(date) {
+    const [year, month] = date.split('-').map(Number);
+    replaceWith({ view: 'month', year, month, day: date });
+  }
+
+  const actions = {
+    complete: id => data.completeTask(id),
+    closeUnresolved: id => data.closeTaskUnresolved(id),
+    archive: id => data.archiveTask(id),
+    remove: id => data.deleteTask(id),
+    update: (id, patch) => data.updateTaskFields(id, patch),
+    move: (id, schedule, patch) => data.moveTask(id, schedule, patch),
+    reorder: (date, id, direction) => data.reorderTaskInDay(date, id, direction),
+  };
 
   return (
     <div className="page calendar-page">
       <PageHeader title={t('cal_title')} subtitle={t(SUBTITLE[view.view])} />
       <CalendarView view={view} bounds={bounds} intl={intl} t={t} onNavigate={navigate} />
+      {view.view === 'month' && view.day ? (
+        <DayManagerModal
+          key={view.day}
+          date={view.day}
+          tasks={tasks}
+          today={bounds.today}
+          intl={intl}
+          t={t}
+          actions={actions}
+          onClose={closeDay}
+          onAdd={onAddForDay}
+          onOpenDay={openDay} />
+      ) : null}
     </div>
   );
 }

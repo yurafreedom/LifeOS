@@ -6,7 +6,9 @@ import { LIcons } from './icons.jsx';
 /* global React */
 const { useState: useStateQA, useEffect: useEffectQA, useContext: useCtxQA, useRef: useRefQA, useMemo: useMemoQA } = React;
 
-function QuickAddModal({ open, onClose, onSave, defaultStakes = false, defaultTitle = '' }) {
+/* defaultDate ('YYYY-MM-DD') pre-fills the schedule — the Calendar Day
+   Manager's «добавить задачу» passes the open day, persisted as schedule.date. */
+function QuickAddModal({ open, onClose, onSave, defaultStakes = false, defaultTitle = '', defaultDate = '' }) {
   const { t, locale } = useCtxQA(LifeLocaleContext);
   const I = LIcons;
   const cats = LifeExpenseCats;
@@ -16,8 +18,8 @@ function QuickAddModal({ open, onClose, onSave, defaultStakes = false, defaultTi
   const [catId, setCatId]       = useStateQA(null);
   const [catQuery, setCatQuery] = useStateQA('');
   const [catOpen, setCatOpen]   = useStateQA(false);
-  const [showSched, setSched]   = useStateQA(false);
-  const [date, setDate]         = useStateQA('');
+  const [showSched, setSched]   = useStateQA(!!defaultDate);
+  const [date, setDate]         = useStateQA(defaultDate || '');
   const [time, setTime]         = useStateQA('');
   const [showNotes, setNotes]   = useStateQA(false);
   const [notesText, setNotesT]  = useStateQA('');
@@ -29,11 +31,11 @@ function QuickAddModal({ open, onClose, onSave, defaultStakes = false, defaultTi
   useEffectQA(() => {
     if (open) {
       setTitle(defaultTitle || ''); setStakes(defaultStakes); setCatId(null); setCatQuery('');
-      setCatOpen(false); setSched(false); setDate(''); setTime('');
+      setCatOpen(false); setSched(!!defaultDate); setDate(defaultDate || ''); setTime('');
       setNotes(false); setNotesT('');
       setTimeout(() => titleRef.current && titleRef.current.focus(), 30);
     }
-  }, [open, defaultStakes, defaultTitle]);
+  }, [open, defaultStakes, defaultTitle, defaultDate]);
 
   /* esc to close, cmd+enter to save */
   useEffectQA(() => {

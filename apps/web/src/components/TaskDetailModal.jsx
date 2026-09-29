@@ -1,16 +1,12 @@
 import React from 'react';
 import { LifeLocaleContext } from '../context/LocaleContext.jsx';
 import { LifeCatTintClass, LifeExpenseCats } from '../data/categories.js';
+import { taskDisplayTitle } from '../domain/tasks.ts';
 import { ActivityTimeline } from './ActivityTimeline.jsx';
 import { LIcons } from './icons.jsx';
 
 /* global React */
 const { useState: useStateTD, useEffect: useEffectTD, useContext: useCtxTD, useRef: useRefTD } = React;
-
-/* The title as shown: a literal title, else the localised seed key. */
-function taskDisplayTitle(task, t) {
-  return task.title != null ? task.title : (task.titleKey ? t(task.titleKey) : '');
-}
 
 /* Only the fields the user actually changed. The modal receives the persisted
    task, and this patch is merged onto it by id — untouched fields (schedule,

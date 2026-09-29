@@ -194,7 +194,7 @@ function AppShell({ user }) {
                     due: row.when ? (row.when['label_' + locale] || row.when.label_ru) : '',
                   })} />;
       case 'calendar':
-        return <CalendarPage />;
+        return <CalendarPage onAddForDay={(date) => openQuickAdd(false, { date })} />;
       case 'notes':
         return (
           <QuickNotesPage
@@ -305,7 +305,8 @@ function AppShell({ user }) {
         <QuickAddModal
           open={quickOpen}
           defaultStakes={quickStakes}
-          defaultTitle={quickSeed ? quickSeed.title : ''}
+          defaultTitle={quickSeed && quickSeed.title ? quickSeed.title : ''}
+          defaultDate={quickSeed && quickSeed.date ? quickSeed.date : ''}
           onClose={() => { setQuickOpen(false); setQuickSeed(null); }}
           onSave={(payload) => {
             addTaskFromUI({ ...payload, fromNoteId: quickSeed ? quickSeed.fromNoteId : undefined });

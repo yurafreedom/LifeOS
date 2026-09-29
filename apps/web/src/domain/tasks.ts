@@ -169,6 +169,11 @@ export function historyTasks(tasks: TaskRecord[]): TaskRecord[] {
     .map(({ task }) => task);
 }
 
+/** The title as shown: a literal title, else the localised seed key. */
+export function taskDisplayTitle(task: TaskRecord, t: (key: string) => string): string {
+  return task.title != null ? task.title : (task.titleKey ? t(task.titleKey) : '');
+}
+
 /** Legacy display label kept in sync with the schedule — never localised. */
 export function semanticDue(stakes: boolean, schedule: TaskSchedule | null | undefined): string {
   if (schedule && (schedule.time || schedule.date)) return schedule.time || schedule.date;
