@@ -29,6 +29,7 @@ import { LifeDataContext, LifeDataProvider } from './context/LifeDataContext.jsx
 import { AuthProvider, useAuth } from './context/AuthContext.jsx';
 import { AnalyticsProvider } from './context/AnalyticsContext.jsx';
 import { LifeLocaleContext, LifeLocales, LifeMakeT } from './context/LocaleContext.jsx';
+import { createQuickAddTaskRecord } from './domain/tasks.ts';
 import { FinancesPage } from './pages/FinancesPage.jsx';
 import { HealthPage } from './pages/HealthPage.jsx';
 import { HomePage } from './pages/HomePage.jsx';
@@ -112,18 +113,15 @@ function AppShell({ user }) {
   , [tasks, t]);
 
   function addTaskFromUI({ title, stakes, category, schedule, notes, fromNoteId }) {
-    const task = {
-      id: Date.now(),
+    /* schedule.date is the Calendar date; due is the non-localised label. */
+    const task = createQuickAddTaskRecord({
       title,
-      done: false,
       stakes,
-      tag: stakes ? 'today' : (category ? null : 'inbox'),
+      category,
       tagLabel: category ? category.name[locale] : null,
-      /* Semantic code, never a localised label — resolvedTasks renders it. */
-      due: stakes ? 'eod' : (schedule && schedule.time ? schedule.time : ''),
       schedule,
       notes,
-    };
+    });
     data.addTask(task);
     if (fromNoteId != null) data.deleteQuickNote(fromNoteId);
     showToast({

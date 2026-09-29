@@ -16,7 +16,8 @@
  *                  'profile' | 'mode_style' | 'note' | 'quick_note',
  *     entity_id:   string | number,
  *     action:      'created' | 'edited' | 'completed' | 'reopened' |
- *                  'deleted' | 'restored' | 'clarified' | 'dose_taken' |
+ *                  'deleted' | 'restored' | 'clarified' |
+ *                  'closed_unresolved' | 'archived' | 'reordered' | 'dose_taken' |
  *                  'dose_skipped' | 'dose_snoozed' |
  *                  'mode_changed' | 'inventory_updated' |
  *                  'note_added' | 'note_edited' | 'note_deleted',

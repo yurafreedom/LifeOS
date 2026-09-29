@@ -1,5 +1,6 @@
 import { validateReferenceRecord, validateWaitingItemRecord } from '../../domain/clarify.ts';
 import { validateProjectRecord } from '../../domain/projects.ts';
+import { validateTaskRecord } from '../../domain/tasks.ts';
 import { buildDefaultGoals, buildDefaultHabits, seedTransactions } from './initialState.js';
 
 function isPlainObject(value) {
@@ -85,6 +86,10 @@ function migrateStateCopy(input) {
   objects.forEach(key => {
     if (!isPlainObject(state[key])) throw new Error(`State object ${key} is invalid.`);
   });
+  /* Calendar · optional task metadata (created_at, completed_at, closure,
+     closed_at, order). Additive: absent fields stay absent (no backfill, no
+     version bump); a present malformed value is rejected. */
+  state.tasks.forEach(validateTaskRecord);
   return state;
 }
 
