@@ -5,6 +5,7 @@ import {
   projectForecastQueueRequest,
 } from '../analytics/projectFacts.ts';
 import { countPendingProjectWrites } from '../analytics/projectAnalytics.ts';
+import { pendingCreates, pendingExperimentRecords } from '../analytics/experimentQueue.ts';
 import { AnalyticsRepository } from '../repositories/analyticsRepository.ts';
 import { AnalyticsSyncCoordinator } from '../repositories/analyticsSyncCoordinator.ts';
 import { AnalyticsWriteQueue } from '../repositories/analyticsWriteQueue.ts';
@@ -247,6 +248,29 @@ function AnalyticsProvider({ user, children }) {
     return enqueue(request.operation_type, request.route, request.payload);
   }
 
+  /* Experiments. Every write is one durable queue record (the create carries the
+     client-minted id, so children can be queued before it is acknowledged).
+     Reads go to the server; the queue is only ever *read* here, never changed. */
+  async function enqueueExperiment(request) {
+    return enqueue(request.operation_type, request.route, request.payload);
+  }
+
+  function readExperiment(experimentId, signal) {
+    if (!repositoryRef.current) return Promise.reject(new Error('Analytics repository is unavailable.'));
+    return repositoryRef.current.readExperiment(experimentId, signal);
+  }
+
+  function listExperiments(query, signal) {
+    if (!repositoryRef.current) return Promise.reject(new Error('Analytics repository is unavailable.'));
+    return repositoryRef.current.listExperiments(query, signal);
+  }
+
+  async function pendingExperimentWrites(experimentId) {
+    if (!queueRef.current) return [];
+    const records = await queueRef.current.list(user.id);
+    return experimentId == null ? pendingCreates(records) : pendingExperimentRecords(records, experimentId);
+  }
+
   async function importLegacy() {
     if (!repositoryRef.current) throw new Error('Analytics repository is unavailable.');
     const result = await repositoryRef.current.importLegacyTransactions('Europe/Kyiv');
@@ -291,6 +315,10 @@ function AnalyticsProvider({ user, children }) {
     enqueueReview,
     readProjectAnalytics,
     pendingProjectWrites,
+    enqueueExperiment,
+    readExperiment,
+    listExperiments,
+    pendingExperimentWrites,
     importLegacy,
     discardQueueFailure,
     exportQueueFailure,

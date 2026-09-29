@@ -5,16 +5,21 @@ import {
   getFinanceMonth,
   getFactProvenance,
   getMetricHistory,
+  getExperiment,
   getProjectAnalytics,
   getReview,
   getReviewContext,
   getSignals,
+  listExperiments,
   listReviews,
   recordMeasurement,
   importLegacyTransactions,
 } from '../api/analytics';
 import type {
   AACorrection,
+  AAExperimentDetail,
+  AAExperimentLifecycle,
+  AAExperimentList,
   AAFactProvenance,
   AAMeasurement,
   AAMetricHistory,
@@ -47,6 +52,11 @@ import type { AnalyticsWriteRecord } from './analyticsWriteQueue';
  * of any kind resolves to the fact the server already stored rather than
  * creating a second one.
  */
+
+const EXPERIMENT_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const EXPERIMENT_LIFECYCLES: readonly AAExperimentLifecycle[] = [
+  'DRAFT', 'RUNNING', 'COMPLETED_AWAITING_REVIEW', 'REVIEWED', 'ABANDONED',
+];
 
 export type IdempotencyKeyFactory = () => string;
 
@@ -250,5 +260,22 @@ export class AnalyticsRepository {
 
   listReviews(subject: string, signal?: AbortSignal): Promise<AAReviewList> {
     return listReviews(subject, 20, signal);
+  }
+
+  readExperiment(experimentId: string, signal?: AbortSignal): Promise<AAExperimentDetail> {
+    if (!EXPERIMENT_ID.test(experimentId)) throw new TypeError('An experiment id is a UUID.');
+    return getExperiment(experimentId, signal);
+  }
+
+  listExperiments(
+    query: { lifecycles?: AAExperimentLifecycle[]; limit?: number } = {},
+    signal?: AbortSignal,
+  ): Promise<AAExperimentList> {
+    const limit = query.limit ?? 20;
+    if (!Number.isInteger(limit) || limit < 1 || limit > 50) throw new RangeError('limit is 1–50.');
+    for (const lifecycle of query.lifecycles ?? []) {
+      if (!EXPERIMENT_LIFECYCLES.includes(lifecycle)) throw new TypeError(`Unknown lifecycle: ${lifecycle}`);
+    }
+    return listExperiments({ lifecycles: query.lifecycles, limit }, signal);
   }
 }

@@ -14,6 +14,8 @@ function readRouteFromHash(hash = window.location.hash) {
   if (raw.startsWith('review/') && LIFE_ROUTES.has('review')) return 'review';
   /* Slice 5 · project-analytics/<project id> → the page reads the id itself. */
   if (raw.startsWith('project-analytics/') && LIFE_ROUTES.has('project-analytics')) return 'project-analytics';
+  /* Slice 6 · experiment/{new | <uuid>} → the Experiment surface reads its own view. */
+  if ((raw === 'experiment' || raw.startsWith('experiment/')) && LIFE_ROUTES.has('experiment')) return 'experiment';
   return LIFE_ROUTES.has(raw) ? raw : 'home';
 }
 
