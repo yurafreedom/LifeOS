@@ -20,7 +20,7 @@ from datetime import datetime
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import Select, func, select, update
+from sqlalchemy import Select, func, select, tuple_, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -362,8 +362,11 @@ def read_history(
     )
     if cursor is not None:
         cursor_occurred_at, cursor_id = cursor
+        # A SQL row-value comparison, so rows sharing one ``occurred_at`` resume
+        # on ``id``. A Python tuple ``>`` collapses to ``occurred_at > :cursor``.
         statement = statement.where(
-            (AAMeasurement.occurred_at, AAMeasurement.id) > (cursor_occurred_at, cursor_id)
+            tuple_(AAMeasurement.occurred_at, AAMeasurement.id)
+            > tuple_(cursor_occurred_at, cursor_id)
         )
     statement = statement.order_by(AAMeasurement.occurred_at, AAMeasurement.id).limit(limit)
     return list(db.scalars(statement))
