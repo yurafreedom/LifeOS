@@ -16,6 +16,7 @@ from sqlalchemy.orm import Session
 
 from app.models import (
     AADeletionReceipt,
+    AAExperimentObservation,
     AAMeasurement,
     AAMetricMembershipOverride,
     AASourceCoverage,
@@ -29,7 +30,10 @@ FACT_TABLES = {
     **SEMANTIC_TABLES,
     "aa_measurements": AAMeasurement,
     "aa_source_coverage": AASourceCoverage,
+    "aa_experiment_observations": AAExperimentObservation,
 }
+# Experiment adherence is deliberately absent: a generic tombstone would keep its
+# ``state``. A changed day is a CORRECTION successor; account deletion erases it.
 Redactor = Callable[[Session, UUID, str, UUID], None]
 # D1: hard erasure wins over frozen Review values. The Review adapter erases every
 # frozen context item derived from the deleted fact, inside this transaction.

@@ -67,6 +67,9 @@ def session_factory(engine: Engine) -> sessionmaker[Session]:
 TRUNCATED_TABLES: tuple[str, ...] = (
     "aa_decisions",
     "aa_review_factors",
+    "aa_experiment_observations",
+    "aa_experiment_adherence",
+    "aa_experiments",
     "aa_review_context_sources",
     "aa_review_context_items",
     "aa_review_revisions",

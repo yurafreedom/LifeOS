@@ -41,6 +41,7 @@ from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.analytics.enums import (
+    DecisionScope,
     Desire,
     EpistemicKind,
     RedactionReason,
@@ -254,11 +255,24 @@ class AAReviewContextSource(AAOwnedMixin, Base):
 
 
 class AAReviewFactor(AAOwnedMixin, Base):
-    """A user-named contributing factor with its epistemic kind. Never causal."""
+    """A user-named contributing factor with its epistemic kind. Never causal.
+
+    Scoped like ``aa_decisions`` (M6): a factor belongs to exactly one Review or
+    one Experiment. ``added_in_revision``/``retracted_in_revision`` count the
+    parent's authoring ledger: ``aa_review_revisions.revision`` for review
+    scope, the experiment's ``aa_decisions.revision`` for experiment scope.
+    ``replaces_id`` must point at a factor of the same parent (service-enforced).
+    """
 
     __tablename__ = "aa_review_factors"
 
-    review_id: Mapped[uuid.UUID] = _review_fk()
+    scope: Mapped[str] = mapped_column(Text, nullable=False, server_default=sql_text("'review'"))
+    review_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("aa_reviews.id", ondelete="CASCADE"), nullable=True
+    )
+    experiment_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("aa_experiments.id", ondelete="CASCADE"), nullable=True
+    )
     ordinal: Mapped[int] = mapped_column(Integer, nullable=False)
     text: Mapped[str] = mapped_column(Text, nullable=False)
     epistemic_kind: Mapped[str] = mapped_column(
@@ -284,7 +298,20 @@ class AAReviewFactor(AAOwnedMixin, Base):
             name="ck_aa_review_factors_retracted_order",
         ),
         CheckConstraint("replaces_id <> id", name="ck_aa_review_factors_no_self_replace"),
+        CheckConstraint(check_in("scope", DecisionScope), name="ck_aa_review_factors_scope"),
+        CheckConstraint(
+            "(scope = 'review' AND review_id IS NOT NULL AND experiment_id IS NULL)"
+            " OR (scope = 'experiment' AND experiment_id IS NOT NULL AND review_id IS NULL)",
+            name="ck_aa_review_factors_parent",
+        ),
         Index("ix_aa_review_factors_review", "review_id", "ordinal"),
+        Index(
+            "uq_aa_review_factors_experiment_ordinal",
+            "experiment_id",
+            "ordinal",
+            unique=True,
+            postgresql_where=sql_text("experiment_id IS NOT NULL"),
+        ),
     )
 
 

@@ -23,6 +23,9 @@ from app.models import (
     AADecision,
     AADeletionReceipt,
     AAExpectationVersion,
+    AAExperiment,
+    AAExperimentAdherence,
+    AAExperimentObservation,
     AAForecastVersion,
     AAMeasurement,
     AAMetricDefinition,
@@ -70,6 +73,13 @@ EXPORT_TABLES = {
     "aa_review_context_sources": AAReviewContextSource.__table__,
     "aa_review_factors": AAReviewFactor.__table__,
     "aa_decisions": AADecision.__table__,
+    # Experiments: the claim and lifecycle, every adherence row (superseded
+    # corrections included) and every outcome/context observation. Experiment
+    # decisions and factors leave through aa_decisions / aa_review_factors,
+    # every revision included.
+    "aa_experiments": AAExperiment.__table__,
+    "aa_experiment_adherence": AAExperimentAdherence.__table__,
+    "aa_experiment_observations": AAExperimentObservation.__table__,
 }
 
 

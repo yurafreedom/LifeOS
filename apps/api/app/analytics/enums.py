@@ -252,9 +252,101 @@ class ReviewDecisionChoice(StrEnum):
 
 
 class DecisionScope(StrEnum):
-    """What a decision belongs to. Experiment scope arrives with Slice 6 (M6)."""
+    """What a decision or factor belongs to.
+
+    Each scope has its own choice vocabulary (``ReviewDecisionChoice``,
+    ``ExperimentDecisionChoice``); the database pins each vocabulary to its
+    scope, so a Review can never store ``reject`` and an Experiment never
+    ``adjust``.
+    """
 
     REVIEW = "review"
+    EXPERIMENT = "experiment"
+
+
+class ExperimentLifecycle(StrEnum):
+    """Where an Experiment is in its own life. Never an outcome (owner decision D4).
+
+    ``REVIEWED`` and ``ABANDONED`` are terminal. ``ABANDONED`` means the
+    experiment was stopped; it says nothing about whether the hypothesis held,
+    and a decision never moves an experiment between these states.
+    """
+
+    DRAFT = "DRAFT"
+    RUNNING = "RUNNING"
+    COMPLETED_AWAITING_REVIEW = "COMPLETED_AWAITING_REVIEW"
+    REVIEWED = "REVIEWED"
+    ABANDONED = "ABANDONED"
+
+
+class AdherenceState(StrEnum):
+    """What the user recorded for one elapsed local day. The only stored states.
+
+    ``unknown`` is an explicit answer («не помню»); a day with no row is
+    ``not_recorded``, which is derived and never stored.
+    """
+
+    KEPT = "kept"
+    MISSED = "missed"
+    UNKNOWN = "unknown"
+
+
+class AdherenceDay(StrEnum):
+    """Derived per-day adherence classification. Never persisted.
+
+    ``FUTURE``, ``NOT_RECORDED`` and ``NOT_RUN_AFTER_STOP`` exist only at read
+    time: a future day is not a miss, a day without a record is not ``unknown``,
+    and a day after the experiment was stopped was never run at all.
+    """
+
+    KEPT = "kept"
+    MISSED = "missed"
+    UNKNOWN = "unknown"
+    NOT_RECORDED = "not_recorded"
+    FUTURE = "future"
+    NOT_RUN_AFTER_STOP = "not_run_after_stop"
+
+
+class ExperimentObservationRole(StrEnum):
+    """``outcome`` is a value of the experiment's own outcome definition;
+    ``context`` is anything else the user measured alongside it."""
+
+    OUTCOME = "outcome"
+    CONTEXT = "context"
+
+
+class ExperimentOutcomeType(StrEnum):
+    """Outcome shapes that ``compute_delta`` can compare. Categorical and date
+    are excluded: they cannot, or should not, be subtracted."""
+
+    MONEY = "money"
+    DURATION = "duration"
+    COUNT = "count"
+    SCALE = "scale"
+
+
+class ExperimentDecisionChoice(StrEnum):
+    """The user's own «что дальше» for an Experiment. Never suggested.
+
+    As with Reviews there is no member for "no decision": that is ``NULL``, and
+    it is not ``INCONCLUSIVE``. ``MODIFY`` and ``LONGER`` describe a *next*
+    attempt; they never reopen this one.
+    """
+
+    KEEP = "keep"
+    MODIFY = "modify"
+    LONGER = "longer"
+    REJECT = "reject"
+    INCONCLUSIVE = "inconclusive"
+
+
+class ExperimentResultState(StrEnum):
+    """Read-time state of an Experiment's result. Never persisted, never causal."""
+
+    NOT_APPLICABLE = "not_applicable"
+    TOO_EARLY = "too_early"
+    NO_DATA = "no_data"
+    KNOWN = "known"
 
 
 class RedactionReason(StrEnum):
