@@ -25,6 +25,10 @@ export type AAProjectAnalytics = {
   as_of: string | null;
   evaluated_at: string;
   state: AAProjectAnalyticsState;
+  /** Slice 8: the whole Project unit was erased by the user's retention rule. */
+  retention_history_deleted?: boolean;
+  /** Effective retention horizon (date-only `YYYY-MM-DD`), or null without a finite rule. */
+  retention_horizon?: string | null;
   forecast_versions: AASemanticFact[];
   forecast_version_count: number;
   forecast_versions_truncated: boolean;

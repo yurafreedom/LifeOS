@@ -2824,6 +2824,30 @@ Audit fixes (on branch fix/lifeos-completion-audit; not in remote main when writ
    were red before the fix. Server preview/apply semantics were already correct.
 No backend, schema, dependency, queue or stored data mutation is part of these fixes.
 
+Follow-up frontend fixes D1–D3 (2026-09-30, same branch, UNCOMMITTED working
+tree on top of 1b396eb when written; report
+Outputs/Implementations/lifeos-audit-frontend-fixes_20260930-134139.md):
+3. D1 ForecastHistory branches on the server's retention_history_deleted /
+   history_deleted_by_retention (never on an empty array): empty sections say
+   «недоступны после правила хранения» (RU/UK), ordinary empty keeps «не
+   записан», retained records always render. D1b: ProjectAnalyticsPage tags
+   each read with its project id, so one project's retention state is never
+   shown under another project's title while a read is in flight.
+4. D2 MetricHistoryPage loads on cold entry/reload via the existing
+   AnalyticsContext.loadFinance (no duplicate request; in-app navigation reuses
+   the loaded month); distinct loading / error+retry / empty / history;
+   fully RU/UK; horizon via formatDateOnly (date-only, zone-safe). loadFinance
+   clears `loading` on abort. AAChart strings localized (RU byte-identical).
+5. D3 Paradise 768px overflow: root cause was NOT ParadiseScene (fixed +
+   overflow:hidden; hiding it changed nothing) but the paradise-only TopBar
+   plate/eyebrow widening the TopBar min-content beyond the main grid track.
+   Fix: paradise .tb wraps its search row (≥641px). Matrix after: 0 overflow
+   in 432 loads (all themes, RU/UK, 320–1440 incl. tablet widths, animations
+   scrubbed); before: +16 RU / +25 UK reproduced.
+Frontend after D1–D3: 561 tests / 45 files, typecheck, lint, analytics build
+PASS; browser flows 22/22 on lifeos_test with the SAME project p-done in the
+snapshot and its analytics genuinely pruned. Backend unchanged (not rerun).
+
 Confirmed wider product gaps (scope must be planned separately):
 - HealthPage is a static skeleton, not health record management.
 - monthly / annual / investments routes still render PlaceholderPage. They
@@ -2840,23 +2864,24 @@ Confirmed wider product gaps (scope must be planned separately):
   schedule.date semantics. Needs an explicit owner decision before changing.
 - Project history_deleted_by_retention is now browser-verified with the SAME
   project in the operational snapshot and genuinely pruned AA evidence.
-- Paradise overflow at 768px REPRODUCED on 2026-09-30 (+16 px RU / +25 px UK on
-  every screen, ParadiseScene ps-layer/ps-cloud; CSS asset identical on main).
-  The Slice 8 harness likely missed it because its goto() applied the theme via
-  a same-document hash navigation, so the app kept the previous theme.
-- Project Analytics history_deleted_by_retention: the comparison card is
-  truthful, but ForecastHistory still renders «Версий прогноза нет» and «Факт
-  завершения не записан» below it (it does not branch on that state). Minor
-  truthfulness defect; the same-project browser fixture now exists.
-- MetricHistoryPage: on a cold deep link it shows hardcoded Russian «История
-  метрики пока недоступна.» (also hardcoded title / «Назад»; no UK copy); via
-  in-app navigation it discloses the horizon, as a raw ISO date.
+- Paradise overflow at 768px (+16 px RU / +25 px UK): FIXED in the working
+  tree (item 5). The earlier attribution to ParadiseScene ps-layer/ps-cloud was
+  wrong. The Slice 8 harness missed it because its goto() applied the theme via
+  a same-document hash navigation; harnesses must also re-select UK after every
+  full load (locale is in-memory app state and resets to RU on reload).
+- Project Analytics history sub-sections after retention: FIXED (item 3).
+  Contract limit: the server flags an erased project only when nothing
+  survives, so a forecast recorded after pruning hides the erased-history note.
+- MetricHistoryPage cold entry / RU-only copy / raw ISO horizon: FIXED (item 4).
+  Still open: shared AAHistoryList prints raw ISO instants and provenance
+  enums; FinanceAnalytics has hardcoded Russian and a raw ISO horizon.
 - Sidebar habits/goals counts are hardcoded (7 / 3) in App.jsx.
 - components/Today.jsx and TaskList.jsx still count !done but are not imported.
 
 Do not reinterpret these findings as authorization to invent new domain semantics.
 Next action: owner review of branch fix/lifeos-completion-audit (the two narrow
-fixes, this context and the report), then — only if authorized — the normal PR
+fixes, the uncommitted D1–D3 follow-up, this context and both reports), then —
+only if authorized — commit, and the normal PR
 and merge-commit flow. Afterwards choose and plan the next product scope from the
 gap list above (Discovery → Plan → Implementation). Publishing/deploying is not
 implied by the audit.

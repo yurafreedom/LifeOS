@@ -228,6 +228,16 @@
               inset 0 1px 0 rgba(255,255,255,0.06);
   padding: 12px 16px;
 }
+/* The plate's padding and the tracked uppercase eyebrow make the greeting
+   wider than in dark/light; beside the 280px search it no longer fits the
+   main column at tablet widths (e.g. 768px), and the grid track then grows
+   past the viewport (document-level horizontal scroll). Let the search row
+   wrap under the plate instead, still right-aligned. (≤640px already
+   stacks the TopBar as a stretched column — see responsive.css.) */
+@media (min-width: 641px) {
+  [data-theme="paradise"] .tb { flex-wrap: wrap; }
+  [data-theme="paradise"] .tb-right { margin-left: auto; }
+}
 /* Text is white on any scene — the dark plate is the backing. */
 [data-theme="paradise"] .tb-eyebrow {
   color: rgba(255,255,255,0.72);

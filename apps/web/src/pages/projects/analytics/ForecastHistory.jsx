@@ -6,6 +6,9 @@ import { formatDateOnly, formatInstantDate } from '../../../analytics/projectAna
  * Forecast version history (server-acknowledged, recorded order) and, apart
  * from it, the Actual with its correction lineage. The Actual is never listed
  * as a version; a forecast is labelled as the user's own, never «выведено».
+ * An empty section is «not recorded» unless the server says the project's
+ * history was erased by the retention rule; that is never inferred from an
+ * empty array, and any record the server still returns is rendered as is.
  */
 
 function When({ instant, locale }) {
@@ -36,13 +39,14 @@ function VersionRow({ fact, previous, isFirst, isLatest, t, locale, narrow }) {
 export function ForecastHistory({ data, t, locale, narrow }) {
   const versions = data.forecast_versions;
   const actual = data.actual;
+  const erased = data.retention_history_deleted === true || data.state === 'history_deleted_by_retention';
   return <>
     <div className="aa-section-head">
       <h3 className="panel-title" id="pa-history">{t('aa_pj_history_title')}</h3>
       <span className="aa-quiet">{t('aa_pj_history_sub')}</span>
     </div>
     {versions.length === 0
-      ? <p className="aa-none">{t('aa_pj_no_versions')}</p>
+      ? <p className="aa-none">{t(erased ? 'aa_pj_no_versions_retention' : 'aa_pj_no_versions')}</p>
       : <ol className="aa-hist" aria-label={t('aa_pj_versions_group')}>
         {versions.map((fact, index) => <VersionRow key={fact.id} fact={fact} previous={versions[index - 1]}
           isFirst={index === 0} isLatest={index === versions.length - 1} t={t} locale={locale} narrow={narrow} />)}
@@ -71,7 +75,7 @@ export function ForecastHistory({ data, t, locale, narrow }) {
           <AAProvenance provenance={actual.provenance} narrow={narrow} />
         </li>
       </ol>
-      : <p className="aa-none">{t('aa_pj_actual_absent_long')}</p>}
+      : <p className="aa-none">{t(erased ? 'aa_pj_actual_absent_retention' : 'aa_pj_actual_absent_long')}</p>}
     {data.actual_count > 1 ? <p className="aa-note">{t('aa_pj_actual_many', data.actual_count)}</p> : null}
   </>;
 }

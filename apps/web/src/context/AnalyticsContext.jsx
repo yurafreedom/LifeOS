@@ -39,6 +39,9 @@ function AnalyticsProvider({ user, children }) {
   const [ready, setReady] = React.useState(false);
   const queueRef = React.useRef(null);
   const repositoryRef = React.useRef(null);
+  /* Only the most recent Finance read may write `finance`: an older read that
+     is aborted or settles late must not clear `loading` for a newer one. */
+  const financeRequestRef = React.useRef(0);
   const coordinatorRef = React.useRef(null);
 
   React.useEffect(() => {
@@ -172,13 +175,19 @@ function AnalyticsProvider({ user, children }) {
 
   async function loadFinance(period = currentPeriod(), signal) {
     if (!repositoryRef.current) return null;
+    const request = ++financeRequestRef.current;
+    const latest = () => request === financeRequestRef.current;
     setFinance(previous => ({ ...previous, loading: true, error: null }));
     try {
       const data = await repositoryRef.current.readFinanceMonth(period, 'Europe/Kyiv', signal);
-      setFinance({ data, loading: false, error: null });
+      if (latest()) setFinance({ data, loading: false, error: null });
       return data;
     } catch (error) {
-      if (error?.name !== 'AbortError') setFinance({ data: null, loading: false, error });
+      /* An aborted read (the page left mid-load) must not leave `loading` stuck:
+         a later cold entry would otherwise wait for a request that never ends. */
+      if (!latest()) throw error;
+      if (error?.name === 'AbortError') setFinance(previous => ({ ...previous, loading: false }));
+      else setFinance({ data: null, loading: false, error });
       throw error;
     }
   }

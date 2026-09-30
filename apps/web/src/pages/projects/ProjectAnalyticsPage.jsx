@@ -109,12 +109,21 @@ export function ProjectAnalyticsView({
   </div>;
 }
 
+/**
+ * A read belongs to the project it was made for. While another project's read is
+ * in flight, its predecessor's analytics (e.g. «history deleted») must not be
+ * shown under the new title; a refresh of the same project keeps its data.
+ */
+export function resultForProject(result, projectId) {
+  return result.projectId === projectId ? result : { error: null, data: null };
+}
+
 export default function ProjectAnalyticsPage() {
   const analytics = React.useContext(AnalyticsContext);
   const projects = React.useContext(LifeDataContext)?.state?.projects ?? [];
   const narrow = useNarrow();
   const [projectId, setProjectId] = React.useState(() => parseProjectAnalyticsHash(readHash()));
-  const [result, setResult] = React.useState({ error: null, data: null });
+  const [result, setResult] = React.useState({ projectId: null, error: null, data: null });
   const [pending, setPending] = React.useState(0);
   const project = projects.find(item => item.id === projectId) ?? null;
   const ready = Boolean(analytics?.ready);
@@ -141,15 +150,17 @@ export default function ProjectAnalyticsPage() {
   React.useEffect(() => {
     if (!ready || !project) return undefined;
     const controller = new window.AbortController();
-    setResult(previous => ({ ...previous, error: null }));
-    analytics.readProjectAnalytics(project.id, controller.signal)
-      .then(data => setResult({ error: null, data }))
+    const id = project.id;
+    setResult(previous => ({ ...resultForProject(previous, id), projectId: id, error: null }));
+    analytics.readProjectAnalytics(id, controller.signal)
+      .then(data => setResult({ projectId: id, error: null, data }))
       .catch(error => {
-        if (error?.name !== 'AbortError') setResult({ error, data: null });
+        if (error?.name !== 'AbortError') setResult({ projectId: id, error, data: null });
       });
     return () => controller.abort();
   }, [ready, project?.id, pending]);
 
-  return <ProjectAnalyticsView project={project} data={result.data} pending={pending} narrow={narrow}
-    error={unavailable ? new Error('Analytics is disabled.') : result.error} />;
+  const shown = resultForProject(result, project?.id ?? null);
+  return <ProjectAnalyticsView project={project} data={shown.data} pending={pending} narrow={narrow}
+    error={unavailable ? new Error('Analytics is disabled.') : shown.error} />;
 }
