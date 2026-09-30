@@ -1,0 +1,4 @@
+# Preserve this imported read-only design artifact byte-for-byte. The approved
+# source ends with an extra blank line; treating only this file as non-textual
+# keeps repository whitespace checks useful without rewriting the reference.
+design-references/jenkin/ui_kits/life-os/styles.css -diff

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet><script src="./ds-base.js"></script><script src="./jenkin-data.js"></script><script src="./jenkin-store.js"></script><link rel="stylesheet" href="./jenkin.css"></helmet>
+<section data-screen-label="Events" style="display:flex;flex-direction:column;gap:12px;min-width:0">
+<div class="jk-toolbar">
+<div style="display:inline-flex;border:1px solid var(--line-strong);border-radius:6px;overflow:hidden">
+<sc-for list="{{ scopes }}" as="s" hint-placeholder-count="3"><button class="jk-btn is-ghost is-sm" style="border-radius:0" aria-pressed="{{ s.sel }}" onClick="{{ s.pick }}">{{ s.label }}</button></sc-for>
+</div>
+<div class="jk-toolbar" style="gap:4px"><sc-for list="{{ types }}" as="ty" hint-placeholder-count="4"><button class="jk-btn is-ghost is-sm" aria-pressed="{{ ty.sel }}" onClick="{{ ty.pick }}" style="border:1px solid var(--line)">{{ ty.label }}<span class="jk-dd-count">{{ ty.n }}</span></button></sc-for></div>
+<span class="jk-spacer"></span>
+<button class="jk-btn is-primary" onClick="{{ newEvent }}"><span class="jk-ico" style="color:inherit">{{ icPlus }}</span>{{ t.ev_new }}</button>
+</div>
+<div class="jk-split">
+<div class="jk-mat" style="padding:6px 8px">
+<div style="display:flex;flex-direction:column">
+<sc-for list="{{ list }}" as="e" hint-placeholder-count="6"><button class="jk-row" style="grid-template-columns:52px minmax(0,1fr) auto" aria-pressed="{{ e.sel }}" onClick="{{ e.open }}"><span style="display:flex;flex-direction:column;gap:1px"><span class="jk-row-meta jk-mono" style="color:var(--fg1);font-weight:500">{{ e.day }}</span><span class="jk-row-meta jk-mono" style="font-size:12px">{{ e.time }}</span></span><span style="min-width:0;display:flex;flex-direction:column;gap:1px"><span class="jk-row-title">{{ e.title }}</span><span class="jk-row-meta" style="overflow:hidden;text-overflow:ellipsis">{{ e.where }}</span></span><span class="jk-tag is-kind">{{ e.kind }}</span></button></sc-for>
+<sc-if value="{{ empty }}" hint-placeholder-val="{{ false }}"><p class="jk-p jk-muted" style="padding:16px 8px">{{ t.ev_empty }}</p></sc-if>
+</div>
+</div>
+<div class="jk-mat" style="padding:16px;display:flex;flex-direction:column;gap:14px;min-width:0">
+<sc-if value="{{ viewing }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap">
+<div style="min-width:0"><div style="display:flex;gap:6px;flex-wrap:wrap"><span class="jk-tag is-kind">{{ ev.kind }}</span><sc-if value="{{ ev.fromInbox }}" hint-placeholder-val="{{ false }}"><span class="jk-tag is-proposed" title="{{ ev.sourceRaw }}">{{ t.from_inbox }}</span></sc-if></div><h2 class="jk-h2" style="margin-top:8px;overflow-wrap:anywhere">{{ ev.title }}</h2></div>
+<div class="jk-toolbar"><button class="jk-btn is-sm" onClick="{{ toCalendar }}"><span class="jk-ico" style="color:inherit">{{ icCal }}</span>{{ t.in_calendar }}</button><button class="jk-btn is-sm" onClick="{{ startEdit }}">{{ t.ev_edit }}</button></div>
+</div>
+<dl class="jk-kv" style="margin:0">
+<dt>{{ t.fl_start }}</dt><dd class="jk-mono">{{ ev.start }}</dd>
+<dt>{{ t.fl_end }}</dt><dd class="jk-mono">{{ ev.end }}</dd>
+<dt>{{ t.fl_tz }}</dt><dd class="jk-mono">{{ ev.tz }} <span class="jk-muted">· {{ ev.tzOff }}</span></dd>
+<dt>{{ t.fl_participants }}</dt><dd><div style="display:flex;gap:6px;flex-wrap:wrap"><sc-for list="{{ ev.participants }}" as="p" hint-placeholder-count="2"><span style="display:inline-flex;align-items:center;gap:6px"><span class="jk-avatar" style="width:20px;height:20px;font-size:11px">{{ p.i }}</span>{{ p.n }}</span></sc-for><span class="jk-muted">{{ ev.noParticipants }}</span></div></dd>
+<dt>{{ t.fl_venue }}</dt><dd><div style="display:flex;flex-direction:column;gap:8px">
+<sc-if value="{{ ev.hasVenue }}" hint-placeholder-val="{{ true }}"><span>{{ ev.venueName }}</span><span class="jk-muted">{{ ev.venueAddress }}</span></sc-if>
+<sc-if value="{{ ev.noVenue }}" hint-placeholder-val="{{ false }}"><span class="jk-muted" style="display:inline-flex;align-items:center;gap:6px"><span class="jk-ico">{{ icPin }}</span>{{ t.no_loc }}</span></sc-if>
+<div class="jk-toolbar">
+<a class="jk-btn is-sm" href="{{ ev.mapsHref }}" target="_blank" rel="noopener" aria-disabled="{{ ev.noVenueStr }}" onClick="{{ ev.mapsClick }}"><span class="jk-ico" style="color:inherit">{{ icExt }}</span>{{ t.open_maps }}</a>
+<button class="jk-btn is-sm {{ copiedCls }}" disabled="{{ ev.noVenue }}" onClick="{{ copyLoc }}"><span class="jk-ico" style="color:inherit">{{ copyIcon }}</span>{{ copyLabel }}</button>
+<sc-if value="{{ ev.noVenue }}" hint-placeholder-val="{{ false }}"><button class="jk-btn is-ghost is-sm" onClick="{{ startEdit }}">{{ t.add_loc }}</button></sc-if>
+</div>
+<sc-if value="{{ copyFailed }}" hint-placeholder-val="{{ false }}"><div style="display:flex;flex-direction:column;gap:4px"><span class="jk-err">{{ t.copy_failed }}</span><input class="jk-input jk-mono" style="font-size:12px" value="{{ ev.mapsHref }}" readOnly onFocus="{{ selectAll }}"></div></sc-if>
+</div></dd>
+<dt>{{ t.fl_notes }}</dt><dd class="jk-p" style="color:var(--fg1)">{{ ev.notes }}</dd>
+<dt>{{ t.fl_tasks }}</dt><dd><div style="display:flex;flex-direction:column"><sc-for list="{{ ev.tasks }}" as="k" hint-placeholder-count="1"><div class="jk-row" style="min-height:30px;padding:4px 0;cursor:default"><span class="jk-check"></span><span class="jk-row-title">{{ k.title }}</span><span class="jk-row-meta">{{ k.meta }}</span></div></sc-for><span class="jk-muted">{{ ev.noTasks }}</span></div></dd>
+</dl>
+</sc-if>
+<sc-if value="{{ editing }}" hint-placeholder-val="{{ false }}">
+<h2 class="jk-h2">{{ formTitle }}</h2>
+<div class="jk-cols is-2">
+<label style="grid-column:1 / -1"><span class="jk-label">{{ t.fl_title }}</span><input class="jk-input {{ errTitleCls }}" value="{{ f.title }}" onChange="{{ setTitle }}" placeholder="{{ t.fl_title }}"><sc-if value="{{ errTitle }}" hint-placeholder-val="{{ false }}"><span class="jk-err">{{ t.err_required }}</span></sc-if></label>
+<label><span class="jk-label">{{ t.fl_type }}</span><select class="jk-input" value="{{ f.type }}" onChange="{{ setType }}"><option value="meeting">{{ t.ev_meeting }}</option><option value="conference">{{ t.ev_conference }}</option><option value="trip">{{ t.ev_trip }}</option><option value="appointment">{{ t.ev_appointment }}</option></select></label>
+<label><span class="jk-label">{{ t.fl_tz }}</span><select class="jk-input" value="{{ f.tz }}" onChange="{{ setTz }}"><option>Europe/Kyiv</option><option>Europe/Warsaw</option><option>Europe/Berlin</option><option>Europe/London</option><option>America/New_York</option><option>UTC</option></select></label>
+<label><span class="jk-label">{{ t.fl_start }}</span><input class="jk-input jk-mono {{ errStartCls }}" type="datetime-local" value="{{ f.start }}" onChange="{{ setStart }}" placeholder="2026-10-02T10:00"><sc-if value="{{ errStart }}" hint-placeholder-val="{{ false }}"><span class="jk-err">{{ errStartMsg }}</span><div style="display:flex;gap:4px;margin-top:4px"><sc-for list="{{ startCands }}" as="c" hint-placeholder-count="0"><button class="jk-btn is-sm" aria-pressed="{{ c.sel }}" onClick="{{ c.pick }}">{{ c.label }}</button></sc-for></div></sc-if></label>
+<label><span class="jk-label">{{ t.fl_end }}</span><input class="jk-input jk-mono {{ errEndCls }}" type="datetime-local" value="{{ f.end }}" onChange="{{ setEnd }}" placeholder="2026-10-02T11:00"><sc-if value="{{ errEnd }}" hint-placeholder-val="{{ false }}"><span class="jk-err">{{ errEndMsg }}</span><div style="display:flex;gap:4px;margin-top:4px"><sc-for list="{{ endCands }}" as="c" hint-placeholder-count="0"><button class="jk-btn is-sm" aria-pressed="{{ c.sel }}" onClick="{{ c.pick }}">{{ c.label }}</button></sc-for></div></sc-if></label>
+<label style="grid-column:1 / -1"><span class="jk-label">{{ t.fl_participants }}</span><input class="jk-input" value="{{ f.participants }}" onChange="{{ setParticipants }}" placeholder="Максим, Олена"></label>
+<label><span class="jk-label">{{ t.fl_venue }}</span><input class="jk-input" value="{{ f.venueName }}" onChange="{{ setVenueName }}" placeholder="UNIT.City"></label>
+<label><span class="jk-label">&nbsp;</span><input class="jk-input" value="{{ f.venueAddress }}" onChange="{{ setVenueAddress }}" placeholder="ул. Дорогожицкая, 3, Киев"></label>
+<label style="grid-column:1 / -1"><span class="jk-label">{{ t.fl_notes }}</span><textarea class="jk-input" style="height:72px;padding:8px 10px;resize:vertical" value="{{ f.notes }}" onChange="{{ setNotes }}"></textarea></label>
+</div>
+<span class="jk-muted" style="font-size:12px">{{ tzHint }}</span>
+<div class="jk-toolbar"><button class="jk-btn is-primary" onClick="{{ save }}">{{ t.ev_save }}</button><button class="jk-btn is-ghost" onClick="{{ cancel }}">{{ t.ev_cancel }}</button><span class="jk-spacer"></span><sc-if value="{{ canDelete }}" hint-placeholder-val="{{ false }}"><button class="jk-btn is-ghost is-danger" onClick="{{ del }}">{{ t.ev_delete }}</button></sc-if></div>
+</sc-if>
+</div>
+</div>
+<div class="jk-annot jk-annot-box">
+<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><span class="jk-tag is-proposed">{{ t.tag_proposed }}</span><span class="jk-tag is-kind">{{ t.tag_model }}</span><span>событие — новая production-сущность (в текущем приложении её нет): title, start, end — мгновения UTC, timezone — зона, в которой введено время стены; participants[], venue{name,address}, notes, taskIds[], source{inboxId,raw}. задачи остаются задачами и лишь ссылаются на событие. «открыть в Google Maps» — обычная ссылка поиска по адресу, не интеграция и не API.</span></div>
+</div>
+<sc-if value="{{ toast }}" hint-placeholder-val="{{ false }}"><div class="jk-toast" role="status"><span class="jk-ico" style="color:var(--success)">{{ icCheck }}</span>{{ toastMsg }}<sc-if value="{{ toastUndo }}" hint-placeholder-val="{{ false }}"><button class="jk-btn is-ghost is-sm" onClick="{{ undo }}">{{ t.sc_undo }}</button></sc-if></div></sc-if>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;lang&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;ru&quot;,&quot;uk&quot;],&quot;default&quot;:&quot;ru&quot;,&quot;tsType&quot;:&quot;'ru'|'uk'&quot;},&quot;openId&quot;:{&quot;editor&quot;:null,&quot;default&quot;:null,&quot;tsType&quot;:&quot;string|null&quot;},&quot;onOpenDay&quot;:{&quot;editor&quot;:null,&quot;default&quot;:null,&quot;tsType&quot;:&quot;(d:Date)=&gt;void&quot;}}">
+class Component extends DCLogic {
+  state = { scope:'upcoming', type:null, sel: this.props.openId || 'e1', mode:'view', form:null, errors:{}, copied:false, copyFailed:false, toast:null, undoFn:null };
+  componentDidMount(){ this.unsub = window.JKStore && window.JKStore.subscribe(()=>this.forceUpdate()); }
+  componentWillUnmount(){ this.unsub && this.unsub(); clearTimeout(this._tt); clearTimeout(this._ct); }
+  componentDidUpdate(prev){ if (prev.openId!==this.props.openId && this.props.openId) this.setState({sel:this.props.openId, mode:'view', copied:false, copyFailed:false}); }
+  ic(name,size){ const JK=window.JK; return React.createElement('svg',{width:size||14,height:size||14,viewBox:'0 0 24 24',fill:'none',stroke:'currentColor',strokeWidth:1.5,strokeLinecap:'round',strokeLinejoin:'round',dangerouslySetInnerHTML:{__html:(JK&&JK.icon[name])||''}}); }
+  toast(msg, undoFn){ clearTimeout(this._tt); this.setState({toast:msg, undoFn:undoFn||null}); this._tt=setTimeout(()=>this.setState({toast:null, undoFn:null}),4000); }
+  iso(d){ const p=window.JK.pad; return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+'T'+p(d.getHours())+':'+p(d.getMinutes()); }
+  renderVals(){
+    const JK=window.JK, ST=window.JKStore; if(!JK||!ST) return {}; const lang=this.props.lang||'ru'; const t={}; for(const k in JK.S) t[k]=JK.S[k][lang==='uk'?1:0];
+    const TODAY=JK.TODAY; const L = v => v==null ? '' : (typeof v==='string' ? v : v[lang]);
+    const S=ST.get(); const all=S.events; const {scope,type,sel,mode,form,errors}=this.state;
+    const scopes=['upcoming','past','all'].map(id=>({id,label:t['ev_'+id],sel:String(scope===id),pick:()=>this.setState({scope:id})}));
+    const types=['meeting','conference','trip','appointment'].map(id=>({id,label:t['ev_'+id],n:String(all.filter(e=>e.type===id).length),sel:String(type===id),pick:()=>this.setState({type:type===id?null:id})}));
+    let list=all.filter(e=> scope==='all' || (scope==='upcoming' ? e.ew>=TODAY : e.ew<TODAY)).filter(e=>!type||e.type===type).sort((a,b)=>scope==='past'?b.start-a.start:a.start-b.start);
+    const rows=list.map(e=>({sel:String(e.id===sel), day:e.sw.getDate()+' '+JK.MONTHS_GEN[lang][e.sw.getMonth()].slice(0,3), time:JK.hm(e.sw), title:L(e.title), where:e.venue?L(e.venue.name):(e.participants.length?e.participants.join(', '):'—'), kind:t['ev_'+e.type], open:()=>this.setState({sel:e.id,mode:'view',copied:false,copyFailed:false})}));
+    const e = all.find(x=>x.id===sel) || all[0] || null;
+    const multi = e && !JK.sameDay(e.sw,e.ew);
+    const q = e && e.venue ? encodeURIComponent([L(e.venue.name),L(e.venue.address)].filter(Boolean).join(', ')) : '';
+    const mapsHref = e && e.venue ? 'https://www.google.com/maps/search/?api=1&query='+q : '#';
+    const ev = e ? { kind:t['ev_'+e.type], title:L(e.title), start:JK.fmtDate(e.sw,lang,true)+' · '+JK.hm(e.sw), end:(multi?JK.fmtDate(e.ew,lang,true)+' · ':'')+JK.hm(e.ew), tz:e.tz, tzOff:ST.tzLabel(e.start,e.tz),
+      fromInbox:!!e.source, sourceRaw:e.source?L(e.source.raw):'',
+      participants:e.participants.map(n=>({n,i:n[0]})), noParticipants:e.participants.length?'':'—', hasVenue:!!e.venue, noVenue:!e.venue, noVenueStr:String(!e.venue), venueName:e.venue?L(e.venue.name):'', venueAddress:e.venue?L(e.venue.address):'',
+      mapsHref, mapsClick: ev2=>{ if(!e.venue){ ev2.preventDefault(); this.toast(t.no_loc); } },
+      notes:L(e.notes)||'—', tasks:S.tasks.filter(k=>k.eventId===e.id).map(k=>({title:L(k.title), meta:k.due&&!k.noDue?JK.relDate(k.due,lang):t.no_due})), noTasks:S.tasks.some(k=>k.eventId===e.id)?'':'—' } : {};
+    const f = form || {};
+    const set = key => ev2 => this.setState(s=>({form:{...s.form,[key]:ev2.target.value, ...(key==='start'||key==='tz'?{startOffset:undefined}:{}), ...(key==='end'||key==='tz'?{endOffset:undefined}:{})}, errors:{...s.errors,[key]:undefined,[key+'Candidates']:undefined}}));
+    const startEdit = () => { if(!e) return; this.setState({mode:'edit', errors:{}, form:{id:e.id,title:L(e.title),type:e.type,tz:e.tz,start:this.iso(e.sw),end:this.iso(e.ew),participants:e.participants.join(', '),venueName:e.venue?L(e.venue.name):'',venueAddress:e.venue?L(e.venue.address):'',notes:L(e.notes)}}); };
+    const newEvent = () => { const s=new Date(TODAY); s.setHours(10,0); const en=new Date(s); en.setHours(11); this.setState({mode:'edit', errors:{}, form:{id:null,title:'',type:'meeting',tz:'Europe/Kyiv',start:this.iso(s),end:this.iso(en),participants:'',venueName:'',venueAddress:'',notes:''}}); };
+    const save = () => { const f=this.state.form; const b=ST.buildEvent(f); if(!b.ok){ this.setState({errors:b.errors}); return; }
+      if (f.id){ const before = all.find(x=>x.id===f.id); ST.updateEvent(f.id, b.rec); this.setState({mode:'view',form:null,errors:{}}); this.toast(t.ev_save+' · '+b.rec.title, ()=>ST.updateEvent(f.id, before)); }
+      else { const rec=ST.addEvent(b.rec); this.setState({sel:rec.id,mode:'view',form:null,errors:{}}); this.toast(t.ev_new+' · '+rec.title, ()=>{ ST.removeEvent(rec.id); this.setState({sel:null}); }); } };
+    const del = () => { const id=f.id; const before=all.find(x=>x.id===id); ST.removeEvent(id); this.setState({mode:'view',form:null,sel:null}); this.toast(t.ev_delete+' · '+L(before.title), ()=>{ ST.restoreEvent(before); this.setState({sel:id}); }); };
+    const copyLoc = async () => { if(!e||!e.venue) return; this.setState({copyFailed:false}); try { if(!navigator.clipboard||!navigator.clipboard.writeText) throw new Error('unavailable'); await navigator.clipboard.writeText(mapsHref); this.setState({copied:true}); clearTimeout(this._ct); this._ct=setTimeout(()=>this.setState({copied:false}),2000); } catch(_) { this.setState({copied:false, copyFailed:true}); } };
+    return { t, scopes, types, list:rows, empty:rows.length===0, viewing:mode==='view'&&!!e, editing:mode==='edit', ev, f, formTitle: f.id?t.ev_edit:t.ev_new, canDelete:!!f.id,
+      errTitle:!!errors.title, errTitleCls:errors.title?'is-error':'', errStart:!!errors.start, errStartCls:errors.start?'is-error':'', errEnd:!!errors.end, errEndCls:errors.end?'is-error':'', errEndMsg: errors.end==='before'?t.err_end:errors.end==='nonexistent'?t.err_dst_none:errors.end==='ambiguous'?t.err_dst_amb:t.err_date, errStartMsg: errors.start==='nonexistent'?t.err_dst_none:errors.start==='ambiguous'?t.err_dst_amb:t.err_date, startCands:(errors.startCandidates||[]).map(c=>({label:ST.fmtOff(c.offsetMin), sel:String(+f.startOffset===c.offsetMin), pick:()=>this.setState(s=>({form:{...s.form,startOffset:c.offsetMin}}))})), endCands:(errors.endCandidates||[]).map(c=>({label:ST.fmtOff(c.offsetMin), sel:String(+f.endOffset===c.offsetMin), pick:()=>this.setState(s=>({form:{...s.form,endOffset:c.offsetMin}}))})),
+      tzHint: lang==='uk' ? 'час стіни вводиться у вибраній зоні, перевіряється зворотним перетворенням і зберігається як мить UTC. неіснуючий час (перехід на літній) відхиляється; для повторюваного часу (перехід на зимовий) потрібно обрати зміщення.' : 'время стены вводится в выбранной зоне, проверяется обратным преобразованием и хранится как момент UTC. несуществующее время (переход на летнее) отклоняется; для повторяющегося времени (переход на зимнее) нужно выбрать смещение.',
+      setTitle:set('title'), setType:set('type'), setTz:set('tz'), setStart:set('start'), setEnd:set('end'), setParticipants:set('participants'), setVenueName:set('venueName'), setVenueAddress:set('venueAddress'), setNotes:set('notes'),
+      startEdit, newEvent, save, cancel:()=>this.setState({mode:'view',form:null,errors:{}}), del,
+      copyLoc, copiedCls:this.state.copied?'is-on':'', copyLabel:this.state.copied?t.copied:t.copy_loc, copyIcon:this.ic(this.state.copied?'check':'copy',13), copyFailed:this.state.copyFailed, selectAll:ev2=>ev2.target.select(),
+      toCalendar:()=>this.props.onOpenDay && e && this.props.onOpenDay(new Date(e.sw)),
+      toast:!!this.state.toast, toastMsg:this.state.toast, toastUndo:!!this.state.undoFn, undo:()=>{ const fn=this.state.undoFn; if(fn) fn(); this.setState({toast:null,undoFn:null}); },
+      icPlus:this.ic('plus',14), icCal:this.ic('calendar',13), icPin:this.ic('pin',13), icExt:this.ic('ext',13), icCheck:this.ic('check',14) };
+  }
+}
+</script>
+</body>
+</html>

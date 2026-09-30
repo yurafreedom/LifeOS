@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<!-- @template name="JENKIN prototype" description="Interactive prototype of the JENKIN planner (ex-LifeOS): nested tile calendar with two layouts, events, inbox + smart capture, access screens, material and type spec. RU/UK, dark/light/paradise." -->
+<helmet><meta name="ext-resource-dependency" content="./island-day.jpg" data-resource-id="jk-scene"><script src="./ds-base.js"></script><script src="./jenkin-data.js"></script><script src="./jenkin-store.js"></script><link rel="stylesheet" href="./jenkin.css"><style>body{margin:0}</style><template id="__bundler_thumbnail" data-bg-color="#0E1117"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" fill="#0E1117"/><text x="100" y="118" text-anchor="middle" font-family="Onest, system-ui, sans-serif" font-weight="900" font-size="44" letter-spacing="-2" fill="#F5F5F7">JK</text></svg></template></helmet>
+<div class="jk-frame {{ annotClass }} {{ grainClass }}" data-vp="{{ vp }}" data-reduced="{{ reducedAttr }}" data-screen-label="JENKIN"><div class="jk-app">
+<aside class="jk-sb">
+<div style="display:flex;align-items:center;justify-content:space-between;padding:4px 6px 14px;min-height:40px">
+<button class="jk-wordmark" style="background:none;border:0;padding:4px 4px;cursor:pointer;display:inline-flex;align-items:baseline;gap:6px" onClick="{{ goHome }}">JENKIN<span class="jk-eyebrow" style="font-size:12px;letter-spacing:.1em;color:var(--fg4)">0.6</span></button>
+<span class="jk-annot" title="{{ t.tag_proposed }} · LifeOS → JENKIN" style="width:6px;height:6px;border-radius:999px;background:var(--primary);flex:none"></span>
+</div>
+<nav style="flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:1px">
+<sc-for list="{{ groups }}" as="g" hint-placeholder-count="4">
+<div class="jk-eyebrow" style="padding:12px 10px 4px;font-size:12px;letter-spacing:.12em">{{ g.label }}</div>
+<sc-for list="{{ g.items }}" as="it" hint-placeholder-count="3">
+<button class="jk-nav-item" aria-current="{{ it.current }}" onClick="{{ it.go }}"><span class="jk-ico">{{ it.icon }}</span><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ it.label }}</span><sc-if value="{{ it.isFuture }}" hint-placeholder-val="{{ false }}"><span class="jk-annot" title="{{ t.tag_future }}" style="width:6px;height:6px;border-radius:999px;border:1px dashed var(--fg3);flex:none"></span></sc-if><sc-if value="{{ it.isNew }}" hint-placeholder-val="{{ false }}"><span class="jk-annot" title="{{ t.tag_proposed }}" style="width:6px;height:6px;border-radius:999px;background:var(--primary);flex:none"></span></sc-if></button>
+</sc-for>
+</sc-for>
+</nav>
+<div style="margin-top:auto;padding-top:8px;border-top:1px solid var(--border)">
+<div class="jk-acc" role="button" tabindex="0" aria-label="account">
+<span class="jk-avatar">Ю</span>
+<div style="min-width:0"><div class="jk-acc-name">Юра</div><div class="jk-acc-email" title="{{ email }}">{{ email }}</div></div>
+<div class="jk-acc-sync"><span class="jk-dot"></span><span class="jk-warm jk-mono">{{ t.synced }} · 14:32</span></div>
+</div>
+<div class="jk-annot" style="padding:6px 10px 0;font-size:12px;color:var(--fg4);line-height:1.4">аккаунт: имя · почта отдельной строкой · статус синхронизации отдельно, тёплый бежевый ≥ 12 px</div>
+</div>
+</aside>
+<main class="jk-main">
+<header style="display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:6px 0 20px">
+<div style="min-width:0"><div class="jk-eyebrow">{{ eyebrow }}</div><h1 class="jk-title">{{ routeLabel }}</h1></div>
+<div class="jk-toolbar" style="justify-content:flex-end">
+<div class="jk-annot jk-hide-m" style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><span class="jk-tag is-existing">{{ t.tag_existing }}</span><span class="jk-tag is-proposed">{{ t.tag_proposed }}</span><span class="jk-tag is-future">{{ t.tag_future }}</span></div>
+<div style="display:inline-flex;border:1px solid var(--line-strong);border-radius:6px;overflow:hidden">
+<button class="jk-btn is-ghost is-sm" style="border-radius:0" aria-pressed="{{ isRu }}" onClick="{{ setRu }}">RU</button><button class="jk-btn is-ghost is-sm" style="border-radius:0;border-left:1px solid var(--line)" aria-pressed="{{ isUk }}" onClick="{{ setUk }}">UK</button>
+</div>
+<div style="display:inline-flex;border:1px solid var(--line-strong);border-radius:6px;overflow:hidden" class="jk-hide-m">
+<button class="jk-btn is-ghost is-sm" style="border-radius:0" aria-pressed="{{ isDark }}" onClick="{{ setDark }}">dark</button><button class="jk-btn is-ghost is-sm" style="border-radius:0;border-left:1px solid var(--line)" aria-pressed="{{ isLight }}" onClick="{{ setLight }}">light</button><button class="jk-btn is-ghost is-sm" style="border-radius:0;border-left:1px solid var(--line)" aria-pressed="{{ isParadise }}" onClick="{{ setParadise }}">paradise</button>
+</div>
+<button class="jk-btn is-sm" aria-pressed="{{ annot }}" onClick="{{ toggleAnnot }}">{{ t.sp_annot }}</button>
+<label class="jk-hide-m" style="display:inline-flex;align-items:center;gap:8px;height:30px;padding:0 10px;border:1px solid var(--line-strong);border-radius:var(--r-sm);background:var(--surface);color:var(--fg3);width:200px"><span class="jk-ico">{{ icSearch }}</span><input class="jk-sr-input" placeholder="{{ t.search }}" style="flex:1;min-width:0;background:transparent;border:0;outline:0;color:var(--fg1);font:inherit;font-size:13px"><span class="jk-mono" style="font-size:12px;padding:1px 5px;border-radius:4px;background:var(--kbd-bg)">⌘K</span></label>
+<button class="jk-btn is-primary is-icon" aria-label="{{ t.add }}" onClick="{{ goInbox }}">{{ icPlus }}</button>
+</div>
+</header>
+<sc-if value="{{ isCalendar }}" hint-placeholder-val="{{ true }}"><dc-import name="JenkinCalendar" lang="{{ lang }}" layout="{{ layout }}" focus-date="{{ focusDate }}" on-open-event="{{ openEvent }}" hint-size="100%,700px"></dc-import></sc-if>
+<sc-if value="{{ isEvents }}" hint-placeholder-val="{{ false }}"><dc-import name="JenkinEvents" lang="{{ lang }}" open-id="{{ eventId }}" on-open-day="{{ openDay }}" hint-size="100%,600px"></dc-import></sc-if>
+<sc-if value="{{ isInbox }}" hint-placeholder-val="{{ false }}"><dc-import name="JenkinInbox" lang="{{ lang }}" on-open="{{ openItem }}" hint-size="100%,600px"></dc-import></sc-if>
+<sc-if value="{{ isTasks }}" hint-placeholder-val="{{ false }}"><dc-import name="JenkinTasks" lang="{{ lang }}" highlight-id="{{ taskId }}" hint-size="100%,600px"></dc-import></sc-if>
+<sc-if value="{{ isAccess }}" hint-placeholder-val="{{ false }}"><dc-import name="JenkinAccess" lang="{{ lang }}" section="access" hint-size="100%,600px"></dc-import></sc-if>
+<sc-if value="{{ isDocs }}" hint-placeholder-val="{{ false }}"><dc-import name="JenkinAccess" lang="{{ lang }}" section="docs" hint-size="100%,600px"></dc-import></sc-if>
+<sc-if value="{{ isPhone }}" hint-placeholder-val="{{ false }}"><dc-import name="JenkinAccess" lang="{{ lang }}" section="phone" hint-size="100%,600px"></dc-import></sc-if>
+<sc-if value="{{ isSpec }}" hint-placeholder-val="{{ false }}"><dc-import name="JenkinSpec" lang="{{ lang }}" hint-size="100%,900px"></dc-import></sc-if>
+<nav class="jk-bottomnav" aria-label="mobile">
+<sc-for list="{{ bottom }}" as="b" hint-placeholder-count="5"><button class="jk-bn" aria-current="{{ b.current }}" onClick="{{ b.go }}"><span class="jk-ico" style="color:inherit">{{ b.icon }}</span><span style="font-size:12px">{{ b.label }}</span></button></sc-for>
+</nav>
+</main>
+</div></div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;dark&quot;,&quot;light&quot;,&quot;paradise&quot;],&quot;default&quot;:&quot;dark&quot;,&quot;tsType&quot;:&quot;'dark'|'light'|'paradise'&quot;,&quot;section&quot;:&quot;Оформление&quot;},&quot;lang&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;ru&quot;,&quot;uk&quot;],&quot;default&quot;:&quot;ru&quot;,&quot;tsType&quot;:&quot;'ru'|'uk'&quot;,&quot;section&quot;:&quot;Оформление&quot;},&quot;grain&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Оформление&quot;},&quot;layout&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;A&quot;,&quot;B&quot;],&quot;default&quot;:&quot;A&quot;,&quot;tsType&quot;:&quot;'A'|'B'&quot;,&quot;section&quot;:&quot;Календарь&quot;},&quot;reducedMotion&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Календарь&quot;},&quot;viewport&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;auto&quot;,&quot;1440&quot;,&quot;1024&quot;,&quot;768&quot;,&quot;390&quot;,&quot;320&quot;],&quot;default&quot;:&quot;auto&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Адаптив&quot;},&quot;annotations&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Аннотации&quot;}}">
+class Component extends DCLogic {
+  state = { route: 'calendar', lang: this.props.lang || 'ru', theme: this.props.theme || 'dark', annot: this.props.annotations ?? true, focusDate: null, eventId: null, taskId: null };
+  componentDidMount(){ this.applyTheme(); }
+  componentDidUpdate(prev){
+    if (prev.lang !== this.props.lang && this.props.lang) this.setState({lang:this.props.lang});
+    if (prev.theme !== this.props.theme && this.props.theme) this.setState({theme:this.props.theme});
+    if (prev.annotations !== this.props.annotations) this.setState({annot: !!this.props.annotations});
+    this.applyTheme();
+  }
+  applyTheme(){
+    const h = document.documentElement, th = this.state.theme;
+    if (h.dataset.theme === th && h.dataset.jkApplied) return;
+    h.dataset.theme = th; h.dataset.scene = 'day'; h.dataset.jkApplied = '1';
+    h.style.colorScheme = th === 'dark' ? 'dark' : 'light';
+    const scene = (window.__resources && window.__resources['jk-scene']) || './island-day.jpg';
+    h.style.setProperty('--jk-scene', 'url("' + scene + '")');
+    document.body.style.background = th === 'paradise' ? 'url("' + scene + '") center / cover fixed #0b1320' : '';
+  }
+  ic(name, size){ const JK = window.JK; if(!JK) return null; return React.createElement('svg',{width:size||14,height:size||14,viewBox:'0 0 24 24',fill:'none',stroke:'currentColor',strokeWidth:1.5,strokeLinecap:'round',strokeLinejoin:'round',dangerouslySetInnerHTML:{__html:JK.icon[name]||''}}); }
+  go(route){ this.setState({route, focusDate:null, eventId:null, taskId:null}); }
+  renderVals(){
+    const JK = window.JK; const lang = this.state.lang; const T = k => JK ? JK.T(lang,k) : k;
+    const t = {}; if (JK) for (const k in JK.S) t[k] = JK.S[k][lang==='uk'?1:0];
+    const r = this.state.route;
+    const def = [
+      {label:T('grp_proto'), items:[['calendar','nav_calendar','calendar','existing'],['events','nav_events','events','new'],['inbox','nav_inbox','inbox','new'],['tasks','nav_tasks','tasks','existing']]},
+      {label:T('grp_account'), items:[['access','nav_access','lock','new']]},
+      {label:T('grp_future'), items:[['docs','nav_docs','file','future'],['phone','nav_phone','phone','future']]},
+      {label:T('grp_spec'), items:[['spec','nav_spec','layers','new']]},
+    ];
+    const mk = ([id,key,icon,tag]) => ({id, label:T(key), icon:this.ic(icon,14), current: r===id ? 'page' : undefined, go:()=>this.go(id), isFuture: tag==='future', isNew: tag==='new'});
+    const groups = def.map(g => ({label:g.label, items:g.items.map(mk)}));
+    const all = groups.flatMap(g=>g.items); const cur = all.find(i=>i.id===r) || all[0];
+    const bottom = ['calendar','events','inbox','tasks','spec'].map(id => { const i = all.find(x=>x.id===id); return {...i, label: id==='spec' ? T('grp_spec') : i.label, icon:this.ic(def.flatMap(g=>g.items).find(x=>x[0]===id)[2],18)}; });
+    const eyebrow = {calendar:'jenkin · '+T('tag_existing')+' → '+T('tag_proposed'), events:'jenkin · '+T('tag_proposed'), inbox:'jenkin · '+T('tag_proposed'), tasks:'jenkin · '+T('tag_visual'), access:'jenkin · '+T('tag_proposed'), docs:'jenkin · '+T('tag_future'), phone:'jenkin · '+T('tag_future'), spec:'jenkin · '+T('sp_annot')}[r];
+    const setTheme = th => () => this.setState({theme:th});
+    return {
+      t, lang, groups, bottom, routeLabel: cur.label, eyebrow,
+      email: 'yura.long.email.address.example@gmail.com',
+      vp: (this.props.viewport && this.props.viewport!=='auto') ? this.props.viewport : undefined,
+      reducedAttr: this.props.reducedMotion ? '1' : '0',
+      annot: this.state.annot ? 'true' : 'false', annotClass: this.state.annot ? 'show-annot' : '', grainClass: this.props.grain ? 'jk-grain' : '',
+      toggleAnnot: () => this.setState(s=>({annot:!s.annot})),
+      layout: this.props.layout || 'A',
+      focusDate: this.state.focusDate, eventId: this.state.eventId, taskId: this.state.taskId,
+      isRu: lang==='ru'?'true':'false', isUk: lang==='uk'?'true':'false', setRu:()=>this.setState({lang:'ru'}), setUk:()=>this.setState({lang:'uk'}),
+      isDark: String(this.state.theme==='dark'), isLight: String(this.state.theme==='light'), isParadise: String(this.state.theme==='paradise'),
+      setDark: setTheme('dark'), setLight: setTheme('light'), setParadise: setTheme('paradise'),
+      isCalendar: r==='calendar', isEvents: r==='events', isInbox: r==='inbox', isTasks: r==='tasks', isAccess: r==='access', isDocs: r==='docs', isPhone: r==='phone', isSpec: r==='spec',
+      goHome: () => this.go('calendar'), goInbox: () => this.go('inbox'),
+      openDay: (date) => this.setState({route:'calendar', focusDate: date}),
+      openEvent: (id) => this.setState({route:'events', eventId: id}),
+      openItem: (kind, id) => this.setState(kind==='event' ? {route:'events', eventId:id} : {route:'tasks', taskId:id}),
+      icSearch: this.ic('search',14), icPlus: this.ic('plus',16),
+    };
+  }
+}
+</script>
+</body>
+</html>

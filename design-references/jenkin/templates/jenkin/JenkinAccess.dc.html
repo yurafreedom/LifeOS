@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet><script src="./ds-base.js"></script><script src="./jenkin-data.js"></script><link rel="stylesheet" href="./jenkin.css"></helmet>
+<section data-screen-label="Access" style="display:flex;flex-direction:column;gap:16px;min-width:0">
+<sc-if value="{{ isAccess }}" hint-placeholder-val="{{ true }}">
+<div class="jk-toolbar"><span class="jk-eyebrow">{{ flowLabel }}</span><span class="jk-tag is-future jk-annot">{{ simLabel }}</span><span class="jk-spacer"></span><sc-for list="{{ steps }}" as="s" hint-placeholder-count="6"><button class="jk-btn is-ghost is-sm" aria-pressed="{{ s.sel }}" onClick="{{ s.go }}">{{ s.label }}</button></sc-for></div>
+<div class="jk-cols is-3" style="align-items:start">
+<div class="jk-mat is-gloss" style="padding:22px 20px;display:flex;flex-direction:column;gap:14px;min-height:380px">
+<div style="display:flex;align-items:center;justify-content:space-between"><span class="jk-wordmark">JENKIN</span><span class="jk-tag is-proposed jk-annot">{{ t.tag_proposed }}</span></div>
+<sc-if value="{{ isLogin }}" hint-placeholder-val="{{ true }}">
+<h2 class="jk-h2">{{ t.ac_login }}</h2>
+<label><span class="jk-label">{{ t.ac_email }}</span><input class="jk-input" type="email" value="{{ email }}" onChange="{{ setEmail }}" autoComplete="username"></label>
+<label><span class="jk-label">{{ t.ac_password }}</span><input class="jk-input {{ pwErr }}" type="password" value="{{ pw }}" onChange="{{ setPw }}" autoComplete="current-password"><sc-if value="{{ pwErrB }}" hint-placeholder-val="{{ false }}"><span style="display:block;color:var(--danger);font-size:12px;margin-top:4px">{{ pwErrMsg }}</span></sc-if></label>
+<button class="jk-btn is-primary is-lg" onClick="{{ signIn }}">{{ t.ac_signin }}</button>
+<button class="jk-btn is-ghost is-sm" style="align-self:flex-start" onClick="{{ goForgot }}">{{ t.ac_forgot }}</button>
+<div style="display:flex;align-items:center;gap:10px;color:var(--fg4);font-size:12px"><span style="flex:1;height:1px;background:var(--line)"></span>{{ t.ac_or }}<span style="flex:1;height:1px;background:var(--line)"></span></div>
+<button class="jk-btn is-lg" onClick="{{ goPasskey }}"><span class="jk-ico" style="color:inherit">{{ icFinger }}</span>{{ t.ac_passkey }}</button>
+</sc-if>
+<sc-if value="{{ isForgot }}" hint-placeholder-val="{{ false }}">
+<h2 class="jk-h2">{{ t.ac_forgot_t }}</h2><p class="jk-p">{{ t.ac_forgot_d }}</p>
+<label><span class="jk-label">{{ t.ac_email }}</span><input class="jk-input" type="email" value="{{ email }}" onChange="{{ setEmail }}"></label>
+<button class="jk-btn is-primary is-lg" onClick="{{ goSent }}">{{ t.ac_send }}</button><button class="jk-btn is-ghost is-sm" style="align-self:flex-start" onClick="{{ goLogin }}">{{ t.ac_back }}</button>
+</sc-if>
+<sc-if value="{{ isSent }}" hint-placeholder-val="{{ false }}">
+<span class="jk-ico" style="color:var(--success)">{{ icMail }}</span><h2 class="jk-h2">{{ t.ac_sent_t }}</h2><p class="jk-p">{{ t.ac_sent_d }}</p><p class="jk-mono jk-muted" style="margin:0;font-size:13px">{{ email }}</p>
+<button class="jk-btn is-lg" disabled="{{ resendLocked }}" onClick="{{ resend }}">{{ resendLabel }}</button>
+<button class="jk-btn is-ghost is-sm" style="align-self:flex-start" onClick="{{ goExpired }}">→ {{ t.ac_expired_t }} (demo)</button>
+</sc-if>
+<sc-if value="{{ isExpired }}" hint-placeholder-val="{{ false }}">
+<span class="jk-ico" style="color:var(--danger)">{{ icAlert }}</span><h2 class="jk-h2">{{ t.ac_expired_t }}</h2><p class="jk-p">{{ t.ac_expired_d }}</p>
+<button class="jk-btn is-primary is-lg" onClick="{{ goSent }}">{{ t.ac_new_link }}</button><button class="jk-btn is-ghost is-sm" style="align-self:flex-start" onClick="{{ goReset }}">→ {{ t.ac_reset_t }} (demo)</button>
+</sc-if>
+<sc-if value="{{ isReset }}" hint-placeholder-val="{{ false }}">
+<h2 class="jk-h2">{{ t.ac_reset_t }}</h2><p class="jk-p">{{ t.ac_reset_d }}</p>
+<label><span class="jk-label">{{ t.ac_reset_t }}</span><input class="jk-input" type="password" value="{{ np1 }}" onChange="{{ setNp1 }}" autoComplete="new-password"></label>
+<div class="jk-strength {{ strengthCls }}" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+<label><span class="jk-label">{{ t.ac_repeat }}</span><input class="jk-input {{ npErr }}" type="password" value="{{ np2 }}" onChange="{{ setNp2 }}" autoComplete="new-password"><sc-if value="{{ npErrB }}" hint-placeholder-val="{{ false }}"><span style="display:block;color:var(--danger);font-size:12px;margin-top:4px">{{ npErrMsg }}</span></sc-if></label>
+<button class="jk-btn is-primary is-lg" onClick="{{ setPassword }}">{{ t.ac_set }}</button>
+</sc-if>
+<sc-if value="{{ isPasskey }}" hint-placeholder-val="{{ false }}">
+<span class="jk-ico" style="color:var(--primary)">{{ icFingerLg }}</span><h2 class="jk-h2">{{ t.ac_pk_t }}</h2><p class="jk-p">{{ t.ac_pk_d }}</p>
+<button class="jk-btn is-primary is-lg" onClick="{{ signIn }}">{{ t.ac_pk_use }}</button><button class="jk-btn is-ghost is-sm" style="align-self:flex-start" onClick="{{ goLogin }}">{{ t.ac_back }}</button>
+</sc-if>
+<sc-if value="{{ isDone }}" hint-placeholder-val="{{ false }}">
+<span class="jk-ico" style="color:var(--success)">{{ icCheckLg }}</span><h2 class="jk-h2">{{ doneTitle }}</h2><p class="jk-p jk-muted">{{ email }}</p><button class="jk-btn is-ghost is-sm" style="align-self:flex-start" onClick="{{ goLogin }}">{{ t.ac_back }}</button>
+</sc-if>
+</div>
+<div style="display:flex;flex-direction:column;gap:14px">
+<div class="jk-mat" style="padding:16px;display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:center;gap:8px"><span class="jk-ico" style="color:var(--primary)">{{ icFinger }}</span><h3 class="jk-h3">{{ t.ac_pk_t }}</h3><span class="jk-tag is-proposed jk-annot">{{ t.tag_proposed }}</span></div>
+<p class="jk-p">{{ t.ac_pk_d }}</p>
+<div class="jk-row" style="grid-template-columns:minmax(0,1fr) auto;cursor:default"><span style="display:flex;flex-direction:column"><span class="jk-row-title">MacBook · Touch ID</span><span class="jk-row-meta">{{ t.ac_pk_added }}</span></span><button class="jk-btn is-ghost is-sm is-danger">{{ t.ev_delete }}</button></div>
+<button class="jk-btn" style="align-self:flex-start"><span class="jk-ico" style="color:inherit">{{ icPlus }}</span>{{ t.add }} passkey</button>
+</div>
+<div class="jk-mat" style="padding:16px;display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:center;gap:8px"><span class="jk-ico" style="color:var(--fg2)">{{ icKey }}</span><h3 class="jk-h3">{{ t.ac_rc_t }}</h3><span class="jk-tag is-proposed jk-annot">{{ t.tag_proposed }}</span></div>
+<p class="jk-p">{{ t.ac_rc_d }}</p>
+<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 12px"><sc-for list="{{ codes }}" as="c" hint-placeholder-count="8"><span class="jk-mono {{ c.cls }}" style="font-size:13px;color:var(--fg1)">{{ c.code }}</span></sc-for></div>
+<div class="jk-toolbar"><span class="jk-muted" style="font-size:12px">{{ t.ac_rc_used }}</span><span class="jk-spacer"></span><button class="jk-btn is-sm" onClick="{{ regen }}">{{ t.ac_rc_gen }}</button><button class="jk-btn is-ghost is-sm">{{ t.ac_rc_dl }}</button></div>
+</div>
+</div>
+<div style="display:flex;flex-direction:column;gap:14px">
+<div class="jk-eyebrow">{{ t.grp_future }}</div>
+<sc-for list="{{ future }}" as="f" hint-placeholder-count="3">
+<div class="jk-mat" style="padding:14px 16px;display:flex;flex-direction:column;gap:8px;border-style:dashed;background-image:none">
+<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><h3 class="jk-h3">{{ f.title }}</h3><span class="jk-tag is-future">{{ t.tag_future }}</span><span class="jk-tag is-kind">{{ t.tag_integration }}</span></div>
+<p class="jk-p">{{ f.desc }}</p>
+<button class="jk-btn is-sm" disabled="{{ true }}" style="align-self:flex-start">{{ f.cta }}</button>
+<span style="font-size:12px;color:var(--fg3)">{{ t.fu_disclaimer }}</span>
+</div>
+</sc-for>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{ isDocs }}" hint-placeholder-val="{{ false }}">
+<div class="jk-toolbar"><span class="jk-tag is-future">{{ t.tag_future }}</span><span class="jk-tag is-kind">{{ t.tag_model }}</span><span class="jk-p">{{ t.fu_docs_d }}</span></div>
+<div class="jk-cols is-3">
+<sc-for list="{{ docs }}" as="d" hint-placeholder-count="6"><div class="jk-mat" style="padding:14px 16px;display:flex;flex-direction:column;gap:8px;min-height:120px"><div style="display:flex;align-items:center;gap:8px"><span class="jk-ico">{{ icFile }}</span><span class="jk-row-title">{{ d.title }}</span></div><span class="jk-row-meta {{ d.cls }}">{{ d.meta }}</span><span class="jk-muted" style="font-size:12px;margin-top:auto">{{ d.where }}</span></div></sc-for>
+</div>
+<div class="jk-annot-box" style="border-style:solid"><span>{{ docsNote }}</span></div>
+</sc-if>
+<sc-if value="{{ isPhone }}" hint-placeholder-val="{{ false }}">
+<div class="jk-toolbar"><span class="jk-tag is-future">{{ t.tag_future }}</span><span class="jk-p">{{ t.fu_phone_d }}</span></div>
+<div class="jk-split">
+<div class="jk-mat" style="padding:8px 10px">
+<sc-for list="{{ phone }}" as="s" hint-placeholder-count="8"><button class="jk-row {{ s.cls }}" onClick="{{ s.toggle }}"><span class="jk-check">{{ s.check }}</span><span style="display:flex;flex-direction:column;min-width:0"><span class="jk-row-title">{{ s.title }}</span><span class="jk-row-meta" style="white-space:normal">{{ s.hint }}</span></span><span class="jk-tag is-kind">{{ s.tag }}</span></button></sc-for>
+</div>
+<div class="jk-annot-box" style="border-style:solid"><span class="jk-eyebrow" style="font-size:12px">{{ phoneProgress }}</span><span>{{ phoneNote }}</span></div>
+</div>
+</sc-if>
+<sc-if value="{{ toast }}" hint-placeholder-val="{{ false }}"><div class="jk-toast" role="status"><span class="jk-ico" style="color:var(--success)">{{ icCheck }}</span>{{ toastMsg }}</div></sc-if>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;lang&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;ru&quot;,&quot;uk&quot;],&quot;default&quot;:&quot;ru&quot;,&quot;tsType&quot;:&quot;'ru'|'uk'&quot;},&quot;section&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;access&quot;,&quot;docs&quot;,&quot;phone&quot;],&quot;default&quot;:&quot;access&quot;,&quot;tsType&quot;:&quot;'access'|'docs'|'phone'&quot;}}">
+class Component extends DCLogic {
+  state = { step:'login', email:'yura.long.email.address.example@gmail.com', pw:'', pwErr:false, np1:'', np2:'', npErr:false, resendLocked:false, toast:null, done:null, codesSeed:1, phoneDone:{} };
+  ic(name,size){ const JK=window.JK; return React.createElement('svg',{width:size||14,height:size||14,viewBox:'0 0 24 24',fill:'none',stroke:'currentColor',strokeWidth:1.5,strokeLinecap:'round',strokeLinejoin:'round',dangerouslySetInnerHTML:{__html:(JK&&JK.icon[name])||''}}); }
+  toast(msg){ clearTimeout(this._tt); this.setState({toast:msg}); this._tt=setTimeout(()=>this.setState({toast:null}),2200); }
+  renderVals(){
+    const JK=window.JK; if(!JK) return {}; const lang=this.props.lang||'ru'; const uk=lang==='uk'; const t={}; for(const k in JK.S) t[k]=JK.S[k][uk?1:0];
+    const sec=this.props.section||'access'; const st=this.state.step; const go=s=>()=>this.setState({step:s,pwErr:false,npErr:false});
+    const steps=[['login',t.ac_login],['forgot',t.ac_forgot_t],['sent',t.ac_sent_t],['expired',t.ac_expired_t],['reset',t.ac_reset_t],['passkey',t.ac_pk_t]].map(([id,label])=>({label,sel:String(st===id),go:go(id)}));
+    const strengthCls = (()=>{ const n=this.state.np1.length; return 'is-'+(n>=16?4:n>=12?3:n>=8?2:n>0?1:0); })();
+    const rnd=(i)=>{ let x=(this.state.codesSeed*9301+i*49297)%233280; const s=x.toString(36).toUpperCase().padStart(4,'X').slice(0,4); const y=((x*7919)%233280).toString(36).toUpperCase().padStart(4,'Q').slice(0,4); return s+'-'+y; };
+    const codes=Array.from({length:8},(_,i)=>({code:rnd(i), cls:i<2&&this.state.codesSeed===1?'is-used':''}));
+    const future=[
+      {title:t.fu_bankid, desc: uk?'вхід через банк як другий фактор. потребує договору з провайдером BankID НБУ і серверної частини.':'вход через банк как второй фактор. требует договора с провайдером BankID НБУ и серверной части.', cta:uk?'увійти через BankID':'войти через BankID'},
+      {title:t.fu_diia, desc: uk?'підпис незворотних дій (видалення акаунта, експорт усіх даних) через Дія.Підпис. лише концепт екрана.':'подпись необратимых действий (удаление аккаунта, экспорт всех данных) через Дія.Підпис. только концепт экрана.', cta:uk?'підписати через Дія':'подписать через Дія'},
+      {title:t.fu_identity, desc: uk?'відновлення доступу за підтвердженою особою, якщо втрачено і пароль, і passkey, і коди. потребує юридичного та безпекового рішення.':'восстановление доступа по подтверждённой личности, если потеряны и пароль, и passkey, и коды. требует юридического и безопасностного решения.', cta:uk?'запросити відновлення':'запросить восстановление'},
+    ];
+    const docs=[
+      {title:uk?'паспорт':'паспорт', meta:uk?'дійсний до 2031':'действителен до 2031', cls:'', where:uk?'оригінал — сейф · скан — Drive/docs':'оригинал — сейф · скан — Drive/docs'},
+      {title:uk?'ІПН':'ИНН', meta:uk?'без терміну':'без срока', cls:'', where:uk?'скан — Drive/docs':'скан — Drive/docs'},
+      {title:uk?'страховка авто':'страховка авто', meta:uk?'спливає 25 вер · прострочено':'истекает 25 сен · просрочено', cls:'is-overdue', where:uk?'PDF — пошта від страхової':'PDF — письмо от страховой'},
+      {title:uk?'договір оренди':'договор аренды', meta:uk?'до 1 бер 2027':'до 1 мар 2027', cls:'', where:uk?'папка «дім»':'папка «дом»'},
+      {title:uk?'медична картка (HELSI)':'медкарта (HELSI)', meta:uk?'посилання, не синхронізація':'ссылка, не синхронизация', cls:'', where:'helsi.me'},
+      {title:uk?'ключ податкової':'ключ налоговой', meta:uk?'не зберігається в jenkin':'не хранится в jenkin', cls:'', where:uk?'лише нагадування про термін':'только напоминание о сроке'},
+    ];
+    const phoneSteps=[
+      [uk?'банк: оновити номер у застосунку':'банк: обновить номер в приложении', uk?'вручну, у застосунку банку':'вручную, в приложении банка','manual'],
+      [uk?'Дія: перевірити контактний номер':'Дія: проверить контактный номер', uk?'jenkin лише нагадує':'jenkin только напоминает','manual'],
+      [uk?'HELSI: змінити номер у профілі':'HELSI: сменить номер в профиле', uk?'синхронізації немає':'синхронизации нет','manual'],
+      [uk?'податкова: оновити контакти':'налоговая: обновить контакты', uk?'кабінет платника':'кабинет плательщика','manual'],
+      [uk?'Telegram: перенести акаунт':'Telegram: перенести аккаунт', uk?'бот jenkin перепідключити після':'бота jenkin переподключить после','manual'],
+      [uk?'jenkin: оновити номер для відновлення':'jenkin: обновить номер для восстановления', uk?'єдиний крок, який робить jenkin':'единственный шаг, который делает jenkin','jenkin'],
+      [uk?'двофакторка: перевипустити коди':'двухфакторка: перевыпустить коды', uk?'див. коди відновлення':'см. коды восстановления','jenkin'],
+    ].map(([title,hint,tag],i)=>{ const d=!!this.state.phoneDone[i]; return {title,hint,tag:tag==='jenkin'?'jenkin':(uk?'вручну':'вручную'), cls:d?'is-done':'', check:d?this.ic('check',12):null, toggle:()=>this.setState(s=>({phoneDone:{...s.phoneDone,[i]:!d}}))}; });
+    const nDone=Object.values(this.state.phoneDone).filter(Boolean).length;
+    return { t, isAccess:sec==='access', isDocs:sec==='docs', isPhone:sec==='phone', steps, flowLabel: t.ac_login+' · '+t.ac_forgot_t+' · '+t.ac_pk_t, simLabel: uk?'симуляція: без сервера, пошти та WebAuthn':'симуляция: без сервера, почты и WebAuthn',
+      isLogin:st==='login', isForgot:st==='forgot', isSent:st==='sent', isExpired:st==='expired', isReset:st==='reset', isPasskey:st==='passkey', isDone:st==='done',
+      email:this.state.email, setEmail:e=>this.setState({email:e.target.value}), pw:this.state.pw, setPw:e=>this.setState({pw:e.target.value,pwErr:false}), pwErr:this.state.pwErr?'is-error':'', pwErrB:this.state.pwErr, pwErrMsg: uk?'невірний пароль. спробуй ще або скинь.':'неверный пароль. попробуй ещё или сбрось.',
+      signIn:()=>{ if(st==='login' && this.state.pw.length<4){ this.setState({pwErr:true}); return; } this.setState({step:'done',done:'in'}); },
+      goForgot:go('forgot'), goLogin:go('login'), goSent:()=>{ this.setState({step:'sent',resendLocked:true}); clearTimeout(this._rl); this._rl=setTimeout(()=>this.setState({resendLocked:false}),4000); }, goExpired:go('expired'), goReset:go('reset'), goPasskey:go('passkey'),
+      resendLocked:this.state.resendLocked, resendLabel:this.state.resendLocked?t.ac_resend+' · 60 с':t.ac_resend, resend:()=>{ this.setState({resendLocked:true}); this.toast(t.ac_sent_t); clearTimeout(this._rl); this._rl=setTimeout(()=>this.setState({resendLocked:false}),4000); },
+      np1:this.state.np1, np2:this.state.np2, setNp1:e=>this.setState({np1:e.target.value,npErr:false}), setNp2:e=>this.setState({np2:e.target.value,npErr:false}), npErr:this.state.npErr?'is-error':'', npErrB:this.state.npErr, npErrMsg: this.state.np1.length<12 ? (uk?'мінімум 12 символів':'минимум 12 символов') : (uk?'паролі не збігаються':'пароли не совпадают'), strengthCls,
+      setPassword:()=>{ if(this.state.np1.length<12||this.state.np1!==this.state.np2){ this.setState({npErr:true}); return; } this.setState({step:'done',done:'reset',np1:'',np2:''}); },
+      doneTitle: this.state.done==='reset' ? (uk?'пароль збережено. ти в системі.':'пароль сохранён. ты в системе.') : (uk?'ти в системі.':'ты в системе.'),
+      codes, regen:()=>{ this.setState(s=>({codesSeed:s.codesSeed+1})); this.toast(t.ac_rc_gen); }, future, docs,
+      docsNote: uk?'jenkin зберігає лише назву, термін і посилання «де лежить». жодних сканів, ключів і синхронізації з HELSI — це майбутнє, і лише за окремим рішенням.':'jenkin хранит только название, срок и ссылку «где лежит». никаких сканов, ключей и синхронизации с HELSI — это будущее, и только отдельным решением.',
+      phone:phoneSteps, phoneProgress:nDone+' / '+phoneSteps.length, phoneNote: uk?'чекліст — це задачі з тегом «зміна номера». кожен крок ти робиш сам у сторонньому сервісі; jenkin відмічає виконане і нагадує про решту.':'чеклист — это задачи с тегом «смена номера». каждый шаг ты делаешь сам в стороннем сервисе; jenkin отмечает сделанное и напоминает об остальном.',
+      toast:!!this.state.toast, toastMsg:this.state.toast,
+      icFinger:this.ic('fingerprint',14), icFingerLg:this.ic('fingerprint',28), icMail:this.ic('mail',28), icAlert:this.ic('alert',28), icCheckLg:this.ic('check',28), icCheck:this.ic('check',14), icKey:this.ic('key',14), icPlus:this.ic('plus',14), icFile:this.ic('file',14) };
+  }
+}
+</script>
+</body>
+</html>

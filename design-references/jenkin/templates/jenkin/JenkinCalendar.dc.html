@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet><script src="./ds-base.js"></script><script src="./jenkin-data.js"></script><script src="./jenkin-store.js"></script><link rel="stylesheet" href="./jenkin.css"></helmet>
+<section ref="{{ rootRef }}" data-screen-label="Calendar" style="display:flex;flex-direction:column;gap:12px;min-width:0">
+<div class="jk-toolbar" style="justify-content:space-between">
+<nav class="jk-crumbs" aria-label="breadcrumb">
+<sc-for list="{{ crumbs }}" as="c" hint-placeholder-count="3"><sc-if value="{{ c.notFirst }}" hint-placeholder-val="{{ false }}"><span class="jk-crumb-sep">/</span></sc-if><button class="jk-crumb" aria-current="{{ c.current }}" onClick="{{ c.go }}">{{ c.label }}</button></sc-for>
+</nav>
+<div class="jk-toolbar">
+<div style="display:inline-flex;border:1px solid var(--line-strong);border-radius:6px;overflow:hidden">
+<button class="jk-btn is-ghost is-sm" style="border-radius:0" aria-pressed="{{ isA }}" onClick="{{ setA }}">{{ t.layout_a }}</button><button class="jk-btn is-ghost is-sm" style="border-radius:0;border-left:1px solid var(--line)" aria-pressed="{{ isB }}" onClick="{{ setB }}">{{ t.layout_b }}</button>
+</div>
+<div style="display:inline-flex;gap:0;border:1px solid var(--line-strong);border-radius:6px;overflow:hidden">
+<button class="jk-btn is-ghost is-sm" style="border-radius:0;width:30px;padding:0" aria-label="{{ prevLabel }}" title="{{ prevLabel }}" onClick="{{ prev }}">{{ icL }}</button><button class="jk-btn is-ghost is-sm jk-mono" style="border-radius:0;border-left:1px solid var(--line);border-right:1px solid var(--line)" onClick="{{ goToday }}">{{ t.today }}</button><button class="jk-btn is-ghost is-sm" style="border-radius:0;width:30px;padding:0" aria-label="{{ nextLabel }}" title="{{ nextLabel }}" onClick="{{ next }}">{{ icR }}</button>
+</div>
+<div class="jk-dd">
+<button class="jk-btn is-sm" aria-pressed="{{ histOpen }}" aria-expanded="{{ histOpen }}" onClick="{{ toggleHist }}"><span class="jk-ico" style="color:inherit">{{ icClock }}</span>{{ t.history }}</button>
+<sc-if value="{{ histOpenB }}" hint-placeholder-val="{{ false }}">
+<div class="jk-dd-menu" style="left:auto;right:0;min-width:300px;max-width:min(92vw,380px);padding:8px;max-height:420px;overflow:auto">
+<sc-for list="{{ histSections }}" as="s" hint-placeholder-count="3">
+<div class="jk-eyebrow" style="padding:8px 8px 6px;border-top:1px solid var(--line);margin-top:4px">{{ s.label }} · {{ s.n }}</div>
+<sc-for list="{{ s.items }}" as="h" hint-placeholder-count="2"><div class="jk-dd-item" style="height:auto;min-height:30px;padding:4px 8px"><span style="min-width:0;display:flex;flex-direction:column"><span style="color:var(--fg2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ h.title }}</span><span class="jk-dd-count">{{ h.when }}</span></span><button class="jk-btn is-ghost is-sm" onClick="{{ h.restore }}">{{ t.restore }}</button></div></sc-for>
+<sc-if value="{{ s.empty }}" hint-placeholder-val="{{ false }}"><div class="jk-dd-item" style="color:var(--fg4);cursor:default">—</div></sc-if>
+</sc-for>
+<div class="jk-eyebrow" style="padding:8px 8px 6px;border-top:1px solid var(--line);margin-top:4px">{{ t.history_recent }}</div>
+<sc-for list="{{ recent }}" as="h" hint-placeholder-count="2"><button class="jk-dd-item" onClick="{{ h.go }}"><span>{{ h.label }}</span><span class="jk-dd-count">{{ h.when }}</span></button></sc-for>
+</div>
+</sc-if>
+</div>
+</div>
+</div>
+<div class="jk-mat jk-stage" data-level="{{ level }}" data-layout="{{ layoutAttr }}" onKeyDown="{{ gridKey }}">
+<div class="jk-sr" aria-live="polite">{{ liveLabel }}</div>
+<sc-if value="{{ isYears }}" hint-placeholder-val="{{ true }}">
+<div class="jk-grid jk-grid12" style="grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:repeat(3,minmax(0,1fr))" data-spin="{{ spin }}" data-nav="grid">
+<sc-for list="{{ years }}" as="y" hint-placeholder-count="12"><button class="jk-mat jk-tile {{ y.gloss }}" data-tile="1" data-today="{{ y.today }}" data-selected="{{ y.selected }}" data-autofocus="{{ y.focus }}" onClick="{{ y.go }}"><span class="jk-num" style="font-size:32px">{{ y.label }}</span><span class="jk-sub">{{ y.sub }}</span></button></sc-for>
+</div>
+</sc-if>
+<sc-if value="{{ isMonths }}" hint-placeholder-val="{{ false }}">
+<div class="jk-grid jk-grid12" style="grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:repeat(3,minmax(0,1fr))" data-spin="{{ spin }}" data-nav="grid">
+<sc-for list="{{ months }}" as="m" hint-placeholder-count="12"><button class="jk-mat jk-tile {{ m.gloss }}" data-tile="1" data-today="{{ m.today }}" data-selected="{{ m.selected }}" data-autofocus="{{ m.focus }}" onClick="{{ m.go }}"><span class="jk-num" style="font-size:20px">{{ m.label }}</span><span class="jk-eyebrow" style="margin-top:2px">{{ m.idx }}</span><span class="jk-sub">{{ m.sub }}</span></button></sc-for>
+</div>
+</sc-if>
+<sc-if value="{{ isDaysA }}" hint-placeholder-val="{{ false }}">
+<div class="jk-grid jk-gridA" data-spin="{{ spin }}" data-nav="grid">
+<sc-for list="{{ weekdays }}" as="w" hint-placeholder-count="7"><div class="jk-eyebrow" style="align-self:center;padding-left:12px;font-size:12px">{{ w }}</div></sc-for>
+<sc-for list="{{ cells }}" as="c" hint-placeholder-count="42"><button class="jk-mat jk-tile {{ c.gloss }}" style="min-height:44px;padding:8px 10px" data-tile="1" data-today="{{ c.today }}" data-selected="{{ c.selected }}" data-weekend="{{ c.weekend }}" data-adjacent="{{ c.adjacent }}" data-autofocus="{{ c.focus }}" aria-label="{{ c.aria }}" onClick="{{ c.go }}"><span class="jk-num" style="font-size:17px">{{ c.num }}</span><div class="jk-hide-m" style="display:flex;flex-direction:column;gap:2px;margin-top:6px;width:100%;min-width:0"><sc-for list="{{ c.lines }}" as="l" hint-placeholder-count="0"><span class="jk-line"><b>{{ l.time }}</b>{{ l.text }}</span></sc-for></div><div class="jk-dots" aria-hidden="true"><sc-for list="{{ c.dots }}" as="d" hint-placeholder-count="0"><i class="{{ d }}"></i></sc-for></div></button></sc-for>
+</div>
+</sc-if>
+<sc-if value="{{ isDaysB }}" hint-placeholder-val="{{ false }}">
+<div class="jk-grid jk-gridB" data-spin="{{ spin }}" data-nav="weeks">
+<sc-for list="{{ weeks }}" as="w" hint-placeholder-count="8">
+<sc-if value="{{ w.real }}" hint-placeholder-val="{{ true }}"><div class="jk-mat jk-tile jk-week" style="padding:0;cursor:default">
+<div class="jk-week-h"><span>{{ t.week }} {{ w.n }}</span><span class="jk-mono">{{ w.range }}</span></div>
+<sc-for list="{{ w.days }}" as="c" hint-placeholder-count="7"><button class="jk-wrow" data-tile="1" data-today="{{ c.today }}" data-selected="{{ c.selected }}" data-weekend="{{ c.weekend }}" data-adjacent="{{ c.adjacent }}" data-autofocus="{{ c.focus }}" aria-label="{{ c.aria }}" onClick="{{ c.go }}"><span class="jk-num" style="font-size:14px">{{ c.num }}</span><span class="jk-wd">{{ c.wd }}</span><span style="display:flex;align-items:center;gap:8px;min-width:0"><span class="jk-line" style="flex:1">{{ c.line }}</span><span class="jk-dots" style="margin:0" aria-hidden="true"><sc-for list="{{ c.dots }}" as="d" hint-placeholder-count="0"><i class="{{ d }}"></i></sc-for></span></span></button></sc-for>
+</div></sc-if>
+</sc-for>
+</div>
+</sc-if>
+<sc-if value="{{ isDay }}" hint-placeholder-val="{{ false }}">
+<div class="jk-grid jk-cols is-2" style="gap:10px;grid-auto-rows:minmax(0,1fr)" data-spin="{{ spin }}" data-nav="grid">
+<div class="jk-mat jk-tile {{ dayGloss }}" style="cursor:default;padding:16px;overflow:auto" data-tile="1" data-today="{{ dayToday }}" tabindex="0" data-autofocus="1">
+<span class="jk-eyebrow">{{ dayWd }}</span><span class="jk-num" style="font-size:48px;margin-top:6px">{{ dayNum }}</span><span style="font-family:'Onest',sans-serif;font-weight:700;font-size:18px;margin-top:4px">{{ dayMonthYear }}</span>
+<span class="jk-sub" style="margin-top:auto">{{ daySummary }}</span>
+<div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap"><button class="jk-btn is-sm" aria-pressed="{{ addTaskOpen }}" onClick="{{ toggleAddTask }}"><span class="jk-ico" style="color:inherit">{{ icPlus }}</span>{{ t.add_task }}</button><button class="jk-btn is-sm" aria-pressed="{{ addEventOpen }}" onClick="{{ toggleAddEvent }}"><span class="jk-ico" style="color:inherit">{{ icPlus }}</span>{{ t.add_event }}</button></div>
+<sc-if value="{{ addTaskOpenB }}" hint-placeholder-val="{{ false }}"><div class="jk-inline-form">
+<input class="jk-input {{ ntErrCls }}" value="{{ nt.title }}" onChange="{{ ntTitle }}" onKeyDown="{{ ntKey }}" placeholder="{{ t.fl_title }}"><sc-if value="{{ nt.err }}" hint-placeholder-val="{{ false }}"><span class="jk-err">{{ t.err_required }}</span></sc-if>
+<div class="jk-toolbar"><select class="jk-input" style="width:auto" value="{{ nt.kind }}" onChange="{{ ntKind }}"><option value="routine">{{ t.k_routine }}</option><option value="important">{{ t.k_important }}</option><option value="waiting">{{ t.k_waiting }}</option></select><input class="jk-input jk-mono" style="width:90px" value="{{ nt.time }}" onChange="{{ ntTime }}" placeholder="HH:MM"><span class="jk-spacer"></span><button class="jk-btn is-primary is-sm" onClick="{{ ntSave }}">{{ t.add }}</button></div>
+<sc-if value="{{ nt.timeErr }}" hint-placeholder-val="{{ false }}"><span class="jk-err">{{ t.sc_bad_time }}</span></sc-if>
+</div></sc-if>
+<sc-if value="{{ addEventOpenB }}" hint-placeholder-val="{{ false }}"><div class="jk-inline-form">
+<input class="jk-input {{ neErrCls }}" value="{{ ne.title }}" onChange="{{ neTitle }}" onKeyDown="{{ neKey }}" placeholder="{{ t.fl_title }}"><sc-if value="{{ ne.err }}" hint-placeholder-val="{{ false }}"><span class="jk-err">{{ t.err_required }}</span></sc-if>
+<div class="jk-toolbar"><select class="jk-input" style="width:auto" value="{{ ne.type }}" onChange="{{ neType }}"><option value="meeting">{{ t.ev_meeting }}</option><option value="conference">{{ t.ev_conference }}</option><option value="trip">{{ t.ev_trip }}</option><option value="appointment">{{ t.ev_appointment }}</option></select><input class="jk-input jk-mono" style="width:80px" value="{{ ne.start }}" onChange="{{ neStart }}" placeholder="10:00"><span class="jk-muted">–</span><input class="jk-input jk-mono" style="width:80px" value="{{ ne.end }}" onChange="{{ neEnd }}" placeholder="11:00"><span class="jk-spacer"></span><button class="jk-btn is-primary is-sm" onClick="{{ neSave }}">{{ t.add }}</button></div>
+<sc-if value="{{ ne.timeErr }}" hint-placeholder-val="{{ false }}"><span class="jk-err">{{ neTimeErrMsg }}</span></sc-if>
+<span class="jk-muted" style="font-size:12px">Europe/Kyiv</span>
+</div></sc-if>
+</div>
+<div class="jk-mat jk-tile" style="cursor:default;padding:12px;overflow:auto" data-tile="1" tabindex="-1">
+<span class="jk-eyebrow" style="margin-bottom:6px;white-space:nowrap">{{ dayEvLabel }}</span>
+<div style="display:flex;flex-direction:column;width:100%">
+<sc-for list="{{ dayEvents }}" as="e" hint-placeholder-count="1"><button class="jk-row" style="grid-template-columns:44px minmax(0,1fr) auto" onClick="{{ e.open }}"><span class="jk-row-meta jk-mono" style="color:var(--fg2)">{{ e.time }}</span><span class="jk-row-title">{{ e.title }}</span><span class="jk-tag is-kind">{{ e.kind }}</span></button></sc-for>
+</div>
+<span class="jk-eyebrow" style="margin:12px 0 6px;white-space:nowrap">{{ dayTaskLabel }}</span>
+<div style="display:flex;flex-direction:column;width:100%">
+<sc-for list="{{ dayTasks }}" as="k" hint-placeholder-count="1"><div class="jk-row {{ k.cls }}" style="grid-template-columns:18px minmax(0,1fr) auto auto;cursor:default"><button class="jk-check" style="cursor:pointer" aria-label="{{ k.title }}" aria-pressed="{{ k.isDone }}" onClick="{{ k.toggle }}">{{ k.check }}</button><span class="jk-row-title">{{ k.title }}</span><span class="jk-row-meta">{{ k.meta }}</span><div class="jk-dd"><button class="jk-btn is-ghost is-sm" style="width:26px;padding:0" aria-label="more" onClick="{{ k.menu }}">···</button><sc-if value="{{ k.menuOpen }}" hint-placeholder-val="{{ false }}"><div class="jk-dd-menu" style="left:auto;right:0"><button class="jk-dd-item" onClick="{{ k.archive }}">{{ t.archive }}</button><button class="jk-dd-item" onClick="{{ k.close }}">{{ t.close_unresolved }}</button></div></sc-if></div></div></sc-for>
+</div>
+<sc-if value="{{ dayEmpty }}" hint-placeholder-val="{{ false }}"><span class="jk-p jk-muted" style="margin-top:8px">{{ t.day_empty }}</span></sc-if>
+</div>
+</div>
+</sc-if>
+</div>
+<div class="jk-annot jk-annot-box">
+<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><span class="jk-tag is-proposed">{{ t.tag_proposed }}</span><span class="jk-tag is-kind">{{ t.tag_visual }}</span><span>вложенные плитки годы → месяцы → дни → день заменяют сегмент Days / Months / Years / History. календарь читает существующую модель задач без изменений; события — новая сущность (см. «События»). история хранит жизненный цикл: выполнено · в архиве · закрыто без решения, с возвратом; «недавно открывали» — отдельная секция.</span></div>
+<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><span class="jk-eyebrow" style="font-size:12px">проверочные месяцы</span><button class="jk-btn is-sm" onClick="{{ goFeb }}">февраль 2026 · 28 дней · 5 недель</button><button class="jk-btn is-sm" onClick="{{ goFeb28 }}">февраль 2028 · 29 дней</button><button class="jk-btn is-sm" onClick="{{ goAug }}">август 2026 · 31 день · 6 недель</button><button class="jk-btn is-sm" onClick="{{ goSep }}">сентябрь 2026 · сегодня</button></div>
+<div style="color:var(--fg3)">сцена: 620 px при ≥1024, 560 px на 768–1023 на всех уровнях и в обоих раскладках (внутренняя прокрутка при нехватке места), авто на телефоне. вращение 360° 560 мс синхронно; reduced motion — fade 180 мс. фокус — на выбранной или первой плитке; стрелки по реальной геометрии (A: сетка, B: ↑↓ внутри недели, ←→ между неделями); Esc — уровень выше, включая детали дня.</div>
+</div>
+<sc-if value="{{ toast }}" hint-placeholder-val="{{ false }}"><div class="jk-toast" role="status"><span class="jk-ico" style="color:var(--success)">{{ icCheck }}</span>{{ toastMsg }}<sc-if value="{{ toastUndo }}" hint-placeholder-val="{{ false }}"><button class="jk-btn is-ghost is-sm" onClick="{{ undo }}">{{ t.sc_undo }}</button></sc-if></div></sc-if>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;lang&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;ru&quot;,&quot;uk&quot;],&quot;default&quot;:&quot;ru&quot;,&quot;tsType&quot;:&quot;'ru'|'uk'&quot;},&quot;layout&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;A&quot;,&quot;B&quot;],&quot;default&quot;:&quot;A&quot;,&quot;tsType&quot;:&quot;'A'|'B'&quot;},&quot;focusDate&quot;:{&quot;editor&quot;:null,&quot;default&quot;:null,&quot;tsType&quot;:&quot;Date|null&quot;},&quot;onOpenEvent&quot;:{&quot;editor&quot;:null,&quot;default&quot;:null,&quot;tsType&quot;:&quot;(id:string)=&gt;void&quot;}}">
+class Component extends DCLogic {
+  constructor(p){ super(p); this.rootRef = React.createRef(); this.pendingFocus = false;
+    const JK = window.JK; const T0 = JK ? JK.TODAY : new Date(2026,8,30);
+    this.state = { level:'days', year:T0.getFullYear(), month:T0.getMonth(), day:T0.getDate(), rangeStart:T0.getFullYear()-5, spin:null, layout:p.layout||'A', histOpen:false, history:[], addTask:false, addEvent:false, nt:{title:'',kind:'routine',time:'',err:false,timeErr:false}, ne:{title:'',type:'meeting',start:'10:00',end:'11:00',err:false,timeErr:false,endErr:false}, menu:null, toast:null, undoFn:null };
+  }
+  componentDidMount(){ this.unsub = window.JKStore && window.JKStore.subscribe(()=>this.forceUpdate()); this.applyFocusDate(); }
+  componentWillUnmount(){ this.unsub && this.unsub(); clearTimeout(this._tt); }
+  componentDidUpdate(prev){
+    if (prev.layout !== this.props.layout && this.props.layout) this.setState({layout:this.props.layout});
+    if (prev.focusDate !== this.props.focusDate) this.applyFocusDate();
+    if (this.pendingFocus){ this.pendingFocus = false; const root = this.rootRef.current; if(!root) return; const el = root.querySelector('[data-autofocus="1"]') || root.querySelector('.jk-stage [data-tile]:not([data-adjacent="1"])') || root.querySelector('.jk-stage [data-tile]'); if (el) el.focus({preventScroll:true}); }
+  }
+  applyFocusDate(){ const f = this.props.focusDate; if (f instanceof Date) this.nav({level:'day', year:f.getFullYear(), month:f.getMonth(), day:f.getDate()}); }
+  nav(patch){ this.pendingFocus = true; this.setState(s => {
+      const year = patch.year ?? s.year, month = patch.month ?? s.month; const dim = new Date(year, month+1, 0).getDate(); const day = Math.min(patch.day ?? s.day, dim);
+      const next = {...patch, year, month, day, spin: s.spin==='a'?'b':'a', histOpen:false, menu:null, addTask:false, addEvent:false};
+      if (patch.level==='day'){ const d = new Date(year, month, day); next.history = [d, ...s.history.filter(x=>+x!==+d)].slice(0,5); }
+      return next; }); }
+  ic(name,size){ const JK=window.JK; return React.createElement('svg',{width:size||14,height:size||14,viewBox:'0 0 24 24',fill:'none',stroke:'currentColor',strokeWidth:1.5,strokeLinecap:'round',strokeLinejoin:'round',dangerouslySetInnerHTML:{__html:(JK&&JK.icon[name])||''}}); }
+  toast(msg, undoFn){ clearTimeout(this._tt); this.setState({toast:msg, undoFn:undoFn||null}); this._tt=setTimeout(()=>this.setState({toast:null, undoFn:null}),4000); }
+  gridKey = (e) => {
+    const tag = e.target.tagName; if ((tag==='INPUT'||tag==='SELECT'||tag==='TEXTAREA') && e.key!=='Escape') return;
+    if (e.key==='Escape'){ e.preventDefault(); if (this.state.addTask||this.state.addEvent||this.state.menu) { this.setState({addTask:false,addEvent:false,menu:null}); return; } this.up(); return; }
+    const grid = e.target.closest('.jk-grid'); if (!grid) return;
+    const els = [...grid.querySelectorAll('button[data-tile]')]; const i = els.indexOf(document.activeElement); if (i<0) return;
+    let n = null;
+    if (grid.dataset.nav==='weeks'){ // B: ↑↓ inside a week panel, ←→ to the same weekday in the adjacent panel
+      if (e.key==='ArrowDown') n=i+1; else if (e.key==='ArrowUp') n=i-1; else if (e.key==='ArrowRight') n=i+7; else if (e.key==='ArrowLeft') n=i-7;
+    } else { // real geometry: columns = tiles sharing the first tile's row
+      const top0 = els[0].offsetTop; const cols = Math.max(1, els.filter(x=>Math.abs(x.offsetTop-top0)<2).length);
+      if (e.key==='ArrowRight') n=i+1; else if (e.key==='ArrowLeft') n=i-1; else if (e.key==='ArrowDown') n=i+cols; else if (e.key==='ArrowUp') n=i-cols;
+    }
+    if (n!=null && els[n]){ e.preventDefault(); els[n].focus(); }
+  }
+  up(){ const l=this.state.level; if (l==='day') this.nav({level:'days'}); else if (l==='days') this.nav({level:'months'}); else if (l==='months') this.nav({level:'years'}); }
+  renderVals(){
+    const JK = window.JK, ST = window.JKStore; if (!JK || !ST) return {};
+    const {level, year, month, day, rangeStart, layout} = this.state; const lang = this.props.lang || 'ru'; const t = {}; for (const k in JK.S) t[k] = JK.S[k][lang==='uk'?1:0];
+    const TODAY = JK.TODAY; const MN = JK.MONTHS[lang]; const L = v => v==null?'':(typeof v==='string'?v:v[lang]);
+    const S = ST.get(); const tasks = S.tasks.filter(k=>(k.status==='open'||k.status==='done') && k.due && !k.noDue); const events = S.events.map(e=>({...e, start:e.sw, end:e.ew}));
+    const inYear = y => events.filter(e=>e.start.getFullYear()===y).length + tasks.filter(k=>k.due.getFullYear()===y).length;
+    const inMonth = (y,m) => events.filter(e=>e.start.getFullYear()===y&&e.start.getMonth()===m).length + tasks.filter(k=>k.due.getFullYear()===y&&k.due.getMonth()===m).length;
+    const cnt = (n, key) => n ? n+' '+JK.plural(n, JK.PL[key][lang]) : '';
+    const recs = n => n ? n+' '+JK.plural(n, lang==='uk'?['запис','записи','записів']:['запись','записи','записей']) : '—';
+    const sel = new Date(year, month, day);
+    const years = Array.from({length:12},(_,i)=>{ const y=rangeStart+i; const isT=y===TODAY.getFullYear(); return {label:String(y), sub:recs(inYear(y)), today:isT?'1':undefined, selected:y===year?'1':undefined, gloss:isT?'is-gloss':'', focus:y===year?'1':undefined, go:()=>this.nav({level:'months', year:y})}; });
+    const months = MN.map((name,m)=>{ const isT=year===TODAY.getFullYear()&&m===TODAY.getMonth(); return {label:name, idx:JK.pad(m+1)+' · '+year, sub:recs(inMonth(year,m)), today:isT?'1':undefined, selected:m===month?'1':undefined, gloss:isT?'is-gloss':'', focus:m===month?'1':undefined, go:()=>this.nav({level:'days', month:m})}; });
+    const first = new Date(year, month, 1); const offset = (first.getDay()+6)%7; const dim = new Date(year, month+1, 0).getDate(); const nWeeks = Math.ceil((offset+dim)/7);
+    const mkCell = d => { const inM = d.getMonth()===month; const evs = events.filter(e=>JK.eventSpansDay(e,d)); const tks = tasks.filter(k=>JK.sameDay(k.due,d)); const isT=JK.sameDay(d,TODAY); const isS=JK.sameDay(d,sel); const wd=(d.getDay()+6)%7;
+      const lines = evs.slice(0,2).map(e=>({time:JK.hm(e.start), text:L(e.title)})); if (lines.length<2 && tks.length) lines.push({time:'', text:cnt(tks.length,'task')});
+      const dots = [...tks.slice(0,3).map(()=>'is-task'), ...evs.slice(0,2).map(()=>'is-ev')];
+      const line = evs.length ? JK.hm(evs[0].start)+' '+L(evs[0].title) : (tks.length ? cnt(tks.length,'task') : '');
+      return {num:String(d.getDate()), wd:JK.WD[lang][wd], today:isT?'1':undefined, selected:isS&&inM?'1':undefined, weekend:wd>=5?'1':undefined, adjacent:inM?undefined:'1', gloss:isT?'is-gloss':'', focus:(isS&&inM)?'1':undefined, lines, dots, line, aria:d.getDate()+' '+JK.MONTHS_GEN[lang][d.getMonth()]+(evs.length||tks.length?', '+[cnt(evs.length,'event'),cnt(tks.length,'task')].filter(Boolean).join(', '):''), go:()=>this.nav({level:'day', year:d.getFullYear(), month:d.getMonth(), day:d.getDate()})}; };
+    const cells = Array.from({length:42},(_,i)=>mkCell(new Date(year, month, 1-offset+i)));
+    const weeks = Array.from({length:8},(_,w)=>{ if (w>=nWeeks) return {real:false, n:'', range:'', days:[]}; const days=cells.slice(w*7,w*7+7); const a=new Date(year,month,1-offset+w*7), b=new Date(year,month,1-offset+w*7+6); return {real:true, n:String(w+1), range:a.getDate()+'–'+b.getDate(), days}; });
+    const dayEvents = events.filter(e=>JK.eventSpansDay(e,sel)).map(e=>({time:JK.hm(e.start), title:L(e.title), kind:t['ev_'+e.type], open:()=>this.props.onOpenEvent && this.props.onOpenEvent(e.id)}));
+    const dayTasks = tasks.filter(k=>JK.sameDay(k.due,sel)).map(k=>{ const done=k.status==='done'; return {title:L(k.title), cls:(done?'is-done':'')+(k.kind==='important'&&!done?' is-important':''), isDone:String(done), check:done?this.ic('check',12):null, meta:done?t.done:(k.due.getHours()?JK.hm(k.due):t['k_'+k.kind]), toggle:()=>ST.setTaskStatus(k.id, done?'open':'done'), menuOpen:this.state.menu===k.id, menu:()=>this.setState(s=>({menu:s.menu===k.id?null:k.id})), archive:()=>{ ST.setTaskStatus(k.id,'archived'); this.setState({menu:null}); this.toast(t.archive+' · '+L(k.title), ()=>ST.setTaskStatus(k.id,'open')); }, close:()=>{ ST.setTaskStatus(k.id,'closed'); this.setState({menu:null}); this.toast(t.close_unresolved+' · '+L(k.title), ()=>ST.setTaskStatus(k.id,'open')); }}; });
+    const crumbsDef = [['years', t.nav_calendar], ['months', String(year)], ['days', MN[month]], ['day', String(day)]]; const order=['years','months','days','day']; const li=order.indexOf(level);
+    const crumbs = crumbsDef.slice(0, li+1).map(([lv,label],i)=>({label, notFirst:i>0, current: lv===level?'page':undefined, go: lv===level?()=>{}:()=>this.nav({level:lv})}));
+    const step = dir => { if (level==='years') this.nav({rangeStart:rangeStart+12*dir}); else if (level==='months') this.nav({year:year+dir}); else if (level==='days'){ const d=new Date(year,month+dir,1); this.nav({year:d.getFullYear(), month:d.getMonth(), day:1}); } else { const d=new Date(year,month,day+dir); this.nav({year:d.getFullYear(), month:d.getMonth(), day:d.getDate()}); } };
+    const stepLabel = {years: [t.prev_years, t.next_years], months:[String(year-1), String(year+1)], days:[MN[(month+11)%12], MN[(month+1)%12]], day:[JK.fmtDate(new Date(year,month,day-1),lang), JK.fmtDate(new Date(year,month,day+1),lang)]}[level];
+    /* lifecycle history */
+    const titleOf = id => { const k=S.tasks.find(x=>x.id===id); return k?L(k.title):'—'; };
+    const sec = (kind, label, status) => { const items = S.log.filter(l=>l.kind===kind && (S.tasks.find(x=>x.id===l.id)||{}).status===status).slice(0,6).map(l=>({title:titleOf(l.id), when:JK.fmtDate(l.at,lang)+' · '+JK.hm(l.at), restore:()=>{ ST.setTaskStatus(l.id,'open'); this.toast(t.restore+' · '+titleOf(l.id)); }})); return {label, n:String(items.length), items, empty:items.length===0}; };
+    const histSections = [sec('completed', t.history_done, 'done'), sec('archived', t.history_archived, 'archived'), sec('closed', t.history_closed, 'closed')];
+    const recent = this.state.history.map(d=>({label:JK.fmtDate(d,lang,true), when:JK.WD[lang][(d.getDay()+6)%7], go:()=>this.nav({level:'day', year:d.getFullYear(), month:d.getMonth(), day:d.getDate()})}));
+    /* inline add forms */
+    const nt=this.state.nt, ne=this.state.ne; const setNt = k => e => this.setState(s=>({nt:{...s.nt,[k]:e.target.value,err:false,timeErr:false}})); const setNe = k => e => this.setState(s=>({ne:{...s.ne,[k]:e.target.value,err:false,timeErr:false,endErr:false,dstErr:null}}));
+    const ntSave = () => { if(!nt.title.trim()){ this.setState(s=>({nt:{...s.nt,err:true}})); return; } let h=0,mi=0; if (nt.time.trim()){ const tm=ST.parseTime(nt.time); if(!tm){ this.setState(s=>({nt:{...s.nt,timeErr:true}})); return; } h=tm.h; mi=tm.mi; }
+      const rec = ST.addTask({title:nt.title.trim(), kind:nt.kind, due:new Date(year,month,day,h,mi)}); this.setState({addTask:false, nt:{title:'',kind:'routine',time:'',err:false,timeErr:false}}); this.toast(t.add_task+' · '+rec.title, ()=>ST.removeTask(rec.id)); };
+    const neSave = () => { if(!ne.title.trim()){ this.setState(s=>({ne:{...s.ne,err:true}})); return; } const a=ST.parseTime(ne.start), b=ST.parseTime(ne.end); if(!a||!b){ this.setState(s=>({ne:{...s.ne,timeErr:true,endErr:false}})); return; } if (b.h*60+b.mi < a.h*60+a.mi){ this.setState(s=>({ne:{...s.ne,timeErr:true,endErr:true}})); return; }
+      const tz='Europe/Kyiv'; const rs=ST.resolveZoned(year,month+1,day,a.h,a.mi,tz), re=ST.resolveZoned(year,month+1,day,b.h,b.mi,tz); if(!rs.ok||!re.ok){ this.setState(s=>({ne:{...s.ne,timeErr:true,endErr:false,dstErr:(rs.ok?re:rs).kind}})); return; }
+      const rec = ST.addEvent({title:ne.title.trim(), type:ne.type, tz, start:rs.date, end:re.date}); this.setState({addEvent:false, ne:{title:'',type:'meeting',start:'10:00',end:'11:00',err:false,timeErr:false,endErr:false}}); this.toast(t.add_event+' · '+rec.title, ()=>ST.removeEvent(rec.id)); };
+    const wdSel = (sel.getDay()+6)%7;
+    return {
+      t, rootRef:this.rootRef, level, layoutAttr: level==='days' ? layout : 'x', spin:this.state.spin, crumbs, gridKey:this.gridKey,
+      isYears:level==='years', isMonths:level==='months', isDaysA:level==='days'&&layout==='A', isDaysB:level==='days'&&layout==='B', isDay:level==='day',
+      years, months, cells, weeks, weekdays: JK.WD[lang],
+      isA:String(layout==='A'), isB:String(layout==='B'), setA:()=>{ this.pendingFocus=true; this.setState({layout:'A'}); }, setB:()=>{ this.pendingFocus=true; this.setState({layout:'B'}); },
+      prev:()=>step(-1), next:()=>step(1), prevLabel:stepLabel[0], nextLabel:stepLabel[1],
+      goToday:()=>this.nav({level:'days', year:TODAY.getFullYear(), month:TODAY.getMonth(), day:TODAY.getDate()}),
+      histOpen:String(this.state.histOpen), histOpenB:this.state.histOpen, toggleHist:()=>this.setState(s=>({histOpen:!s.histOpen})), histSections, recent: recent.length?recent:[{label:'—', when:'', go:()=>{}}],
+      dayNum:String(day), dayWd:JK.WD_LONG[lang][wdSel], dayMonthYear:MN[month]+' '+year, dayToday:JK.sameDay(sel,TODAY)?'1':undefined, dayGloss:JK.sameDay(sel,TODAY)?'is-gloss':'',
+      daySummary:[cnt(dayEvents.length,'event'), cnt(dayTasks.length,'task')].filter(Boolean).join(' · ') || t.day_empty,
+      dayEvents, dayTasks, dayEvLabel:t.nav_events+' · '+dayEvents.length, dayTaskLabel:t.nav_tasks+' · '+dayTasks.length, dayEmpty: dayEvents.length+dayTasks.length===0,
+      addTaskOpen:String(this.state.addTask), addTaskOpenB:this.state.addTask, addEventOpen:String(this.state.addEvent), addEventOpenB:this.state.addEvent,
+      toggleAddTask:()=>this.setState(s=>({addTask:!s.addTask, addEvent:false})), toggleAddEvent:()=>this.setState(s=>({addEvent:!s.addEvent, addTask:false})),
+      nt, ne, ntErrCls:nt.err?'is-error':'', neErrCls:ne.err?'is-error':'', ntTitle:setNt('title'), ntKind:setNt('kind'), ntTime:setNt('time'), neTitle:setNe('title'), neType:setNe('type'), neStart:setNe('start'), neEnd:setNe('end'), ntSave, neSave, ntKey:e=>{ if(e.key==='Enter') ntSave(); }, neKey:e=>{ if(e.key==='Enter') neSave(); }, neTimeErrMsg: ne.endErr?t.err_end:ne.dstErr==='nonexistent'?t.err_dst_none:ne.dstErr==='ambiguous'?t.err_dst_amb+' — '+(lang==='uk'?'створи в розділі «Події»':'создай в разделе «События»'):t.sc_bad_time,
+      liveLabel: crumbs.map(c=>c.label).join(' / '),
+      toast:!!this.state.toast, toastMsg:this.state.toast, toastUndo:!!this.state.undoFn, undo:()=>{ const f=this.state.undoFn; if(f) f(); this.setState({toast:null,undoFn:null}); },
+      icL:this.ic('chevL',14), icR:this.ic('chevR',14), icClock:this.ic('clock',13), icPlus:this.ic('plus',12), icCheck:this.ic('check',14),
+      goFeb:()=>this.nav({level:'days', year:2026, month:1, day:1}), goFeb28:()=>this.nav({level:'days', year:2028, month:1, day:1}), goAug:()=>this.nav({level:'days', year:2026, month:7, day:1}), goSep:()=>this.nav({level:'days', year:2026, month:8, day:30}),
+    };
+  }
+}
+</script>
+</body>
+</html>

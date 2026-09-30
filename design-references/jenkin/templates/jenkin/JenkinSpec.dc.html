@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet><meta name="ext-resource-dependency" content="./island-day.jpg" data-resource-id="jk-scene"><script src="./ds-base.js"></script><script src="./jenkin-data.js"></script><link rel="stylesheet" href="./jenkin.css"><template id="__bundler_thumbnail" data-bg-color="#0E1117"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" fill="#0E1117"/><text x="100" y="118" text-anchor="middle" font-family="Onest, system-ui, sans-serif" font-weight="900" font-size="44" letter-spacing="-2" fill="#F5F5F7">JK</text></svg></template></helmet>
+<section data-screen-label="Spec" style="display:flex;flex-direction:column;gap:28px;min-width:0">
+<div style="display:flex;flex-direction:column;gap:12px">
+<div class="jk-toolbar"><h2 class="jk-h2">{{ t.sp_materials }}</h2><span class="jk-tag is-proposed">{{ t.tag_proposed }}</span><span class="jk-tag is-kind">{{ t.tag_visual }}</span><span class="jk-spacer"></span><button class="jk-btn is-sm" aria-pressed="{{ grainOn }}" onClick="{{ toggleGrain }}">grain</button></div>
+<p class="jk-p" style="max-width:720px">{{ matIntro }}</p>
+<div class="jk-cols is-3">
+<sc-for list="{{ themes }}" as="th" hint-placeholder-count="3">
+<div class="jk-theme-sample {{ grainCls }}" data-theme="{{ th.theme }}" data-scene="day">
+<div class="jk-eyebrow" style="margin-bottom:10px">{{ th.label }}</div>
+<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px">
+<div class="jk-mat jk-tile" style="min-height:64px;cursor:default"><span class="jk-num" style="font-size:16px">14</span><span class="jk-sub">{{ t.st_default }}</span></div>
+<div class="jk-mat jk-tile is-hover" style="min-height:64px;cursor:default"><span class="jk-num" style="font-size:16px">15</span><span class="jk-sub">{{ t.st_hover }}</span></div>
+<div class="jk-mat jk-tile" data-selected="1" style="min-height:64px;cursor:default"><span class="jk-num" style="font-size:16px">16</span><span class="jk-sub">{{ t.st_selected }}</span></div>
+<div class="jk-mat jk-tile is-focus" style="min-height:64px;cursor:default"><span class="jk-num" style="font-size:16px">17</span><span class="jk-sub">{{ t.st_focus }}</span></div>
+<div class="jk-mat jk-tile is-disabled" style="min-height:64px"><span class="jk-num" style="font-size:16px">18</span><span class="jk-sub">{{ t.st_disabled }}</span></div>
+<div class="jk-mat jk-tile is-error" style="min-height:64px;cursor:default"><span class="jk-num" style="font-size:16px">19</span><span class="jk-sub">{{ t.st_error }}</span></div>
+<div class="jk-mat jk-tile is-gloss" data-today="1" style="min-height:64px;cursor:default;grid-column:1 / -1"><span class="jk-num" style="font-size:16px">30</span><span class="jk-sub">{{ t.today }} · gloss</span></div>
+</div>
+<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px">
+<button class="jk-btn is-sm">{{ t.st_default }}</button><button class="jk-btn is-sm is-hover">{{ t.st_hover }}</button><button class="jk-btn is-sm is-on">{{ t.st_selected }}</button><button class="jk-btn is-sm is-focus">{{ t.st_focus }}</button><button class="jk-btn is-sm is-disabled">{{ t.st_disabled }}</button><button class="jk-btn is-sm is-error">{{ t.st_error }}</button>
+</div>
+<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px"><button class="jk-btn is-sm is-primary">primary · gloss</button><button class="jk-btn is-sm is-stakes">stakes · gloss</button><button class="jk-btn is-sm is-ghost">ghost</button></div>
+<div style="display:flex;flex-direction:column;gap:6px;margin-top:10px"><input class="jk-input" value="input · default" readOnly><input class="jk-input is-focus" value="input · focus" readOnly><input class="jk-input is-error" value="input · error" readOnly><input class="jk-input" value="input · disabled" disabled readOnly></div>
+</div>
+</sc-for>
+</div>
+<div class="jk-mat" style="padding:14px 16px"><div class="jk-eyebrow" style="margin-bottom:8px">{{ recipeTitle }}</div>
+<sc-for list="{{ recipes }}" as="r" hint-placeholder-count="6"><div class="jk-spec-row"><span style="color:var(--fg1);font-weight:500">{{ r.name }}</span><span class="jk-muted">{{ r.value }}</span><span class="jk-mono jk-muted" style="font-size:12px">{{ r.note }}</span></div></sc-for>
+</div>
+</div>
+<div class="jk-cols is-2">
+<div style="display:flex;flex-direction:column;gap:12px">
+<h2 class="jk-h2">{{ t.sp_type }}</h2>
+<div class="jk-mat" style="padding:14px 16px;display:flex;flex-direction:column">
+<div class="jk-spec-row"><span style="font-family:'Onest',sans-serif;font-weight:900;font-size:20px;letter-spacing:-0.03em">JENKIN</span><span class="jk-muted">{{ ty.wordmark }}</span><span class="jk-mono jk-muted" style="font-size:12px">Onest 900 · 20 · -0.03em</span></div>
+<div class="jk-spec-row"><span style="font-family:'Onest',sans-serif;font-weight:800;font-size:32px;letter-spacing:-0.028em;line-height:1.08">{{ t.nav_calendar }}</span><span class="jk-muted">{{ ty.pageTitle }}</span><span class="jk-mono jk-muted" style="font-size:12px">Onest 800 · 32 / 26 mobile · -0.028em</span></div>
+<div class="jk-spec-row"><span style="font-family:'Onest',sans-serif;font-weight:700;font-size:32px;letter-spacing:-0.02em;font-variant-numeric:tabular-nums">2026</span><span class="jk-muted">{{ ty.yearNum }}</span><span class="jk-mono jk-muted" style="font-size:12px">Onest 700 · 32 · tabular</span></div>
+<div class="jk-spec-row"><span style="font-family:'Onest',sans-serif;font-weight:700;font-size:20px">{{ ty.monthSample }}</span><span class="jk-muted">{{ ty.monthTile }}</span><span class="jk-mono jk-muted" style="font-size:12px">Onest 700 · 20 / 15</span></div>
+<div class="jk-spec-row"><span style="font-family:'Onest',sans-serif;font-weight:700;font-size:17px">30</span><span class="jk-muted">{{ ty.dayNum }}</span><span class="jk-mono jk-muted" style="font-size:12px">Onest 700 · 17 (A) / 14 (B)</span></div>
+<div class="jk-spec-row"><span style="font-weight:500;font-size:13px">{{ ty.taskSample }}</span><span class="jk-muted">{{ ty.taskTitle }}</span><span class="jk-mono jk-muted" style="font-size:12px">Work Sans 500 · 13 · fg1</span></div>
+<div class="jk-spec-row"><span style="font-weight:400;font-size:13px;color:var(--fg3);font-variant-numeric:tabular-nums">{{ ty.metaSample }}</span><span class="jk-muted">{{ ty.meta }}</span><span class="jk-mono jk-muted" style="font-size:12px">Work Sans 400 · 13 · fg3 · tabular</span></div>
+<div class="jk-spec-row"><span class="jk-eyebrow">{{ t.grp_proto }}</span><span class="jk-muted">{{ ty.eyebrow }}</span><span class="jk-mono jk-muted" style="font-size:12px">Work Sans 500 · 12 · caps · .14em</span></div>
+</div>
+<p class="jk-p jk-muted">{{ typeNote }}</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px">
+<h2 class="jk-h2">{{ t.sp_space }}</h2>
+<div class="jk-mat" style="padding:14px 16px;display:flex;flex-direction:column;gap:8px">
+<div class="jk-scale"><span class="jk-mono" style="width:36px;color:var(--fg1)">4px</span><i class="jk-bar" style="width:12px"></i><span>gap dots · inner</span></div>
+<div class="jk-scale"><span class="jk-mono" style="width:36px;color:var(--fg1)">8px</span><i class="jk-bar" style="width:24px"></i><span>gap chips · rows</span></div>
+<div class="jk-scale"><span class="jk-mono" style="width:36px;color:var(--fg1)">10px</span><i class="jk-bar" style="width:30px"></i><span>tile gap · card pad</span></div>
+<div class="jk-scale"><span class="jk-mono" style="width:36px;color:var(--fg1)">12px</span><i class="jk-bar" style="width:36px"></i><span>toolbar gap · row pad</span></div>
+<div class="jk-scale"><span class="jk-mono" style="width:36px;color:var(--fg1)">14px</span><i class="jk-bar" style="width:42px"></i><span>stage pad</span></div>
+<div class="jk-scale"><span class="jk-mono" style="width:36px;color:var(--fg1)">16px</span><i class="jk-bar" style="width:48px"></i><span>card pad · split gap</span></div>
+<div class="jk-scale"><span class="jk-mono" style="width:36px;color:var(--fg1)">24px</span><i class="jk-bar" style="width:72px"></i><span>section gap</span></div>
+<div class="jk-scale"><span class="jk-mono" style="width:36px;color:var(--fg1)">32px</span><i class="jk-bar" style="width:96px"></i><span>main gutter ≥1024</span></div>
+</div>
+<div class="jk-mat" style="padding:14px 16px;display:flex;flex-direction:column">
+<sc-for list="{{ geometry }}" as="g" hint-placeholder-count="6"><div class="jk-spec-row"><span style="color:var(--fg1);font-weight:500">{{ g.name }}</span><span class="jk-muted">{{ g.value }}</span><span class="jk-mono jk-muted" style="font-size:12px">{{ g.note }}</span></div></sc-for>
+</div>
+</div>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px">
+<div class="jk-toolbar"><h2 class="jk-h2">{{ t.sp_annot }}</h2><span class="jk-tag is-existing">{{ t.tag_existing }}</span><span class="jk-tag is-proposed">{{ t.tag_proposed }}</span><span class="jk-tag is-future">{{ t.tag_future }}</span></div>
+<div class="jk-mat" style="padding:6px 16px">
+<sc-for list="{{ annot }}" as="a" hint-placeholder-count="12"><div class="jk-spec-row" style="grid-template-columns:minmax(0,1.6fr) auto auto"><span style="color:var(--fg1)">{{ a.what }}</span><span class="jk-tag {{ a.kindCls }}">{{ a.kind }}</span><span class="jk-tag {{ a.statusCls }}">{{ a.status }}</span></div></sc-for>
+</div>
+<p class="jk-p jk-muted">{{ respNote }}</p>
+</div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;lang&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;ru&quot;,&quot;uk&quot;],&quot;default&quot;:&quot;ru&quot;,&quot;tsType&quot;:&quot;'ru'|'uk'&quot;}}">
+class Component extends DCLogic {
+  state = { grain:false };
+  componentDidMount(){ const r = window.__resources && window.__resources['jk-scene']; document.documentElement.style.setProperty('--jk-scene', 'url("' + (r || './island-day.jpg') + '")'); }
+  renderVals(){
+    const JK=window.JK; if(!JK) return {}; const lang=this.props.lang||'ru'; const uk=lang==='uk'; const t={}; for(const k in JK.S) t[k]=JK.S[k][uk?1:0]; const R=(ru,u)=>uk?u:ru;
+    const themes=[{theme:'dark',label:'dark'},{theme:'light',label:'light'},{theme:'paradise',label:'paradise · day'}];
+    const recipes=[
+      {name:R('матовая база','матова база'), value:'var(--surface) + linear-gradient(180deg, rgba(255,255,255,.045), transparent 42%)', note:'satin'},
+      {name:R('кромка','кромка'), value:'1px var(--border-card) · inset 0 1px 0 rgba(255,255,255,.06)', note:'edge light'},
+      {name:R('тень','тінь'), value:'0 1px 2px rgba(0,0,0,.22) · hover: 0 6px 16px -8px rgba(0,0,0,.5)', note:'shallow'},
+      {name:R('глянец (активные плитки, primary, stakes)','глянець (активні плитки, primary, stakes)'), value:'linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.02) 55%) · inset 0 1px 0 rgba(255,255,255,.22) · inset 0 -1px 0 rgba(0,0,0,.18)', note:'gloss'},
+      {name:R('зерно (опционально)','зерно (опційно)'), value:'feTurbulence .9 · opacity .06 · mix-blend overlay', note:'grain'},
+      {name:R('фокус','фокус'), value:'0 0 0 1px var(--primary-focus-ring) + 0 0 0 3px rgba(34,158,217,.10)', note:'focus'},
+      {name:R('ошибка','помилка'), value:'border var(--danger) + 0 0 0 3px var(--danger-soft)', note:'error'},
+      {name:R('светлые темы','світлі теми'), value:R('блик → белый inset, тень вместо свечения; today — тень #DB5A0C','відблиск → білий inset, тінь замість світіння; today — тінь #DB5A0C'), note:'light/paradise'},
+    ];
+    const ty={ wordmark:R('вордмарк','вордмарк'), pageTitle:R('заголовок страницы','заголовок сторінки'), yearNum:R('число плитки года','число плитки року'), monthSample:R('сентябрь','вересень'), monthTile:R('плитка месяца / крошка','плитка місяця / крихта'), dayNum:R('число дня','число дня'), taskSample:R('собрать отчёт по спринту','зібрати звіт по спринту'), taskTitle:R('название задачи','назва завдання'), metaSample:R('сегодня · 12:00','сьогодні · 12:00'), meta:R('срок / метаданные','термін / метадані'), eyebrow:R('айбрау / подписи','айбрау / підписи') };
+    const geometry=[
+      {name:R('радиусы','радіуси'), value:'6 · 10 · 12 · 999', note:'btn · tile · card · pill'},
+      {name:R('высоты контролов','висоти контролів'), value:'26 · 30 · 36', note:'sm · md · lg (CTA)'},
+      {name:R('строка списка','рядок списку'), value:'38 min', note:'row'},
+      {name:R('сцена календаря','сцена календаря'), value:'620 ≥1024 · 560 на 768–1023 · auto <768', note:'stable per breakpoint'},
+      {name:R('плитки','плитки'), value:R('12 = 4×3 · дни A 7×6 · дни B 4×2 панелей','12 = 4×3 · дні A 7×6 · дні B 4×2 панелей'), note:'grid'},
+      {name:R('минимум текста','мінімум тексту'), value:'12px · hit target 44px mobile', note:'a11y'},
+      {name:R('движение','рух'), value:'rotateY 360° 560ms · reduced: fade 180ms', note:'cubic-bezier(.22,1,.36,1)'},
+    ];
+    const K={visual:[R('визуально · модель задач без изменений','візуально · модель завдань без змін'),'is-kind'],model:[R('новая production-модель','нова production-модель'),'is-kind'],sim:[R('симуляция в прототипе','симуляція в прототипі'),'is-future'],link:[R('обычная ссылка, не интеграция','звичайне посилання, не інтеграція'),'is-kind'],integration:[R('интеграция — не сделана','інтеграція — не зроблена'),'is-future']}; const S={existing:[t.tag_existing,'is-existing'],proposed:[t.tag_proposed,'is-proposed'],future:[t.tag_future,'is-future']};
+    const annot=[
+      [R('переименование LifeOS → JENKIN, вордмарк','перейменування LifeOS → JENKIN, вордмарк'),'visual','proposed'],
+      [R('вложенная навигация календаря годы → месяцы → дни → день','вкладена навігація календаря роки → місяці → дні → день'),'visual','proposed'],
+      [R('крошка + отдельные сегодня / соседний период / история','крихта + окремі сьогодні / сусідній період / історія'),'visual','proposed'],
+      [R('вращение плиток 360° + reduced motion','обертання плиток 360° + reduced motion'),'visual','proposed'],
+      [R('материалы: матовая база, глянец на активных','матеріали: матова база, глянець на активних'),'visual','proposed'],
+      [R('фильтр и сортировка задач — два дропдауна','фільтр і сортування завдань — два дропдауни'),'visual','proposed'],
+      [R('блок аккаунта: имя · почта · статус синхронизации','блок акаунта: ім’я · пошта · статус синхронізації'),'visual','proposed'],
+      [R('задачи, quick notes, clarify, темы, RU/UK — существующая модель','завдання, quick notes, clarify, теми, RU/UK — існуюча модель'),'visual','existing'],
+      [R('история задач: выполнено · архив · закрыто без решения · возврат','історія завдань: виконано · архів · закрито без рішення · повернення'),'visual','existing'],
+      [R('события: title, start/end (UTC), timezone, participants, venue, notes, taskIds, source','події: title, start/end (UTC), timezone, participants, venue, notes, taskIds, source'),'model','proposed'],
+      [R('входящие: raw + type (text/handle/link/idea/product/contact/place) + converted','вхідні: raw + type (text/handle/link/idea/product/contact/place) + converted'),'model','proposed'],
+      [R('быстрый ввод: локальный разбор даты/времени/типа, без сети','швидкий ввід: локальний розбір дати/часу/типу, без мережі'),'model','proposed'],
+      [R('Google Maps: ссылка поиска по адресу','Google Maps: посилання пошуку за адресою'),'link','proposed'],
+      [R('вход, сброс пароля, passkey, коды восстановления — экраны и состояния; в прототипе ничего не проверяется и не отправляется','вхід, скидання пароля, passkey, коди відновлення — екрани і стани; у прототипі ніщо не перевіряється і не надсилається'),'sim','proposed'],
+      [R('BankID · Дія.Підпис · восстановление по личности — только концепт-экраны','BankID · Дія.Підпис · відновлення за особою — лише концепт-екрани'),'integration','future'],
+      [R('документы (ссылки и сроки) · чеклист смены номера — концепты','документи (посилання й терміни) · чекліст зміни номера — концепти'),'model','future'],
+      [R('синхронизация HELSI, хранение ключей налоговой, автосмена в сторонних сервисах — не делаем','синхронізація HELSI, зберігання ключів податкової, автозміна в сторонніх сервісах — не робимо'),'integration','future'],
+    ].map(([what,k,s])=>({what,kind:K[k][0],kindCls:K[k][1],status:S[s][0],statusCls:S[s][1]}));
+    return { t, themes, grainOn:String(this.state.grain), grainCls:this.state.grain?'jk-grain':'', toggleGrain:()=>this.setState(s=>({grain:!s.grain})),
+      matIntro: R('одна система материалов для плиток, кнопок и карточек: матовая база с сдержанным сатиновым бликом, тонкая кромка света, неглубокая тень, опциональное зерно. глянец — только на активных плитках (сегодня, выбранное) и основных действиях.','одна система матеріалів для плиток, кнопок і карток: матова база зі стриманим сатиновим відблиском, тонка кромка світла, неглибока тінь, опційне зерно. глянець — лише на активних плитках (сьогодні, вибране) і основних діях.'),
+      recipeTitle:R('рецепты','рецепти'), recipes, ty, typeNote:R('Onest — только для чисел плиток, заголовков и крошки. Work Sans — всё остальное. один размер для названия и срока: иерархия — вес и цвет, не размер. ничего меньше 12 px.','Onest — лише для чисел плиток, заголовків і крихти. Work Sans — усе інше. один розмір для назви й терміну: ієрархія — вага й колір, не розмір. нічого менше за 12 px.'),
+      geometry, annot,
+      respNote:R('адаптив: 1440 и 1024 — сайдбар 200, сцена 620; 768 — сцена 560, панели B в 2 колонки; 390 и 320 — нижняя навигация, сцена по контенту, плитки ≥ 44 px, строки текста скрыты, остаются точки. переключатель viewport — в настройках прототипа.','адаптив: 1440 і 1024 — сайдбар 200, сцена 620; 768 — сцена 560, панелі B у 2 колонки; 390 і 320 — нижня навігація, сцена за контентом, плитки ≥ 44 px, рядки тексту приховані, лишаються крапки. перемикач viewport — у налаштуваннях прототипу.') };
+  }
+}
+</script>
+</body>
+</html>

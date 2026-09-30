@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet><script src="./ds-base.js"></script><script src="./jenkin-data.js"></script><script src="./jenkin-store.js"></script><link rel="stylesheet" href="./jenkin.css"></helmet>
+<section data-screen-label="Inbox" style="display:flex;flex-direction:column;gap:14px;min-width:0">
+<div class="jk-mat is-gloss" style="padding:14px 16px;display:flex;flex-direction:column;gap:10px">
+<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span class="jk-ico" style="color:var(--primary)">{{ icSparkle }}</span><h2 class="jk-h3">{{ t.sc_title }}</h2><span class="jk-tag is-proposed jk-annot">{{ t.tag_proposed }}</span><span class="jk-muted" style="font-size:12px">{{ t.sc_hint }}</span></div>
+<div style="display:flex;gap:8px;flex-wrap:wrap"><input class="jk-input" style="flex:1;min-width:200px;height:36px;font-size:15px" value="{{ scText }}" onChange="{{ setSc }}" onKeyDown="{{ scKey }}" placeholder="{{ t.sc_ph }}"><button class="jk-btn is-primary is-lg" onClick="{{ scParse }}">{{ t.inbox_clarify }}</button></div>
+<div style="display:flex;gap:6px;flex-wrap:wrap"><sc-for list="{{ scExamples }}" as="x" hint-placeholder-count="3"><button class="jk-btn is-ghost is-sm" style="border:1px dashed var(--line-strong);color:var(--fg3)" onClick="{{ x.use }}">{{ x.text }}</button></sc-for></div>
+<sc-if value="{{ hasProposal }}" hint-placeholder-val="{{ false }}">
+<div class="jk-mat" style="padding:12px;display:flex;flex-direction:column;gap:10px;border-color:var(--line-strong)">
+<div class="jk-toolbar">
+<div style="display:inline-flex;border:1px solid var(--line-strong);border-radius:6px;overflow:hidden"><button class="jk-btn is-ghost is-sm" style="border-radius:0" aria-pressed="{{ p.isTask }}" onClick="{{ pTask }}">{{ t.sc_as_task }}</button><button class="jk-btn is-ghost is-sm" style="border-radius:0;border-left:1px solid var(--line)" aria-pressed="{{ p.isEvent }}" onClick="{{ pEvent }}">{{ t.sc_as_event }}</button></div>
+<input class="jk-input {{ p.titleErrCls }}" style="flex:1;min-width:160px" value="{{ p.title }}" onChange="{{ pTitle }}">
+</div>
+<sc-if value="{{ p.titleErr }}" hint-placeholder-val="{{ false }}"><span class="jk-err">{{ t.err_required }}</span></sc-if>
+<dl class="jk-kv" style="margin:0;grid-template-columns:90px minmax(0,1fr)">
+<dt>{{ t.sc_date }}</dt><dd>
+<sc-if value="{{ p.ambiguous }}" hint-placeholder-val="{{ false }}"><div class="jk-toolbar"><span style="color:var(--warning);display:inline-flex;align-items:center;gap:6px"><span class="jk-ico" style="color:inherit">{{ icAlert }}</span>{{ t.sc_ambig }}</span><button class="jk-btn is-sm" onClick="{{ pThis }}">{{ p.thisLabel }}</button><button class="jk-btn is-sm" onClick="{{ pNext }}">{{ p.nextLabel }}</button></div></sc-if>
+<sc-if value="{{ p.resolved }}" hint-placeholder-val="{{ true }}"><div class="jk-toolbar"><input class="jk-input jk-mono {{ p.dateErrCls }}" type="date" style="width:170px" value="{{ p.dateIso }}" onChange="{{ pDate }}"><span class="jk-muted">{{ p.dateHuman }}</span></div></sc-if>
+<sc-if value="{{ p.noDate }}" hint-placeholder-val="{{ false }}"><div class="jk-toolbar"><span class="jk-muted">{{ p.noDateMsg }}</span><input class="jk-input jk-mono" type="date" style="width:170px" value="" onChange="{{ pDate }}"></div></sc-if>
+<sc-if value="{{ p.dateErr }}" hint-placeholder-val="{{ false }}"><span class="jk-err">{{ t.err_date }}</span></sc-if>
+</dd>
+<dt>{{ t.sc_time }}</dt><dd><div class="jk-toolbar"><input class="jk-input jk-mono {{ p.timeErrCls }}" style="width:110px" value="{{ p.time }}" onChange="{{ pTime }}" placeholder="HH:MM"><sc-if value="{{ p.isEventB }}" hint-placeholder-val="{{ false }}"><span class="jk-muted">–</span><input class="jk-input jk-mono" style="width:110px" value="{{ p.endTime }}" onChange="{{ pEndTime }}" placeholder="HH:MM"></sc-if></div><sc-if value="{{ p.timeErr }}" hint-placeholder-val="{{ false }}"><span class="jk-err">{{ p.timeErrMsg }}</span></sc-if></dd>
+<dt>{{ t.sc_cat }}</dt><dd><div style="display:flex;gap:4px;flex-wrap:wrap"><sc-for list="{{ p.cats }}" as="c" hint-placeholder-count="4"><button class="jk-btn is-ghost is-sm" style="border:1px solid var(--line)" aria-pressed="{{ c.sel }}" onClick="{{ c.pick }}">{{ c.label }}</button></sc-for></div></dd>
+</dl>
+<sc-if value="{{ p.dstErr }}" hint-placeholder-val="{{ false }}"><div class="jk-toolbar"><span class="jk-err" style="margin:0">{{ p.dstMsg }}</span><sc-for list="{{ p.dstCands }}" as="c" hint-placeholder-count="0"><button class="jk-btn is-sm" aria-pressed="{{ c.sel }}" onClick="{{ c.pick }}">{{ c.label }}</button></sc-for></div></sc-if>
+<div class="jk-toolbar"><button class="jk-btn is-primary" disabled="{{ p.blocked }}" onClick="{{ pConfirm }}"><span class="jk-ico" style="color:inherit">{{ icCheck }}</span>{{ t.sc_create }}</button><button class="jk-btn is-ghost" onClick="{{ pDismiss }}">{{ t.ev_cancel }}</button><sc-if value="{{ p.blocked }}" hint-placeholder-val="{{ false }}"><span class="jk-muted" style="font-size:12px">{{ p.blockedMsg }}</span></sc-if><sc-if value="{{ p.dateErr }}" hint-placeholder-val="{{ false }}"><button class="jk-btn is-ghost is-sm" onClick="{{ pDropDate }}">{{ t.sc_drop_date }}</button></sc-if><sc-if value="{{ p.timeErr }}" hint-placeholder-val="{{ false }}"><button class="jk-btn is-ghost is-sm" onClick="{{ pDropTime }}">{{ t.sc_drop_time }}</button></sc-if></div>
+</div>
+</sc-if>
+<sc-if value="{{ hasCreated }}" hint-placeholder-val="{{ false }}"><div style="display:flex;flex-direction:column;gap:4px"><sc-for list="{{ created }}" as="c" hint-placeholder-count="1"><div class="jk-row" style="grid-template-columns:18px minmax(0,1fr) auto auto;cursor:default;border:0"><span class="jk-ico" style="color:var(--success)">{{ icCheck }}</span><span class="jk-row-title">{{ c.label }}</span><button class="jk-btn is-ghost is-sm" onClick="{{ c.view }}">{{ c.viewLabel }}</button><button class="jk-btn is-ghost is-sm" onClick="{{ c.undo }}"><span class="jk-ico" style="color:inherit">{{ icUndo }}</span>{{ t.sc_undo }}</button></div></sc-for></div></sc-if>
+</div>
+<div class="jk-split is-aside">
+<div style="display:flex;flex-direction:column;gap:10px;min-width:0">
+<div style="display:flex;gap:8px"><input class="jk-input" style="flex:1;height:34px" value="{{ capText }}" onChange="{{ setCap }}" onKeyDown="{{ capKey }}" placeholder="{{ t.inbox_ph }}"><button class="jk-btn" onClick="{{ capture }}">{{ t.inbox_capture }}</button></div>
+<div class="jk-toolbar">
+<div style="display:inline-flex;border:1px solid var(--line-strong);border-radius:6px;overflow:hidden"><button class="jk-btn is-ghost is-sm" style="border-radius:0" aria-pressed="{{ showUnsorted }}" onClick="{{ setUnsorted }}">{{ t.inbox_unsorted }}<span class="jk-dd-count">{{ nUnsorted }}</span></button><button class="jk-btn is-ghost is-sm" style="border-radius:0;border-left:1px solid var(--line)" aria-pressed="{{ showSorted }}" onClick="{{ setSorted }}">{{ t.inbox_sorted }}<span class="jk-dd-count">{{ nSorted }}</span></button></div>
+<label style="display:inline-flex;align-items:center;gap:8px;height:30px;padding:0 10px;border:1px solid var(--line-strong);border-radius:6px;background:var(--surface);color:var(--fg3);flex:1;min-width:140px"><span class="jk-ico">{{ icSearch }}</span><input value="{{ q }}" onChange="{{ setQ }}" placeholder="{{ t.inbox_search }}" style="flex:1;min-width:0;background:transparent;border:0;outline:0;color:var(--fg1);font:inherit;font-size:13px"></label>
+</div>
+<div class="jk-mat" style="padding:6px 8px;min-height:120px">
+<div style="display:flex;flex-direction:column">
+<sc-for list="{{ items }}" as="i" hint-placeholder-count="6">
+<div class="jk-row" style="grid-template-columns:18px minmax(0,1fr) auto;cursor:default;align-items:start;padding:8px"><span class="jk-ico" style="margin-top:2px">{{ i.icon }}</span><span style="min-width:0;display:flex;flex-direction:column;gap:4px"><span class="jk-row-title" style="white-space:normal;overflow-wrap:anywhere">{{ i.raw }}</span><span style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><span class="jk-tag {{ i.tagCls }}">{{ i.type }}</span><sc-if value="{{ i.converted }}" hint-placeholder-val="{{ false }}"><span class="jk-tag is-existing">→ {{ i.convertedLabel }}</span></sc-if><span class="jk-row-meta jk-mono" style="font-size:12px">{{ i.when }}</span></span></span><button class="jk-btn is-sm {{ i.btnCls }}" onClick="{{ i.clarify }}">{{ i.action }}</button></div>
+<sc-if value="{{ i.open }}" hint-placeholder-val="{{ false }}">
+<div style="margin:0 8px 8px 34px;padding:10px;border-radius:8px;background:var(--hover-tint);border:1px solid var(--line);display:flex;flex-direction:column;gap:8px">
+<span class="jk-eyebrow" style="font-size:12px">{{ t.inbox_what }}</span>
+<div style="display:flex;gap:4px;flex-wrap:wrap"><sc-for list="{{ i.types }}" as="ty" hint-placeholder-count="7"><button class="jk-btn is-ghost is-sm" style="border:1px solid var(--line)" aria-pressed="{{ ty.sel }}" onClick="{{ ty.pick }}">{{ ty.label }}</button></sc-for></div>
+<div class="jk-toolbar"><button class="jk-btn is-primary is-sm" disabled="{{ i.noPick }}" onClick="{{ i.keep }}"><span class="jk-ico" style="color:inherit">{{ icCheck }}</span>{{ t.inbox_keep }}</button><button class="jk-btn is-sm" onClick="{{ i.toTask }}">{{ t.inbox_to_task }}</button><button class="jk-btn is-sm" onClick="{{ i.toEvent }}">{{ t.inbox_to_event }}</button><button class="jk-btn is-sm" onClick="{{ i.toNote }}">{{ t.inbox_to_note }}</button></div>
+</div>
+</sc-if>
+</sc-for>
+<sc-if value="{{ emptyAll }}" hint-placeholder-val="{{ false }}"><div style="padding:32px 12px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px"><span class="jk-ico" style="color:var(--fg4)">{{ icInbox }}</span><p class="jk-p jk-muted">{{ t.inbox_empty }}</p></div></sc-if>
+<sc-if value="{{ emptySearch }}" hint-placeholder-val="{{ false }}"><p class="jk-p jk-muted" style="padding:16px 8px">{{ t.inbox_nothing }} · «{{ q }}»</p></sc-if>
+</div>
+</div>
+</div>
+<div class="jk-annot-box jk-annot" style="align-self:start">
+<div style="display:flex;gap:6px;flex-wrap:wrap"><span class="jk-tag is-proposed">{{ t.tag_proposed }}</span><span class="jk-tag is-kind">{{ t.tag_model }}</span></div>
+<span>входящие — единая очередь сырых записей: text · handle · link · idea · product · contact · place. quick notes и clarify не исчезают: quick note = запись типа text, clarify = шаг «разобрать» здесь. запись хранит только raw и тип; при конвертации в задачу или событие raw сохраняется как source. @molodayadonna остаётся строкой, пока ты не решишь, что это.</span>
+<span style="color:var(--fg3)">быстрый ввод: разбор даты/времени/типа локально (правила), без сети. неоднозначная дата блокирует «создать», невозможные дата/время отклоняются. созданное — реальная запись прототипа, видна в задачах / событиях / календаре; отмена удаляет её.</span>
+</div>
+</div>
+<sc-if value="{{ toast }}" hint-placeholder-val="{{ false }}"><div class="jk-toast" role="status"><span class="jk-ico" style="color:var(--success)">{{ icCheck }}</span>{{ toastMsg }}<sc-if value="{{ toastUndo }}" hint-placeholder-val="{{ false }}"><button class="jk-btn is-ghost is-sm" onClick="{{ undo }}">{{ t.sc_undo }}</button></sc-if></div></sc-if>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;lang&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;ru&quot;,&quot;uk&quot;],&quot;default&quot;:&quot;ru&quot;,&quot;tsType&quot;:&quot;'ru'|'uk'&quot;},&quot;onOpen&quot;:{&quot;editor&quot;:null,&quot;default&quot;:null,&quot;tsType&quot;:&quot;(kind:'task'|'event', id:string)=&gt;void&quot;}}">
+class Component extends DCLogic {
+  state = { scText:'', proposal:null, created:[], capText:'', q:'', scope:'unsorted', open:null, pick:{}, toast:null, undoFn:null };
+  componentDidMount(){ this.unsub = window.JKStore && window.JKStore.subscribe(()=>this.forceUpdate()); }
+  componentWillUnmount(){ this.unsub && this.unsub(); clearTimeout(this._tt); }
+  ic(name,size){ const JK=window.JK; return React.createElement('svg',{width:size||14,height:size||14,viewBox:'0 0 24 24',fill:'none',stroke:'currentColor',strokeWidth:1.5,strokeLinecap:'round',strokeLinejoin:'round',dangerouslySetInnerHTML:{__html:(JK&&JK.icon[name])||''}}); }
+  toast(msg, undoFn){ clearTimeout(this._tt); this.setState({toast:msg, undoFn:undoFn||null}); this._tt=setTimeout(()=>this.setState({toast:null,undoFn:null}),4000); }
+  parse(text){
+    const JK=window.JK, ST=window.JKStore, TODAY=JK.TODAY; const s=text.toLowerCase();
+    const wd={'понедельник':0,'вторник':1,'сред':2,'четверг':3,'пятниц':4,'суббот':5,'воскресен':6,'понеділок':0,'вівторок':1,'середу':2,'четвер':3,'п’ятниц':4,'субот':5,'неділ':6};
+    let date=null, ambiguous=false, thisD=null, nextD=null, dateErr=false, timeErr=false;
+    const explicit = s.match(/(\d{1,2})[.\/](\d{1,2})(?:[.\/](\d{4}))?/);
+    if (/сегодня|сьогодні/.test(s)) date=new Date(TODAY); else if (/завтра/.test(s)) { date=new Date(TODAY); date.setDate(date.getDate()+1); }
+    else if (explicit) { const y=explicit[3]?+explicit[3]:TODAY.getFullYear(), m=+explicit[2], d=+explicit[1]; if (ST.validDate(y,m,d)) date=new Date(y,m-1,d); else dateErr=true; }
+    else { const k=Object.keys(wd).find(w=>s.includes(w)); if (k){ const target=wd[k]; const cur=(TODAY.getDay()+6)%7; let diff=(target-cur+7)%7; if(diff===0) diff=7; thisD=new Date(TODAY); thisD.setDate(TODAY.getDate()+diff); nextD=new Date(thisD); nextD.setDate(thisD.getDate()+7); if (/следующ|наступн/.test(s)) date=nextD; else ambiguous=true; } }
+    const tm = s.match(/(?:^|\s)(?:в|о|у)\s?(\d{1,2})(?::(\d{2}))?(?=\s|$|[.,])/); let time=''; if (tm){ const h=+tm[1], mi=tm[2]?+tm[2]:0; if (ST.validTime(h,mi)) time=JK.pad(h)+':'+JK.pad(mi); else timeErr=true; }
+    const isEvent = /встреч|зустріч|созвон|дзвінок|стоматолог|врач|лікар|конференц|поездк|поїздк|приём|прийом|ветеринар|окулист|окуліст/.test(s);
+    const cat = /стоматолог|врач|лікар|ветеринар|окулист|окуліст|анализ|аналіз/.test(s) ? 'health' : /купить|купити|заказать|замовити|магазин/.test(s) ? 'shopping' : /встреч|зустріч|созвон|дзвінок|отчёт|звіт|конференц/.test(s) ? 'work' : 'home';
+    let title = text.replace(/\s(в|о|у)\s?\d{1,2}(:\d{2})?(?=\s|$|[.,])/,'').replace(/\d{1,2}[.\/]\d{1,2}([.\/]\d{4})?/,'').replace(/(понедельник|вторник|сред[ау]|четверг|пятниц[ау]|суббот[ау]|воскресенье|понеділок|вівторок|середу|четвер|п’ятниц[юя]|субот[уа]|неділ[юя])/gi,'').replace(/(^|\s)(в|у|во|на|следующую|наступну|следующий|наступний|завтра|сегодня|сьогодні)(?=\s|$)/gi,' ').replace(/\s+/g,' ').trim();
+    if (!title) title=text;
+    return {kind:isEvent?'event':'task', title, time, endTime:'', cat, ambiguous, thisD, nextD, date, dateErr, timeErr, titleErr:false, raw:text};
+  }
+  renderVals(){
+    const JK=window.JK, ST=window.JKStore; if(!JK||!ST) return {}; const lang=this.props.lang||'ru'; const t={}; for(const k in JK.S) t[k]=JK.S[k][lang==='uk'?1:0];
+    const L=v=>v==null?'':(typeof v==='string'?v:v[lang]); const TODAY=JK.TODAY; const S=ST.get();
+    const iso=d=>d?d.getFullYear()+'-'+JK.pad(d.getMonth()+1)+'-'+JK.pad(d.getDate()):'';
+    const P=this.state.proposal; const catLabels={health:['здоровье','здоров’я'],work:['работа','робота'],home:['дом','дім'],shopping:['покупки','покупки']};
+    const upd = patch => this.setState(s=>({proposal:{...s.proposal,...patch}}));
+    const p = P ? { isTask:String(P.kind==='task'), isEvent:String(P.kind==='event'), isEventB:P.kind==='event', title:P.title, titleErr:P.titleErr, titleErrCls:P.titleErr?'is-error':'', ambiguous:P.ambiguous, resolved:!P.ambiguous&&!!P.date, noDate:!P.ambiguous&&!P.date, noDateMsg:P.dateErr?t.sc_bad_date:t.sc_none, dateErr:P.dateErr, dateErrCls:P.dateErr?'is-error':'', dateIso:iso(P.date), dateHuman:P.date?JK.WD_LONG[lang][(P.date.getDay()+6)%7]+', '+JK.fmtDate(P.date,lang):'', time:P.time, endTime:P.endTime, timeErr:P.timeErr, timeErrCls:P.timeErr?'is-error':'', timeErrMsg:P.timeErr==='end'?t.err_end:t.sc_bad_time,
+      blocked:P.ambiguous||!!P.dateErr||!!P.timeErr||!!P.dstErr, hasErr:!!P.dateErr||!!P.timeErr||!!P.dstErr, dstErr:P.dstErr, dstMsg:P.dstErr==='ambiguous'?t.err_dst_amb:t.err_dst_none, dstCands:(P.dstCands||[]).map(c=>({label:ST.fmtOff(c.offsetMin), sel:String(P.offset===c.offsetMin), pick:()=>upd({offset:c.offsetMin, dstErr:false})})), blockedMsg: P.ambiguous ? (lang==='uk'?'обери дату, щоб продовжити':'выбери дату, чтобы продолжить') : t.sc_fix,
+      thisLabel:(lang==='uk'?'ця, ':'эта, ')+(P.thisD?JK.fmtDate(P.thisD,lang):''), nextLabel:(lang==='uk'?'наступна, ':'следующая, ')+(P.nextD?JK.fmtDate(P.nextD,lang):''),
+      cats:Object.keys(catLabels).map(id=>({label:catLabels[id][lang==='uk'?1:0], sel:String(P.cat===id), pick:()=>upd({cat:id})})) } : {};
+    const examples=[lang==='uk'?'стоматолог у п’ятницю о 10':'стоматолог в пятницу в 10', lang==='uk'?'купити корм завтра':'купить корм завтра', lang==='uk'?'дзвінок з Максимом 14.10 о 15':'созвон с Максимом 14.10 в 15'].map(text=>({text, use:()=>this.setState({scText:text, proposal:this.parse(text)})}));
+    const pConfirm = () => { if(!P||P.ambiguous||P.dateErr||P.timeErr) return; if(!P.title.trim()){ upd({titleErr:true}); return; } let h=0,mi=0; if (P.time){ const tm=ST.parseTime(P.time); if(!tm){ upd({timeErr:true}); return; } h=tm.h; mi=tm.mi; }
+      if (P.kind==='task'){ const due = P.date ? new Date(P.date.getFullYear(),P.date.getMonth(),P.date.getDate(),h,mi) : null; const rec=ST.addTask({title:P.title.trim(), kind:P.cat==='work'?'important':'routine', due, source:{raw:P.raw}}); this.setState(s=>({created:[{kind:'task',id:rec.id,title:rec.title,date:due,time:due?P.time:''},...s.created], proposal:null, scText:''})); this.toast(t.sc_created+' · '+t.nav_tasks); }
+      else { if(!P.date){ upd({dateErr:true}); return; } let eh=h+1, emi=mi; if (P.endTime){ const te=ST.parseTime(P.endTime); if(!te){ upd({timeErr:true}); return; } if (te.h*60+te.mi < h*60+mi){ upd({timeErr:'end'}); return; } eh=te.h; emi=te.mi; } const tz='Europe/Kyiv'; const y=P.date.getFullYear(), m=P.date.getMonth()+1, d=P.date.getDate(); const rs=ST.resolveZoned(y,m,d,h,mi,tz); let start=rs.date; if(!rs.ok){ const c=rs.candidates.find(x=>x.offsetMin===P.offset); if(c) start=c.date; else { upd({dstErr:rs.kind, dstCands:rs.candidates}); return; } } const re=ST.resolveZoned(y,m,d,Math.min(eh,23),emi,tz); let end=re.ok?re.date:(re.candidates[0]?re.candidates[0].date:null); if(!end){ upd({dstErr:'nonexistent', dstCands:[]}); return; } if(end<start) end=new Date(start.getTime()+36e5); const rec=ST.addEvent({title:P.title.trim(), type:P.cat==='health'?'appointment':'meeting', tz, start, end, source:{raw:P.raw}}); this.setState(s=>({created:[{kind:'event',id:rec.id,title:rec.title,date:P.date,time:P.time},...s.created], proposal:null, scText:''})); this.toast(t.sc_created+' · '+t.nav_events); } };
+    const created=this.state.created.map(c=>({label:(c.kind==='event'?t.nav_events:t.nav_tasks)+' · '+c.title+(c.date?' · '+JK.fmtDate(c.date,lang):'')+(c.time?' · '+c.time:''), viewLabel: c.kind==='event'?t.nav_events:t.nav_tasks, view:()=>this.props.onOpen && this.props.onOpen(c.kind, c.id), undo:()=>{ if(c.kind==='event') ST.removeEvent(c.id); else ST.removeTask(c.id); this.setState(s=>({created:s.created.filter(x=>x!==c)})); this.toast(t.sc_undone); }}));
+    /* inbox */
+    const all=S.inbox; const q=this.state.q.trim().toLowerCase();
+    const typeIcon={text:'text',handle:'at',link:'link',idea:'bulb',product:'bag',contact:'user',place:'pin'};
+    const scoped = all.filter(i=> this.state.scope==='unsorted' ? !i.type : !!i.type);
+    const shown = scoped.filter(i=>!q || L(i.raw).toLowerCase().includes(q));
+    const classify=(i,type,converted)=>{ ST.updateInbox(i.id,{type, converted:converted||null}); this.setState({open:null}); };
+    const convert=(i,pick,kind)=>{ const raw=L(i.raw); const type=pick||'text'; let rec; if (kind==='task'){ rec=ST.addTask({title:raw, kind:'routine', due:null, source:{inboxId:i.id, raw}}); } else { const tz='Europe/Kyiv'; const y=TODAY.getFullYear(),m=TODAY.getMonth()+1,d=TODAY.getDate(); rec=ST.addEvent({title:raw, type:'meeting', tz, start:ST.zonedToUtc(y,m,d,10,0,tz), end:ST.zonedToUtc(y,m,d,11,0,tz), source:{inboxId:i.id, raw}}); }
+      const prev={type:i.type, converted:i.converted||null}; classify(i,type,{kind,id:rec.id}); this.toast((kind==='task'?t.inbox_to_task:t.inbox_to_event)+' · '+raw, ()=>{ if(kind==='task') ST.removeTask(rec.id); else ST.removeEvent(rec.id); ST.updateInbox(i.id, prev); }); };
+    const items = shown.slice().sort((a,b)=>b.at-a.at).map(i=>{ const open=this.state.open===i.id; const pick=this.state.pick[i.id]||null; return { raw:L(i.raw), type:i.type?t['ty_'+i.type]:t.inbox_unsorted, tagCls:i.type?'is-kind':'is-future', when:JK.relDate(i.at,lang)+' · '+JK.hm(i.at), icon:this.ic(i.type?typeIcon[i.type]:'inbox',14),
+      converted:!!i.converted, convertedLabel:i.converted?(i.converted.kind==='task'?t.nav_tasks:i.converted.kind==='event'?t.nav_events:t.inbox_to_note.replace(/^в |^у /,'')):'',
+      action:i.type?t.ev_edit:t.inbox_clarify, btnCls:i.type?'is-ghost':'', clarify:()=>this.setState(s=>({open:open?null:i.id})), open, noPick:!pick,
+      types:['text','handle','link','idea','product','contact','place'].map(ty=>({label:t['ty_'+ty], sel:String(pick===ty), pick:()=>this.setState(s=>({pick:{...s.pick,[i.id]:ty}}))})),
+      keep:()=>{ const prev={type:i.type,converted:i.converted||null}; classify(i,pick,null); this.toast(t.inbox_sorted+' · '+t['ty_'+pick], ()=>ST.updateInbox(i.id,prev)); }, toTask:()=>convert(i,pick,'task'), toEvent:()=>convert(i,pick,'event'), toNote:()=>{ const prev={type:i.type,converted:i.converted||null}; classify(i,pick||'text',{kind:'note'}); this.toast(t.inbox_to_note, ()=>ST.updateInbox(i.id,prev)); } }; });
+    const capture=()=>{ const raw=this.state.capText.trim(); if(!raw) return; const rec=ST.addInbox({raw, type:null, at:new Date(TODAY.getFullYear(),TODAY.getMonth(),TODAY.getDate(),new Date().getHours(),new Date().getMinutes())}); this.setState({capText:'', scope:'unsorted'}); this.toast(t.inbox_capture+' · '+raw, ()=>ST.removeInbox(rec.id)); };
+    return { t, scText:this.state.scText, setSc:e=>this.setState({scText:e.target.value}), scKey:e=>{ if(e.key==='Enter' && this.state.scText.trim()) this.setState({proposal:this.parse(this.state.scText)}); }, scParse:()=>{ if(this.state.scText.trim()) this.setState({proposal:this.parse(this.state.scText)}); }, scExamples:examples,
+      hasProposal:!!P, p, pTask:()=>upd({kind:'task'}), pEvent:()=>upd({kind:'event'}), pTitle:e=>upd({title:e.target.value,titleErr:false}), pThis:()=>upd({date:P.thisD,ambiguous:false}), pNext:()=>upd({date:P.nextD,ambiguous:false}),
+      pDate:e=>{ const v=e.target.value; if(!v){ upd({date:null,dateErr:false}); return; } const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(v); if(!m||!ST.validDate(+m[1],+m[2],+m[3])){ upd({dateErr:true}); return; } upd({date:new Date(+m[1],+m[2]-1,+m[3]),dateErr:false,ambiguous:false}); },
+      pTime:e=>{ const v=e.target.value; upd({time:v,timeErr: v.trim()?!ST.parseTime(v):false,dstErr:false,offset:undefined}); }, pEndTime:e=>upd({endTime:e.target.value,timeErr:false}), pDropDate:()=>upd({date:null,dateErr:false,ambiguous:false,dstErr:false}), pDropTime:()=>upd({time:'',timeErr:false,dstErr:false}), pConfirm, pDismiss:()=>this.setState({proposal:null}),
+      hasCreated:created.length>0, created,
+      capText:this.state.capText, setCap:e=>this.setState({capText:e.target.value}), capKey:e=>{ if(e.key==='Enter') capture(); }, capture,
+      q:this.state.q, setQ:e=>this.setState({q:e.target.value}), showUnsorted:String(this.state.scope==='unsorted'), showSorted:String(this.state.scope==='sorted'), setUnsorted:()=>this.setState({scope:'unsorted'}), setSorted:()=>this.setState({scope:'sorted'}),
+      nUnsorted:String(all.filter(i=>!i.type).length), nSorted:String(all.filter(i=>!!i.type).length), items, emptyAll: scoped.length===0, emptySearch: scoped.length>0 && shown.length===0,
+      toast:!!this.state.toast, toastMsg:this.state.toast, toastUndo:!!this.state.undoFn, undo:()=>{ const fn=this.state.undoFn; if(fn) fn(); this.setState({toast:null,undoFn:null}); },
+      icSparkle:this.ic('sparkle',16), icAlert:this.ic('alert',13), icCheck:this.ic('check',13), icUndo:this.ic('undo',13), icSearch:this.ic('search',13), icInbox:this.ic('inbox',24) };
+  }
+}
+</script>
+</body>
+</html>

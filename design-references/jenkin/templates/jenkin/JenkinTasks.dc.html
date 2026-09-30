@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet><script src="./ds-base.js"></script><script src="./jenkin-data.js"></script><script src="./jenkin-store.js"></script><link rel="stylesheet" href="./jenkin.css"></helmet>
+<section data-screen-label="Tasks" style="display:flex;flex-direction:column;gap:12px;min-width:0;max-width:820px">
+<div class="jk-toolbar">
+<div class="jk-dd">
+<button class="jk-dd-btn" aria-expanded="{{ fOpen }}" onClick="{{ toggleF }}"><span class="jk-ico" style="color:inherit">{{ icFilter }}</span>{{ fLabel }}<span class="jk-dd-count">{{ fCount }}</span><span class="jk-ico">{{ icDown }}</span></button>
+<sc-if value="{{ fOpenB }}" hint-placeholder-val="{{ false }}"><div class="jk-dd-menu" role="listbox"><sc-for list="{{ filters }}" as="f" hint-placeholder-count="7"><button class="jk-dd-item" role="option" aria-selected="{{ f.sel }}" onClick="{{ f.pick }}"><span>{{ f.label }}</span><span class="jk-dd-count">{{ f.n }}</span></button></sc-for></div></sc-if>
+</div>
+<div class="jk-dd">
+<button class="jk-dd-btn" aria-expanded="{{ sOpen }}" onClick="{{ toggleS }}"><span class="jk-ico" style="color:inherit">{{ icSort }}</span>{{ sLabel }}<span class="jk-ico">{{ icDown }}</span></button>
+<sc-if value="{{ sOpenB }}" hint-placeholder-val="{{ false }}"><div class="jk-dd-menu" role="listbox"><sc-for list="{{ sorts }}" as="s" hint-placeholder-count="4"><button class="jk-dd-item" role="option" aria-selected="{{ s.sel }}" onClick="{{ s.pick }}"><span>{{ s.label }}</span></button></sc-for></div></sc-if>
+</div>
+<span class="jk-spacer"></span>
+<div style="display:flex;gap:8px"><input class="jk-input {{ ntErrCls }}" style="width:220px" value="{{ ntTitle }}" onChange="{{ setNt }}" onKeyDown="{{ ntKey }}" placeholder="{{ t.add_task }}…"><button class="jk-btn is-primary" onClick="{{ ntSave }}"><span class="jk-ico" style="color:inherit">{{ icPlus }}</span>{{ t.add }}</button></div>
+</div>
+<div class="jk-mat" style="padding:6px 8px">
+<div style="display:flex;flex-direction:column">
+<sc-for list="{{ rows }}" as="k" hint-placeholder-count="8"><div class="jk-row {{ k.cls }}" style="grid-template-columns:18px minmax(0,1fr) auto;cursor:default" data-selected="{{ k.hl }}"><button class="jk-check" style="cursor:pointer" aria-pressed="{{ k.isDone }}" aria-label="{{ k.title }}" onClick="{{ k.toggle }}">{{ k.check }}</button><span style="min-width:0;display:flex;flex-direction:column;gap:1px"><span class="jk-row-title">{{ k.title }}</span><sc-if value="{{ k.fromInbox }}" hint-placeholder-val="{{ false }}"><span class="jk-row-meta" style="font-size:12px;overflow:hidden;text-overflow:ellipsis">{{ t.source }}: {{ k.sourceRaw }}</span></sc-if></span><span style="display:flex;align-items:center;gap:8px"><span class="jk-tag is-kind jk-hide-m">{{ k.kind }}</span><span class="jk-row-meta {{ k.metaCls }}">{{ k.meta }}</span><div class="jk-dd"><button class="jk-btn is-ghost is-sm" style="width:26px;padding:0" aria-label="more" onClick="{{ k.menu }}">···</button><sc-if value="{{ k.menuOpen }}" hint-placeholder-val="{{ false }}"><div class="jk-dd-menu" style="left:auto;right:0"><sc-if value="{{ k.isOpen }}" hint-placeholder-val="{{ true }}"><button class="jk-dd-item" onClick="{{ k.archive }}">{{ t.archive }}</button><button class="jk-dd-item" onClick="{{ k.close }}">{{ t.close_unresolved }}</button></sc-if><sc-if value="{{ k.notOpen }}" hint-placeholder-val="{{ false }}"><button class="jk-dd-item" onClick="{{ k.restore }}">{{ t.restore }}</button></sc-if></div></sc-if></div></span></div></sc-for>
+<sc-if value="{{ empty }}" hint-placeholder-val="{{ false }}"><p class="jk-p jk-muted" style="padding:16px 8px">{{ t.inbox_nothing }}</p></sc-if>
+</div>
+</div>
+<div class="jk-annot jk-annot-box">
+<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><span class="jk-tag is-existing">{{ t.tag_existing }}</span><span class="jk-tag is-kind">{{ t.tag_visual }}</span><span>один компактный фильтр (все · сегодня · просроченные · рутина · важные · ожидание · выполненные · архив · закрытые) вместо ряда сегментов; сортировка — отдельный дропдаун. название и срок — один размер 13 px, иерархия весом (500 / 400) и цветом (fg1 / fg3). просрочено — красный, сегодня — оранжевый. модель задач — существующая; добавлены только статусы жизненного цикла и source.</span></div>
+</div>
+<sc-if value="{{ toast }}" hint-placeholder-val="{{ false }}"><div class="jk-toast" role="status"><span class="jk-ico" style="color:var(--success)">{{ icCheck }}</span>{{ toastMsg }}<sc-if value="{{ toastUndo }}" hint-placeholder-val="{{ false }}"><button class="jk-btn is-ghost is-sm" onClick="{{ undo }}">{{ t.sc_undo }}</button></sc-if></div></sc-if>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;lang&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;ru&quot;,&quot;uk&quot;],&quot;default&quot;:&quot;ru&quot;,&quot;tsType&quot;:&quot;'ru'|'uk'&quot;},&quot;highlightId&quot;:{&quot;editor&quot;:null,&quot;default&quot;:null,&quot;tsType&quot;:&quot;string|null&quot;}}">
+class Component extends DCLogic {
+  state = { filter:'all', sort:'date', fOpen:false, sOpen:false, menu:null, nt:'', ntErr:false, toast:null, undoFn:null };
+  componentDidMount(){ this.unsub = window.JKStore && window.JKStore.subscribe(()=>this.forceUpdate()); }
+  componentWillUnmount(){ this.unsub && this.unsub(); clearTimeout(this._tt); }
+  ic(name,size){ const JK=window.JK; return React.createElement('svg',{width:size||14,height:size||14,viewBox:'0 0 24 24',fill:'none',stroke:'currentColor',strokeWidth:1.5,strokeLinecap:'round',strokeLinejoin:'round',dangerouslySetInnerHTML:{__html:(JK&&JK.icon[name])||''}}); }
+  toast(msg, undoFn){ clearTimeout(this._tt); this.setState({toast:msg, undoFn:undoFn||null}); this._tt=setTimeout(()=>this.setState({toast:null,undoFn:null}),4000); }
+  renderVals(){
+    const JK=window.JK, ST=window.JKStore; if(!JK||!ST) return {}; const lang=this.props.lang||'ru'; const t={}; for(const k in JK.S) t[k]=JK.S[k][lang==='uk'?1:0]; const L=v=>v==null?'':(typeof v==='string'?v:v[lang]);
+    const TODAY=JK.TODAY; const tasks=ST.get().tasks;
+    const dated = k => !!k.due && !k.noDue; const isOver = k => k.status==='open' && dated(k) && k.due < new Date(TODAY.getFullYear(),TODAY.getMonth(),TODAY.getDate());
+    const preds = { all:k=>k.status==='open', today:k=>k.status==='open'&&dated(k)&&JK.sameDay(k.due,TODAY), overdue:isOver, routine:k=>k.status==='open'&&k.kind==='routine', important:k=>k.status==='open'&&k.kind==='important', waiting:k=>k.status==='open'&&k.kind==='waiting', completed:k=>k.status==='done', archived:k=>k.status==='archived', closed:k=>k.status==='closed' };
+    const fLabels = {...Object.fromEntries(Object.keys(preds).map(id=>[id,t['f_'+id]])), archived:t.history_archived, closed:t.history_closed};
+    const filters = Object.keys(preds).map(id=>({id, label:fLabels[id], n:String(tasks.filter(preds[id]).length), sel:String(this.state.filter===id), pick:()=>this.setState({filter:id,fOpen:false})}));
+    const sorts = ['date','priority','title','manual'].map(id=>({id,label:t['s_'+id], sel:String(this.state.sort===id), pick:()=>this.setState({sort:id,sOpen:false})}));
+    const pr={important:0,waiting:1,routine:2};
+    let list = tasks.filter(preds[this.state.filter]);
+    const dv = k => dated(k) ? k.due.getTime() : Infinity; if (this.state.sort==='date') list.sort((a,b)=>dv(a)-dv(b)); else if (this.state.sort==='priority') list.sort((a,b)=>pr[a.kind]-pr[b.kind]||dv(a)-dv(b)); else if (this.state.sort==='title') list.sort((a,b)=>L(a.title).localeCompare(L(b.title)));
+    const rows = list.map(k=>{ const done=k.status==='done'; const over=isOver(k), today=dated(k)&&JK.sameDay(k.due,TODAY); const meta = done ? t.done : k.status==='archived' ? t.history_archived : k.status==='closed' ? t.history_closed : !dated(k) ? t.no_due : (over ? t.overdue+' · '+JK.fmtDate(k.due,lang) : (JK.relDate(k.due,lang)+(k.due.getHours()?' · '+JK.hm(k.due):'')));
+      const restoreTo = () => ST.setTaskStatus(k.id,'open');
+      return {title:L(k.title), kind:t['k_'+k.kind], cls:(done?'is-done':'')+(k.kind==='important'&&k.status==='open'?' is-important':''), hl: k.id===this.props.highlightId?'1':undefined, isDone:String(done), check:done?this.ic('check',12):null, meta, metaCls: over?'is-overdue':(today&&k.status==='open'?'is-today':''), fromInbox:!!k.source, sourceRaw:k.source?L(k.source.raw):'',
+        toggle:()=>ST.setTaskStatus(k.id, done?'open':'done'), menuOpen:this.state.menu===k.id, menu:()=>this.setState(s=>({menu:s.menu===k.id?null:k.id})), isOpen:k.status==='open'||done, notOpen:k.status==='archived'||k.status==='closed',
+        archive:()=>{ ST.setTaskStatus(k.id,'archived'); this.setState({menu:null}); this.toast(t.archive+' · '+L(k.title), restoreTo); }, close:()=>{ ST.setTaskStatus(k.id,'closed'); this.setState({menu:null}); this.toast(t.close_unresolved+' · '+L(k.title), restoreTo); }, restore:()=>{ restoreTo(); this.setState({menu:null}); this.toast(t.restore+' · '+L(k.title)); } }; });
+    const cur = filters.find(f=>f.id===this.state.filter);
+    const ntSave = () => { const v=this.state.nt.trim(); if(!v){ this.setState({ntErr:true}); return; } const rec=ST.addTask({title:v, kind:'routine', due:null}); this.setState({nt:'',ntErr:false}); this.toast(t.add_task+' · '+v, ()=>ST.removeTask(rec.id)); };
+    return { t, rows, empty: rows.length===0, filters, sorts, fLabel:cur.label, fCount:cur.n, sLabel:sorts.find(s=>s.id===this.state.sort).label,
+      fOpen:String(this.state.fOpen), fOpenB:this.state.fOpen, sOpen:String(this.state.sOpen), sOpenB:this.state.sOpen,
+      toggleF:()=>this.setState(s=>({fOpen:!s.fOpen,sOpen:false})), toggleS:()=>this.setState(s=>({sOpen:!s.sOpen,fOpen:false})),
+      ntTitle:this.state.nt, ntErrCls:this.state.ntErr?'is-error':'', setNt:e=>this.setState({nt:e.target.value,ntErr:false}), ntKey:e=>{ if(e.key==='Enter') ntSave(); }, ntSave,
+      toast:!!this.state.toast, toastMsg:this.state.toast, toastUndo:!!this.state.undoFn, undo:()=>{ const fn=this.state.undoFn; if(fn) fn(); this.setState({toast:null,undoFn:null}); },
+      icFilter:this.ic('filter',13), icSort:this.ic('sortIcon',13), icDown:this.ic('chevD',12), icPlus:this.ic('plus',14), icCheck:this.ic('check',14) };
+  }
+}
+</script>
+</body>
+</html>
