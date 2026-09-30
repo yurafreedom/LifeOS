@@ -8,15 +8,19 @@ import { taskDate, taskTime, type TaskRecord } from './tasks';
  * same source Clarify uses. Nothing here slices the UTC ISO string of a local
  * Date, so no day shifts around midnight.
  *
- * Owner bounds: navigation up to 2100; the year level shows 30-year windows
- * anchored at the current year; the lower bound is the earlier of the current
- * year and the earliest real dated task. */
+ * Owner bounds: navigation up to 2100; the lower bound is the earlier of the
+ * current year and the earliest real dated task. The approved JENKIN design
+ * (third export) shows the year level as 12 year tiles (4 × 3), so a year
+ * window is 12 years, still anchored at the current year (it replaced the
+ * earlier 30-year windows; the route grammar is unchanged). */
 
 export const MAX_YEAR = 2100;
 export const MIN_INPUT_YEAR = 1900;
-export const WINDOW_YEARS = 30;
+export const WINDOW_YEARS = 12;
 
 export type DayCell = { date: string; day: number; weekday: number };
+/** A cell of the 7 × 6 month grid; `inMonth` is false for neighbouring-month days. */
+export type GridCell = DayCell & { inMonth: boolean };
 export type MonthCell = { year: number; month: number; key: string };
 export type YearWindow = { start: number; end: number; years: number[]; prev: number | null; next: number | null };
 
@@ -102,9 +106,10 @@ export function clampYear(year: number, bounds: CalendarBounds): number {
   return Math.min(bounds.maxYear, Math.max(bounds.minYear, year));
 }
 
-/* 30-year windows anchored at the current year — [cur+30k, cur+30k+29] —
-   clamped to [minYear, 2100]. From 2026: 2026–2055, 2056–2085, 2086–2100;
-   earlier dated tasks open a backward window down to minYear. */
+/* 12-year windows anchored at the current year — [cur+12k, cur+12k+11] —
+   clamped to [minYear, 2100]. From 2026: 2026–2037, 2038–2049, …, 2098–2100;
+   earlier dated tasks open a backward window down to minYear. Only real,
+   navigable years are listed (a clamped window has fewer than 12). */
 export function yearWindow(year: number, bounds: CalendarBounds): YearWindow {
   const target = clampYear(year, bounds);
   const k = Math.floor((target - bounds.currentYear) / WINDOW_YEARS);
@@ -119,6 +124,50 @@ export function yearWindow(year: number, bounds: CalendarBounds): YearWindow {
     prev: start - 1 >= bounds.minYear ? start - 1 : null,
     next: end + 1 <= bounds.maxYear ? end + 1 : null,
   };
+}
+
+/* ── Nested tile Calendar (JENKIN): month grid, week panels, clamping ───── */
+
+/** The date `days` after (or before) a date-only value, in pure UTC arithmetic. */
+export function addDays(dateOnly: string, days: number): string {
+  const { year, month, day } = parseDateOnly(dateOnly);
+  const next = new Date(Date.UTC(year, month - 1, day + days));
+  return dateKey(next.getUTCFullYear(), next.getUTCMonth() + 1, next.getUTCDate());
+}
+
+/** (year, month) with the same day of month where it exists: 31 → 30/29/28. */
+export function clampedDate(year: number, month: number, day: number): string {
+  return dateKey(year, month, Math.min(Math.max(1, Math.trunc(day) || 1), daysInMonth(year, month)));
+}
+
+/** Is this date-only value inside the navigable [minYear, 2100] range? */
+export function dateInBounds(dateOnly: string, bounds: CalendarBounds): boolean {
+  try {
+    return yearInBounds(parseDateOnly(dateOnly).year, bounds);
+  } catch {
+    return false;
+  }
+}
+
+/* Layout A: 7 Monday-first columns × 6 rows = 42 cells, starting with the
+   week that contains the 1st. Leading and trailing cells are the real
+   neighbouring-month days (inMonth: false). */
+export function monthGrid(year: number, month: number): GridCell[] {
+  const first = dateKey(year, month, 1);
+  const offset = weekdayIndex(first);
+  return Array.from({ length: 42 }, (_, index) => {
+    const date = addDays(first, index - offset);
+    const parts = parseDateOnly(date);
+    return { date, day: parts.day, weekday: index % 7, inMonth: parts.year === year && parts.month === month };
+  });
+}
+
+/* Layout B: only the month's real Monday–Sunday weeks — 4, 5 or 6 of them
+   (February 2027: 4; February 2026: 5; August 2026: 6). */
+export function monthWeeks(year: number, month: number): GridCell[][] {
+  const cells = monthGrid(year, month);
+  const weeks = Math.ceil((weekdayIndex(dateKey(year, month, 1)) + daysInMonth(year, month)) / 7);
+  return Array.from({ length: weeks }, (_, week) => cells.slice(week * 7, week * 7 + 7));
 }
 
 /* Locale formatting of a date-only value, evaluated in UTC so the label is

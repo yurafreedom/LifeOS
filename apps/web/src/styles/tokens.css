@@ -221,8 +221,9 @@
   --mat-field: rgba(0,0,0,0.12);
   /* restrained warm beige for quiet status copy (account sync line) */
   --warm-beige: #CDBBA4;
-  /* «today» copy on material surfaces (≥ 4.5:1 at 13 px) */
+  /* «today» copy on material surfaces (≥ 4.5:1 at 13 px) and today's tile numbers */
   --today-text: var(--o2);
+  --today-num: var(--o1);
 }
 
 /* ============================================================
@@ -351,6 +352,7 @@
   --mat-field: #FFFFFF;
   --warm-beige: #7A6650;
   --today-text: var(--o3);
+  --today-num: var(--o2);
 }
 
 html, body, #root { height: 100%; }

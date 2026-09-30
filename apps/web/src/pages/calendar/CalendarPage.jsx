@@ -4,144 +4,191 @@ import { LIcons } from '../../components/icons.jsx';
 import { LifeDataContext } from '../../context/LifeDataContext.jsx';
 import { LifeLocaleContext, LifeStrings } from '../../context/LocaleContext.jsx';
 import { useKyivToday } from '../../app/useKyivToday.js';
-import { calendarBoundsForDay, formatMonth, monthKey, shiftMonth, yearInBounds, yearOf, yearWindow } from '../../domain/calendarModel.ts';
+import { calendarBoundsForDay, yearOf, yearWindow } from '../../domain/calendarModel.ts';
+import { activeTaskCounts } from '../../domain/tasks.ts';
 import { calendarHash, parseCalendarHash } from './calendarRoute.js';
-import { DayCubes, MonthCubes, YearCubes } from './CubeGrids.jsx';
+import {
+  breadcrumbs, columnsFromTops, dayTileStep, gridArrowTarget, levelOf, monthTileStep, periodLabel, periodStep,
+  readLayout, reconcileCursor, todayStep, upStep, weekArrowTarget, writeLayout, yearTileStep,
+} from './calendarNav.js';
+import { DaysGridA, DaysWeeksB, MonthTiles, YearTiles } from './TileGrids.jsx';
 import { CalendarHistory } from './CalendarHistory.jsx';
-import { DayManagerModal } from './DayManagerModal.jsx';
+import { DayDetails } from './DayDetails.jsx';
 
 /* Calendar — route shell (one route id, `calendar`; the hash carries the
- * level and date, see calendarRoute.js).
- *
- * Owner design (recovered source of truth): a clean month of day cubes →
- * drill into one day to manage its real tasks → zoom out to the months of a
- * year and to years up to 2100. Only real tasks with a `schedule.date` exist
- * here: no seeded demo events and no repeated routine rows from other pages. */
+ * level and date, see calendarRoute.js) for the nested tile Calendar of the
+ * approved JENKIN design: Years → Months → Days (layout A or B) → Day details,
+ * with History as a separate control. Only real tasks with a `schedule.date`
+ * exist here: no seeded demo events, no event controls, no filler content. */
 
 const { useContext, useEffect, useMemo, useRef, useState } = React;
 
-const LEVELS = [
-  { id: 'month', key: 'cal_level_days' },
-  { id: 'year', key: 'cal_level_months' },
-  { id: 'years', key: 'cal_level_years' },
-  { id: 'history', key: 'cal_level_history' },
-];
-
-const SUBTITLE = { month: 'cal_sub_days', year: 'cal_sub_months', years: 'cal_sub_years', history: 'cal_sub_history' };
+const SUBTITLE = { days: 'cal_sub_days', months: 'cal_sub_months', years: 'cal_sub_years', day: 'cal_sub_day', history: 'cal_sub_history' };
+const STEP_KEYS = {
+  years: ['cal_prev_window', 'cal_next_window'],
+  months: ['cal_prev_year', 'cal_next_year'],
+  days: ['cal_prev_month', 'cal_next_month'],
+  day: ['cal_prev_day', 'cal_next_day'],
+  history: ['cal_prev_month', 'cal_next_month'],
+};
+const ARROWS = new Set(['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown']);
+const LAYOUTS = [['A', 'cal_layout_a'], ['B', 'cal_layout_b']];
 
 function readHash() {
   return typeof window === 'undefined' ? '' : window.location.hash;
 }
 
-/* The year a level switch keeps as context. */
-function contextYear(view, bounds) {
-  return view.view === 'history' ? bounds.currentYear : view.year;
+function storage() {
+  try {
+    return typeof window === 'undefined' ? null : window.localStorage;
+  } catch {
+    return null;
+  }
 }
 
 /** Pure view: everything below the route shell, for rendering and tests. */
-export function CalendarView({ view, bounds, intl, t, onNavigate, tasks = [], onRestore = () => {} }) {
+export function CalendarView({
+  view, bounds, intl, t, onNavigate, tasks = [], onRestore = () => {},
+  cursor: cursorProp = null, layout = 'B', spin = null, counts: countsProp = null,
+  onLayout = () => {}, dayActions = null, onAddForDay = () => {}, stageRef = null,
+}) {
   const I = LIcons;
-  const todayYear = bounds.currentYear;
-  const [todayY, todayM] = bounds.today.split('-').map(Number);
+  const level = levelOf(view);
+  const cursor = reconcileCursor(cursorProp || bounds.today, view);
+  const counts = countsProp || activeTaskCounts(tasks);
+  const go = step => step && onNavigate(step.target, step.cursor);
+  const crumbs = breadcrumbs(view, cursor, bounds, intl, t);
+  const prev = periodStep(view, cursor, bounds, -1);
+  const next = periodStep(view, cursor, bounds, 1);
+  const [prevKey, nextKey] = STEP_KEYS[level];
 
-  function levelTarget(level) {
-    const year = contextYear(view, bounds);
-    if (level === 'month') {
-      if (view.view === 'month') return { view: 'month', year: view.year, month: view.month, day: null };
-      return year === todayY ? { view: 'month', year, month: todayM, day: null } : { view: 'month', year, month: 1, day: null };
+  /* Escape goes one level up (stacked dialogs keep their own Escape); the
+     arrows follow the rendered tile geometry. */
+  function onKeyDown(event) {
+    const target = event.target;
+    if (event.defaultPrevented || !target || !target.closest) return;
+    if (target.closest('[role="dialog"]')) return;
+    if (event.key === 'Escape') {
+      if (typeof document !== 'undefined' && document.querySelector('[role="dialog"]')) return;
+      const up = upStep(view, cursor, bounds);
+      if (!up) return;
+      event.preventDefault();
+      go(up);
+      return;
     }
-    if (level === 'history') return { view: 'history' };
-    return { view: level, year };
+    if (!ARROWS.has(event.key) || !target.matches || !target.matches('[data-tile]')) return;
+    const container = target.closest('[data-nav]');
+    if (!container) return;
+    const tiles = Array.from(container.querySelectorAll('[data-tile]'));
+    const index = tiles.indexOf(target);
+    if (index < 0) return;
+    event.preventDefault();
+    const nextIndex = container.getAttribute('data-nav') === 'weeks'
+      ? weekArrowTarget(index, event.key, tiles.length)
+      : gridArrowTarget(index, event.key, columnsFromTops(tiles.map(tile => tile.offsetTop)), tiles.length);
+    const tile = nextIndex == null ? null : tiles[nextIndex];
+    if (tile && !tile.disabled) tile.focus();
   }
 
-  let heading = '';
-  let prev = null;
-  let next = null;
-  let prevKey = '';
-  let nextKey = '';
-  let grid = null;
-
-  if (view.view === 'month') {
-    heading = `${formatMonth(view.year, view.month, intl, { month: 'long' })} ${view.year}`;
-    const before = shiftMonth(view.year, view.month, -1);
-    const after = shiftMonth(view.year, view.month, 1);
-    prev = yearInBounds(before.year, bounds) ? { view: 'month', ...before, day: null } : null;
-    next = yearInBounds(after.year, bounds) ? { view: 'month', ...after, day: null } : null;
-    prevKey = 'cal_prev_month';
-    nextKey = 'cal_next_month';
-    grid = (
-      <DayCubes
-        year={view.year}
-        month={view.month}
+  let stage = null;
+  if (level === 'years') {
+    stage = (
+      <YearTiles
+        years={yearWindow(view.year, bounds).years}
+        label={periodLabel(view, bounds, intl, t)}
+        cursorYear={yearOf(cursor)}
+        currentYear={bounds.currentYear}
+        counts={counts}
+        spin={spin}
+        t={t}
+        onOpen={year => go(yearTileStep(year, cursor))} />
+    );
+  } else if (level === 'months') {
+    stage = (
+      <MonthTiles year={view.year} cursor={cursor} today={bounds.today} counts={counts} spin={spin} intl={intl} t={t}
+        onOpen={(year, month) => go(monthTileStep(year, month, cursor))} />
+    );
+  } else if (level === 'days') {
+    const Days = layout === 'A' ? DaysGridA : DaysWeeksB;
+    stage = (
+      <Days year={view.year} month={view.month} cursor={cursor} today={bounds.today} bounds={bounds} counts={counts}
+        spin={spin} intl={intl} t={t} onOpen={date => go(dayTileStep(date))} />
+    );
+  } else if (level === 'day') {
+    stage = (
+      <DayDetails
+        key={view.day}
+        date={view.day}
+        tasks={tasks}
         today={bounds.today}
-        selected={view.day}
         intl={intl}
         t={t}
-        onOpen={date => onNavigate({ view: 'month', year: view.year, month: view.month, day: date }, { day: true })} />
+        spin={spin}
+        actions={dayActions}
+        onAdd={onAddForDay}
+        onOpenDay={date => go(dayTileStep(date))} />
     );
-  } else if (view.view === 'year') {
-    heading = String(view.year);
-    prev = yearInBounds(view.year - 1, bounds) ? { view: 'year', year: view.year - 1 } : null;
-    next = yearInBounds(view.year + 1, bounds) ? { view: 'year', year: view.year + 1 } : null;
-    prevKey = 'cal_prev_year';
-    nextKey = 'cal_next_year';
-    grid = (
-      <MonthCubes
-        year={view.year}
-        today={bounds.today}
-        intl={intl}
-        onOpen={(year, month) => onNavigate({ view: 'month', year, month, day: null })} />
+  } else {
+    stage = (
+      <div className="cal-grid cal-history-stage" data-nav="history">
+        <CalendarHistory tasks={tasks} intl={intl} t={t} onRestore={onRestore} />
+      </div>
     );
-  } else if (view.view === 'years') {
-    const range = yearWindow(view.year, bounds);
-    heading = t('cal_years_range', range.start, range.end);
-    prev = range.prev != null ? { view: 'years', year: range.prev } : null;
-    next = range.next != null ? { view: 'years', year: range.next } : null;
-    prevKey = 'cal_prev_window';
-    nextKey = 'cal_next_window';
-    grid = <YearCubes years={range.years} currentYear={todayYear} onOpen={year => onNavigate({ view: 'year', year })} />;
-  } else if (view.view === 'history') {
-    grid = <CalendarHistory tasks={tasks} intl={intl} t={t} onRestore={onRestore} />;
   }
 
-  const activeLevel = view.view;
   return (
-    <section className="panel cal-panel" aria-labelledby="cal-heading">
+    <section className="cal-panel" aria-labelledby="cal-heading" onKeyDown={onKeyDown}>
+      <h3 className="cal-sr-only" id="cal-heading" aria-live="polite">{periodLabel(view, bounds, intl, t)}</h3>
       <div className="cal-toolbar">
-        <div className="cal-views mono" role="tablist" aria-label={t('cal_levels')}>
-          {LEVELS.map(level => (
-            <button
-              key={level.id}
-              type="button"
-              role="tab"
-              aria-selected={activeLevel === level.id}
-              className={'cal-view-btn' + (activeLevel === level.id ? ' is-on' : '')}
-              onClick={() => onNavigate(levelTarget(level.id))}>
-              {t(level.key)}
-            </button>
-          ))}
-        </div>
-        {activeLevel !== 'history' ? (
-          <div className="cal-nav">
-            <button type="button" className="cal-btn" aria-label={t(prevKey)} disabled={!prev} onClick={() => prev && onNavigate(prev)}>
+        <nav className="cal-crumbs" aria-label={t('cal_breadcrumbs')}>
+          <ol className="cal-crumb-list">
+            {crumbs.map(crumb => (
+              <li key={crumb.level} className="cal-crumb-item">
+                {crumb.step ? (
+                  <button type="button" className="cal-crumb" data-level={crumb.level} onClick={() => go(crumb.step)}>{crumb.label}</button>
+                ) : (
+                  <span className="cal-crumb" data-level={crumb.level} aria-current="page">{crumb.label}</span>
+                )}
+              </li>
+            ))}
+          </ol>
+        </nav>
+        <div className="cal-tools">
+          <div className="cal-seg" role="group" aria-label={t('cal_layout')}>
+            {LAYOUTS.map(([id, key]) => (
+              <button
+                key={id}
+                type="button"
+                className="cal-seg-btn"
+                aria-pressed={layout === id}
+                aria-label={`${id} · ${t(key)}`}
+                title={t(key)}
+                onClick={() => onLayout(id)}>
+                <span>{id}</span><span className="cal-seg-long" aria-hidden="true"> · {t(key)}</span>
+              </button>
+            ))}
+          </div>
+          <div className="cal-seg" role="group" aria-label={t('cal_period')}>
+            <button type="button" className="cal-seg-btn is-icon" aria-label={t(prevKey)} title={t(prevKey)} disabled={!prev} onClick={() => go(prev)}>
               {I.chevLeft({ size: 14 })}
             </button>
-            <h3 className="cal-h" id="cal-heading" aria-live="polite">{heading}</h3>
-            <button type="button" className="cal-btn" aria-label={t(nextKey)} disabled={!next} onClick={() => next && onNavigate(next)}>
+            <button type="button" className="cal-seg-btn mono" onClick={() => go(todayStep(bounds))}>{t('cal_today')}</button>
+            <button type="button" className="cal-seg-btn is-icon" aria-label={t(nextKey)} title={t(nextKey)} disabled={!next} onClick={() => go(next)}>
               {I.chevRight({ size: 14 })}
             </button>
-            <button
-              type="button"
-              className="cal-btn mono"
-              onClick={() => onNavigate({ view: 'month', year: todayY, month: todayM, day: null })}>
-              {t('cal_today')}
-            </button>
           </div>
-        ) : (
-          <h3 className="cal-h" id="cal-heading">{t('cal_history_title')}</h3>
-        )}
+          <button
+            type="button"
+            className="cal-tool-btn cal-history-btn"
+            aria-pressed={level === 'history'}
+            onClick={() => (level === 'history' ? go(upStep(view, cursor, bounds)) : onNavigate({ view: 'history' }, cursor))}>
+            {I.clock({ size: 13 })}{t('cal_history_title')}
+          </button>
+        </div>
       </div>
-      {grid}
+      <div className="cal-stage" ref={stageRef} data-level={level} data-layout={level === 'days' ? layout : undefined}>
+        {stage}
+      </div>
     </section>
   );
 }
@@ -153,25 +200,45 @@ function CalendarPage({ onAddForDay = () => {} }) {
   const intl = LifeStrings[locale]._intl_locale;
   /* Today is the live Europe/Kyiv day, not the day the task list last
      changed: highlight, the Today button, the current-year window and the
-     Day Manager's overdue controls all move at midnight and on tab return.
-     Explicit routes and an open Day Manager/editor are untouched (the hash
-     and the Day Manager key do not depend on today); the undated #/calendar
-     keeps meaning "the current Kyiv month". */
+     day details' overdue controls all move at midnight and on tab return.
+     Explicit routes, the selected date, the layout and an open editor are
+     untouched (none of them depends on today); the undated #/calendar keeps
+     meaning "the current Kyiv month". */
   const today = useKyivToday();
   const [openedYear] = useState(() => yearOf(today));
   const bounds = useMemo(() => calendarBoundsForDay(tasks, today, openedYear), [tasks, today, openedYear]);
+  const counts = useMemo(() => activeTaskCounts(tasks), [tasks]);
   const [hash, setHash] = useState(readHash);
-  /* Month a day was opened from by a history push — closing the Day Manager
-     then goes Back to it, exactly like the browser Back button. */
-  const pushedFrom = useRef(null);
+  const hashRef = useRef(hash);
+  hashRef.current = hash;
+  const view = parseCalendarHash(hash, bounds);
+  /* The selected date is UI state; reconcileCursor keeps it inside the
+     visible period (clamped to the month length). */
+  const [cursorState, setCursor] = useState(() => today);
+  const cursor = reconcileCursor(cursorState, view);
+  const [layout, setLayoutState] = useState(() => readLayout(storage()));
+  /* data-spin alternates a/b to restart the approved rotateY transition on
+     every navigation; state never waits for it. */
+  const [spin, setSpin] = useState(null);
+  const pendingFocus = useRef(false);
+  const stageRef = useRef(null);
+
+  const flip = () => setSpin(current => (current === 'a' ? 'b' : 'a'));
 
   useEffect(() => {
-    function onHash() { setHash(readHash()); }
+    function onHash() {
+      const next = readHash();
+      /* Browser Back/Forward (or any outside hash change) is a navigation
+         too: same transition and focus as an in-page one. */
+      if (next !== hashRef.current && next.replace(/^#\/?/, '').startsWith('calendar')) {
+        pendingFocus.current = true;
+        flip();
+      }
+      setHash(next);
+    }
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
   }, []);
-
-  const view = parseCalendarHash(hash, bounds);
 
   /* Invalid or out-of-range deep links are replaced (no extra history entry). */
   useEffect(() => {
@@ -180,33 +247,59 @@ function CalendarPage({ onAddForDay = () => {} }) {
     setHash('#/calendar');
   }, [view.valid]);
 
-  function navigate(target, { day = false } = {}) {
-    pushedFrom.current = day ? monthKey(target.year, target.month) : null;
+  /* After a navigation or a layout change: focus the selected tile, else the
+     first real tile of the view, without scrolling the page. Not on the
+     first mount — arriving on the Calendar never steals focus. */
+  useEffect(() => {
+    if (!pendingFocus.current) return;
+    pendingFocus.current = false;
+    const root = stageRef.current;
+    if (!root) return;
+    const target = root.querySelector('[data-autofocus="1"]:not([disabled])')
+      || root.querySelector('[data-tile]:not([disabled]):not([data-adjacent="1"])')
+      || root.querySelector('[data-tile]:not([disabled])');
+    if (target && typeof target.focus === 'function') target.focus({ preventScroll: true });
+  });
+
+  /* Escape also works when focus rests on the page itself (after a click
+     on empty space): the same one-level-up step as inside the Calendar. */
+  const escapeUp = useRef(null);
+  escapeUp.current = () => {
+    const up = upStep(view, cursor, bounds);
+    if (up) navigate(up.target, up.cursor);
+  };
+  useEffect(() => {
+    function onKeyDown(event) {
+      if (event.key !== 'Escape' || event.defaultPrevented) return;
+      if (event.target !== document.body && event.target !== document.documentElement) return;
+      if (document.querySelector('[role="dialog"]')) return;
+      event.preventDefault();
+      escapeUp.current();
+    }
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, []);
+
+  function navigate(target, nextCursor) {
     const next = calendarHash(target);
+    pendingFocus.current = true;
+    if (nextCursor) setCursor(nextCursor);
+    flip();
+    setHash(next);
     if (window.location.hash !== next) window.location.hash = next;
   }
 
-  function replaceWith(target) {
-    const next = calendarHash(target);
-    window.history.replaceState(null, '', next);
-    setHash(next);
-  }
-
-  function closeDay() {
-    if (pushedFrom.current === monthKey(view.year, view.month)) {
-      pushedFrom.current = null;
-      window.history.back();
-      return;
+  function chooseLayout(next) {
+    if (next === layout) return;
+    setLayoutState(next);
+    writeLayout(storage(), next);
+    if (levelOf(view) === 'days') {
+      pendingFocus.current = true;
+      flip();
     }
-    replaceWith({ view: 'month', year: view.year, month: view.month, day: null });
   }
 
-  function openDay(date) {
-    const [year, month] = date.split('-').map(Number);
-    replaceWith({ view: 'month', year, month, day: date });
-  }
-
-  const actions = {
+  const dayActions = {
     complete: id => data.completeTask(id),
     closeUnresolved: id => data.closeTaskUnresolved(id),
     archive: id => data.archiveTask(id),
@@ -218,28 +311,23 @@ function CalendarPage({ onAddForDay = () => {} }) {
 
   return (
     <div className="page calendar-page">
-      <PageHeader title={t('cal_title')} subtitle={t(SUBTITLE[view.view])} />
+      <PageHeader title={t('cal_title')} subtitle={t(SUBTITLE[levelOf(view)])} />
       <CalendarView
         view={view}
+        cursor={cursor}
         bounds={bounds}
+        layout={layout}
+        spin={spin}
+        counts={counts}
         intl={intl}
         t={t}
-        onNavigate={navigate}
         tasks={tasks}
-        onRestore={id => data.restoreTask(id)} />
-      {view.view === 'month' && view.day ? (
-        <DayManagerModal
-          key={view.day}
-          date={view.day}
-          tasks={tasks}
-          today={bounds.today}
-          intl={intl}
-          t={t}
-          actions={actions}
-          onClose={closeDay}
-          onAdd={onAddForDay}
-          onOpenDay={openDay} />
-      ) : null}
+        stageRef={stageRef}
+        onNavigate={navigate}
+        onLayout={chooseLayout}
+        onRestore={id => data.restoreTask(id)}
+        dayActions={dayActions}
+        onAddForDay={onAddForDay} />
     </div>
   );
 }

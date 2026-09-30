@@ -7,9 +7,10 @@ import { QuickAddModal } from '../components/QuickAddModal.jsx';
 import { isTopDialog, nextLockState, wrapFocusIndex } from '../components/useDialog.js';
 import { LifeLocaleContext, LifeMakeT } from '../context/LocaleContext.jsx';
 import { CalendarTaskEditor, editorResult } from '../pages/calendar/CalendarTaskEditor.jsx';
-import { DayManagerModal } from '../pages/calendar/DayManagerModal.jsx';
+import { DayDetails } from '../pages/calendar/DayDetails.jsx';
 
-/* Day Manager + nested editor + dialog stack (plan C06, C10, C12, C13, C14,
+/* Day details (the nested Calendar's fourth level, formerly the Day Manager
+   dialog) + nested editor + dialog stack (plan C06, C10, C12, C13, C14,
    C24/C25 helpers, C31). Interaction itself is verified in the browser. */
 
 const t = LifeMakeT('ru');
@@ -34,12 +35,12 @@ const tasks = [
 
 function manager(date, locale = 'ru') {
   return render(
-    <DayManagerModal date={date} tasks={tasks} today="2026-10-14" intl={locale === 'ru' ? 'ru-RU' : 'uk-UA'}
-      t={LifeMakeT(locale)} actions={actions} onClose={noop} onAdd={noop} onOpenDay={noop} />, locale);
+    <DayDetails date={date} tasks={tasks} today="2026-10-14" intl={locale === 'ru' ? 'ru-RU' : 'uk-UA'}
+      t={LifeMakeT(locale)} actions={actions} onAdd={noop} onOpenDay={noop} />, locale);
 }
 
-describe('Day Manager rows', () => {
-  it('lists only the active tasks of that day', () => {
+describe('Day details rows', () => {
+  it('lists only the active tasks of that day, inside the stage (not a dialog)', () => {
     const html = manager('2026-10-14');
     expect(html).toContain('сегодняшняя важная');
     expect(html).toContain(t('seed_task_ship'));
@@ -47,9 +48,10 @@ describe('Day Manager rows', () => {
     expect(html).not.toContain('в архиве');
     expect(html).not.toContain('другой день');
     expect(html).toContain('09:30');
-    expect(html).toContain('role="dialog"');
+    expect(html).not.toContain('role="dialog"');
     expect(html).toContain('aria-labelledby="cal-day-title"');
-    expect(html).toMatch(/<h2[^>]*id="cal-day-title"[^>]*>среда, 14 октября<\/h2>/);
+    expect(html).toMatch(/<span class="cal-eyebrow">среда<\/span><h3 class="cal-day-title" id="cal-day-title" tabindex="-1" data-autofocus="1"><span class="cal-num cal-num-big">14<\/span><span class="cal-day-month">октябрь 2026<\/span><\/h3>/);
+    expect(html).toContain('>2 задачи<');
   });
 
   it('offers complete, important/routine, reorder, edit, archive and delete per row', () => {
@@ -74,10 +76,29 @@ describe('Day Manager rows', () => {
     expect(current).not.toContain('закрыть без выполнения');
   });
 
-  it('renders a truthful empty day — no fake rows', () => {
+  it('closes the local delete confirmation on Escape before the page goes up a level', () => {
+    const code = readFileSync(new URL('../pages/calendar/DayDetails.jsx', import.meta.url), 'utf8');
+    const handler = code.slice(code.indexOf('function onKeyDown'), code.indexOf('return (', code.indexOf('function onKeyDown')));
+    expect(handler).toContain("if (event.key !== 'Escape' || confirmId == null) return;");
+    expect(handler).toContain("if (event.target.closest && event.target.closest('[role=\"dialog\"]')) return;");
+    expect(handler).toContain('event.stopPropagation();');
+    /* the page-level handler leaves Escape to any open dialog (stacked editors) */
+    const page = readFileSync(new URL('../pages/calendar/CalendarPage.jsx', import.meta.url), 'utf8');
+    expect(page).toContain("if (target.closest('[role=\"dialog\"]')) return;");
+    expect(page).toContain("if (typeof document !== 'undefined' && document.querySelector('[role=\"dialog\"]')) return;");
+  });
+
+  it('renders the nested editor outside the 3D stage so the modal overlay covers the viewport', () => {
+    const code = readFileSync(new URL('../pages/calendar/DayDetails.jsx', import.meta.url), 'utf8');
+    expect(code).toContain("return typeof document === 'undefined' ? node : createPortal(node, document.body);");
+    expect(code).toMatch(/editing \? inBody\(\s*<CalendarTaskEditor/);
+  });
+
+  it('renders a truthful empty day — no fake rows, no event controls', () => {
     const html = manager('2026-10-20');
     expect(html).toContain('на этот день задач нет');
     expect(html).not.toContain('cal-task');
+    expect(html).not.toMatch(/событи|подія|event/i);
   });
 
   it('is fully localised in Ukrainian', () => {
@@ -85,7 +106,8 @@ describe('Day Manager rows', () => {
     expect(html).toContain('>змінити<');
     expect(html).toContain('>в архів<');
     expect(html).toContain('додати задачу');
-    expect(html).toMatch(/середа, 14 жовтня/);
+    expect(html).toContain('<span class="cal-eyebrow">середа</span>');
+    expect(html).toContain('<span class="cal-day-month">жовтень 2026</span>');
   });
 });
 
@@ -149,7 +171,7 @@ describe('C06 · add-from-day prefills Quick Add with the exact date', () => {
     expect(render(<QuickAddModal open onClose={noop} onSave={noop} />)).not.toContain('type="date"');
   });
 
-  it('wires the Day Manager add button to Quick Add with that date', () => {
+  it('wires the day details add button to Quick Add with that date', () => {
     const app = readFileSync(new URL('../App.jsx', import.meta.url), 'utf8');
     expect(app).toContain('<CalendarPage onAddForDay={(date) => openQuickAdd(false, { date })} />');
     expect(app).toContain("defaultDate={quickSeed && quickSeed.date ? quickSeed.date : ''}");

@@ -141,6 +141,25 @@ export function tasksForDay(tasks: TaskRecord[], date: string): TaskRecord[] {
     .map(({ task }) => task);
 }
 
+/* Tile summaries for the nested Calendar: how many ACTIVE dated tasks each
+   day / month / year holds — exactly the rows Day details lists
+   (tasksForDay). Undated, completed and closed tasks are not counted, and a
+   day without tasks is simply absent (never a fabricated zero entry). */
+export type ActiveTaskCounts = { day: Map<string, number>; month: Map<string, number>; year: Map<string, number> };
+
+export function activeTaskCounts(tasks: TaskRecord[]): ActiveTaskCounts {
+  const counts: ActiveTaskCounts = { day: new Map(), month: new Map(), year: new Map() };
+  const bump = (map: Map<string, number>, key: string) => map.set(key, (map.get(key) || 0) + 1);
+  for (const task of tasks) {
+    const date = taskDate(task);
+    if (!date || !isTaskActive(task)) continue;
+    bump(counts.day, date);
+    bump(counts.month, date.slice(0, 7));
+    bump(counts.year, date.slice(0, 4));
+  }
+  return counts;
+}
+
 /* ── Tasks page date views (GTD G2) ──────────────────────────────────────── */
 
 /* «сегодня» / «просрочено» are derived from `schedule.date` against the

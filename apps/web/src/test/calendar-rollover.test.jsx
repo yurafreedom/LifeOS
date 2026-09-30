@@ -31,17 +31,21 @@ function page(hash) {
 }
 
 const heading = html => (/id="cal-heading"[^>]*>([^<]*)</.exec(html) || [])[1];
-const todayCube = html => (/class="cal-cube is-today[^"]*"[^>]*aria-label="([^"]*)"/.exec(html) || [])[1];
+/* the day tile / week row marked as today (data-today) and its accessible name */
+const todayTile = html => (/data-date="[^"]*" data-today="1"[^>]*aria-label="([^"]*)"/.exec(html) || [])[1];
 
 afterEach(() => { delete globalThis.window; });
 
 describe('Calendar rollover with unchanged tasks', () => {
   it('midnight: today highlight moves to the new Kyiv day', () => {
     day.value = '2026-09-30';
-    expect(todayCube(page('#/calendar/2026-09'))).toMatch(/30 сентября 2026.*сегодня$/);
+    expect(todayTile(page('#/calendar/2026-09'))).toMatch(/30 сентября 2026.*сегодня, 1 задача$/);
     day.value = '2026-10-01';
-    expect(todayCube(page('#/calendar/2026-10'))).toMatch(/1 октября 2026.*сегодня$/);
-    expect(page('#/calendar/2026-09')).not.toContain('is-today');
+    expect(todayTile(page('#/calendar/2026-10'))).toMatch(/1 октября 2026.*сегодня$/);
+    /* 30 Sep is no longer today; its active task is now overdue */
+    const september = page('#/calendar/2026-09');
+    expect(september).not.toMatch(/data-date="2026-09-30" data-today="1"/);
+    expect(september).toMatch(/aria-label="среда, 30 сентября 2026[^"]*, 1 задача, просрочено"/);
   });
 
   it('the undated #/calendar route follows the current Kyiv month', () => {
@@ -56,30 +60,31 @@ describe('Calendar rollover with unchanged tasks', () => {
     expect(heading(page('#/calendar/2026-09'))).toBe('сентябрь 2026');
   });
 
-  it('an open Day Manager gains the overdue controls after midnight', () => {
+  it('open day details gain the overdue controls after midnight', () => {
     day.value = '2026-09-30';
     const before = page('#/calendar/2026-09-30');
     expect(before).toContain('сдать отчёт');
     expect(before).not.toContain('просрочено');
     day.value = '2026-10-01';
     const after = page('#/calendar/2026-09-30');
-    expect(after).toContain('cal-day-modal');
+    expect(after).toContain('data-level="day"');
     expect(after).toContain('просрочено');
     expect(after).toContain(`>${LifeMakeT('ru')('cal_close_unresolved')}<`);
   });
 
-  it('year boundary: the current-year window and cube move to the new year', () => {
+  it('year boundary: the current-year window and tile move to the new year', () => {
     day.value = '2027-01-01';
     const html = page('#/calendar/years');
-    expect(heading(html)).toBe('2027 – 2056');
+    expect(heading(html)).toBe('2027 – 2038');
     expect(html).toMatch(/aria-current="date"[^>]*>(<[^>]*>)*2027</);
   });
 
   it('year boundary: an explicit route in the year just left stays valid', () => {
     day.value = '2027-01-01';
     const html = page('#/calendar/2026-12-31');
-    expect(heading(html)).toBe('декабрь 2026');
-    expect(html).toContain('cal-day-modal');
+    expect(heading(html)).toMatch(/^четверг, 31 декабря 2026/);
+    expect(html).toContain('data-level="day"');
+    expect(html).toContain('<span class="cal-crumb" data-level="day" aria-current="page">31</span>');
   });
 });
 

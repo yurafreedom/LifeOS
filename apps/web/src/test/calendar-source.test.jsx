@@ -10,6 +10,9 @@ describe('C27 · no UTC slicing of local dates in Calendar code', () => {
     '../domain/calendarModel.ts',
     '../domain/tasks.ts',
     '../pages/calendar/calendarRoute.js',
+    '../pages/calendar/calendarNav.js',
+    '../pages/calendar/TileGrids.jsx',
+    '../pages/calendar/DayDetails.jsx',
   ])('%s', file => {
     expect(read(file)).not.toMatch(/toISOString\(\)\.slice/);
   });

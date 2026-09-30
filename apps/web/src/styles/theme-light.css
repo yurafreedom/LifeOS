@@ -270,14 +270,6 @@
   background: var(--red-tint); border-color: rgba(201,36,41,0.2);
 }
 
-/* Calendar */
-[data-theme="light"] .cal-btn { background: var(--surface); color: var(--text-soft); }
-[data-theme="light"] .cal-btn:hover { background: var(--surface-h); }
-[data-theme="light"] .cal-views { background: var(--surface); }
-[data-theme="light"] .cal-view-btn.is-on {
-  background: var(--blue-tint); color: var(--blue-3);
-}
-
 /* Mobile bottom nav */
 [data-theme="light"] .mnav { background: var(--nav-bg); border-top-color: var(--line); }
 [data-theme="light"] .mnav-btn.is-on { color: var(--blue-3); }

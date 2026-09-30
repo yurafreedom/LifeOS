@@ -3,11 +3,11 @@ import { dateKey, monthKey, yearInBounds } from '../../domain/calendarModel.ts';
 
 /* Calendar hash grammar. One route id (`calendar`); the page reads the rest.
  *
- *   #/calendar                  day cubes of the current Kyiv month
- *   #/calendar/YYYY-MM          day cubes of that month
- *   #/calendar/YYYY-MM-DD       that month + Day Manager open
- *   #/calendar/YYYY             month cubes of the year
- *   #/calendar/years            30-year window with the current year
+ *   #/calendar                  days of the current Kyiv month (layout A or B)
+ *   #/calendar/YYYY-MM          days of that month
+ *   #/calendar/YYYY-MM-DD       day details of that date
+ *   #/calendar/YYYY             the 12 month tiles of the year
+ *   #/calendar/years            12-year window with the current year
  *   #/calendar/years/YYYY       window containing YYYY
  *   #/calendar/history          History
  *

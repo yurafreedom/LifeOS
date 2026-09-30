@@ -2,12 +2,17 @@ import { describe, expect, it } from 'vitest';
 
 import {
   MAX_YEAR,
+  addDays,
   calendarBounds,
+  clampedDate,
+  dateInBounds,
   daysInMonth,
   formatDay,
   isAcceptableTaskDate,
   minNavigableYear,
   monthDays,
+  monthGrid,
+  monthWeeks,
   shiftMonth,
   todayDateOnly,
   weekdayIndex,
@@ -51,16 +56,63 @@ describe('month model', () => {
   });
 });
 
+describe('JENKIN month grid (layout A) and week panels (layout B)', () => {
+  it('A: 42 Monday-first cells with the real neighbouring-month days', () => {
+    const cells = monthGrid(2026, 10); // 1 Oct 2026 is a Thursday
+    expect(cells).toHaveLength(42);
+    expect(cells.slice(0, 4).map(c => [c.date, c.inMonth])).toEqual([
+      ['2026-09-28', false], ['2026-09-29', false], ['2026-09-30', false], ['2026-10-01', true]]);
+    expect(cells.map(c => c.weekday)).toEqual(Array.from({ length: 42 }, (_, i) => i % 7));
+    expect(cells.filter(c => c.inMonth)).toHaveLength(31);
+    expect(cells[41]).toMatchObject({ date: '2026-11-08', inMonth: false });
+  });
+
+  it.each([
+    [2026, 2, 28, 5, '2026-01-26', '2026-03-01'], // starts on a Sunday → 5 weeks
+    [2027, 2, 28, 4, '2027-02-01', '2027-02-28'], // starts on a Monday → exactly 4 weeks
+    [2028, 2, 29, 5, '2028-01-31', '2028-03-05'], // leap February
+    [2026, 8, 31, 6, '2026-07-27', '2026-09-06'], // starts on a Saturday → 6 weeks
+    [2100, 12, 31, 5, '2100-11-29', '2101-01-02'], // the last navigable month
+  ])('B: %i-%i (%i days) has %i real weeks from %s to %s', (year, month, days, weeks, first, last) => {
+    const panels = monthWeeks(year, month);
+    expect(panels).toHaveLength(weeks);
+    expect(panels.every(week => week.length === 7)).toBe(true);
+    expect(panels[0][0].date).toBe(first);
+    expect(panels[weeks - 1][6].date).toBe(last);
+    expect(panels.flat().filter(cell => cell.inMonth)).toHaveLength(days);
+    expect(monthGrid(year, month)).toHaveLength(42);
+  });
+
+  it('clamps a day of month into shorter months, leap years included', () => {
+    expect(clampedDate(2026, 2, 31)).toBe('2026-02-28');
+    expect(clampedDate(2028, 2, 31)).toBe('2028-02-29');
+    expect(clampedDate(2100, 2, 29)).toBe('2100-02-28'); // 2100 is not a leap year
+    expect(clampedDate(2026, 4, 31)).toBe('2026-04-30');
+    expect(clampedDate(2026, 10, 14)).toBe('2026-10-14');
+  });
+
+  it('adds days across month and year boundaries in pure UTC arithmetic', () => {
+    expect(addDays('2026-12-31', 1)).toBe('2027-01-01');
+    expect(addDays('2027-01-01', -1)).toBe('2026-12-31');
+    expect(addDays('2028-02-28', 1)).toBe('2028-02-29');
+    expect(addDays('2026-10-25', 1)).toBe('2026-10-26'); // DST end in Kyiv changes nothing for dates
+  });
+});
+
 describe('year windows and bounds', () => {
-  it('C10 · 30-year windows anchored at the current year and capped at 2100', () => {
+  /* The approved JENKIN design shows 12 year tiles (4 × 3); the windows keep
+     their anchor at the current year and the 2100 cap (was 30 years). */
+  it('C10 · 12-year windows anchored at the current year and capped at 2100', () => {
     const first = yearWindow(2026, bounds);
-    expect([first.start, first.end, first.years.length]).toEqual([2026, 2055, 30]);
+    expect([first.start, first.end, first.years.length]).toEqual([2026, 2037, 12]);
     expect(first.prev).toBeNull();
     const second = yearWindow(first.next as number, bounds);
-    expect([second.start, second.end]).toEqual([2056, 2085]);
+    expect([second.start, second.end, second.years.length]).toEqual([2038, 2049, 12]);
     const last = yearWindow(2099, bounds);
-    expect([last.start, last.end, last.years.length, last.next]).toEqual([2086, 2100, 15, null]);
+    expect([last.start, last.end, last.years, last.next]).toEqual([2098, 2100, [2098, 2099, 2100], null]);
     expect(yearWindow(2150, bounds).end).toBe(2100);
+    expect(yearWindow(2037, bounds).start).toBe(2026);
+    expect(yearWindow(2038, bounds).start).toBe(2038);
   });
 
   it('OD-4 · the lower bound is the earlier of this year and the earliest dated task', () => {
@@ -75,6 +127,14 @@ describe('year windows and bounds', () => {
     const back = yearWindow(2025, withPast);
     expect([back.start, back.end, back.prev]).toEqual([2024, 2025, null]);
     expect(yearWindow(2026, withPast).prev).toBe(2025);
+  });
+
+  it('knows which dates are navigable', () => {
+    expect(dateInBounds('2026-01-01', bounds)).toBe(true);
+    expect(dateInBounds('2100-12-31', bounds)).toBe(true);
+    expect(dateInBounds('2101-01-01', bounds)).toBe(false);
+    expect(dateInBounds('2025-12-31', bounds)).toBe(false);
+    expect(dateInBounds('not-a-date', bounds)).toBe(false);
   });
 
   it('rejects task dates above 2100 or malformed', () => {
