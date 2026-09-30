@@ -64,8 +64,13 @@ button.cal-crumb:hover { background: var(--hover-tint); color: var(--fg1); }
   color: var(--fg1); font-size: var(--text-sm); font-weight: 500; white-space: nowrap;
   transition: background-color 120ms var(--ease), border-color 120ms var(--ease);
 }
-.cal-tool-btn:hover { background: var(--surface-h); }
-.cal-tool-btn[aria-pressed="true"] { background: var(--primary-soft); border-color: rgba(34,158,217,0.35); }
+/* Tints are layered over the opaque surface: over the Paradise scene a bare
+   --surface-h / --primary-soft would let the photo show through the button. */
+.cal-tool-btn:hover { background: linear-gradient(var(--hover-tint-2), var(--hover-tint-2)), var(--surface); }
+.cal-tool-btn[aria-pressed="true"] {
+  background: linear-gradient(var(--primary-soft), var(--primary-soft)), var(--surface);
+  border-color: rgba(34,158,217,0.35);
+}
 .cal-crumb:focus-visible, .cal-seg-btn:focus-visible, .cal-tool-btn:focus-visible {
   outline: none; z-index: 1; box-shadow: var(--mat-focus);
 }

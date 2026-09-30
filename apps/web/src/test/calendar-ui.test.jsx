@@ -1,12 +1,12 @@
 import React from 'react';
 import { existsSync, readFileSync } from 'node:fs';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { LifeDataContext } from '../context/LifeDataContext.jsx';
 import { LifeLocaleContext, LifeMakeT, LifeStrings } from '../context/LocaleContext.jsx';
 import { MAX_YEAR, todayDateOnly } from '../domain/calendarModel.ts';
-import CalendarPage, { CalendarView } from '../pages/calendar/CalendarPage.jsx';
+import CalendarPage, { CalendarView, ignoreRepeatClick, stageFocusTarget } from '../pages/calendar/CalendarPage.jsx';
 import { DaysGridA } from '../pages/calendar/TileGrids.jsx';
 
 /* Nested tile Calendar (approved JENKIN design): Years → Months → Days (A/B)
@@ -189,6 +189,68 @@ describe('Day details', () => {
   });
 });
 
+describe('focus, repeat clicks and modifier keys (review hardening)', () => {
+  it('ignores the second click of a double click inside the stage only', () => {
+    const inside = {};
+    const portal = {};
+    const stage = { contains: node => node === inside };
+    const click = (detail, target) => {
+      const event = { detail, target, currentTarget: stage, stopPropagation: vi.fn() };
+      ignoreRepeatClick(event);
+      return event.stopPropagation.mock.calls.length;
+    };
+    expect(click(1, inside)).toBe(0);
+    expect(click(0, inside)).toBe(0); // keyboard activation
+    expect(click(2, inside)).toBe(1); // the revealed Day details action / next Restore stays untouched
+    expect(click(3, inside)).toBe(1);
+    expect(click(2, portal)).toBe(0); // the portalled editor keeps its own clicks
+    expect(read('../pages/calendar/CalendarPage.jsx')).toContain('onClickCapture={ignoreRepeatClick}');
+  });
+
+  const el = ({ toolbar = false, disabled = false, connected = true } = {}) => ({
+    isConnected: connected, disabled, closest: selector => (toolbar && selector === '.cal-toolbar' ? {} : null),
+  });
+  const tile = { id: 'tile' };
+  const root = { querySelector: selector => (selector.startsWith('[data-autofocus') ? tile : null) };
+  const doc = (activeElement, dialog = false) => ({ activeElement, querySelector: () => (dialog ? {} : null) });
+
+  it('moves focus into the stage after tile, breadcrumb, Escape and Back/Forward navigations', () => {
+    expect(stageFocusTarget(root, doc(el()))).toBe(tile); // body, or an unmounted tile
+    expect(stageFocusTarget(root, doc(null))).toBe(tile);
+    expect(stageFocusTarget(root, doc(el({ toolbar: true, connected: false })))).toBe(tile); // a crumb that became current
+    expect(stageFocusTarget(root, doc(el({ toolbar: true, disabled: true })))).toBe(tile); // «next» at its bound
+  });
+
+  it('leaves focus on a still-usable toolbar control and never behind an open dialog', () => {
+    expect(stageFocusTarget(root, doc(el({ toolbar: true })))).toBeNull(); // previous / next / Today / A·B / History
+    expect(stageFocusTarget(root, doc(el(), true))).toBeNull(); // Quick Add or the task editor is open
+    expect(stageFocusTarget(null, doc(el()))).toBeNull();
+    const code = read('../pages/calendar/CalendarPage.jsx');
+    const layout = code.slice(code.indexOf('function chooseLayout'), code.indexOf('const dayActions'));
+    expect(layout).not.toContain('pendingFocus');
+  });
+
+  it('lets Alt/Ctrl/⌘ + arrows reach the browser (history shortcuts) instead of moving between tiles', () => {
+    const t = LifeMakeT('ru');
+    const section = CalendarView({ view: { valid: true, view: 'month', year: 2026, month: 10 }, bounds, intl: 'ru-RU', t,
+      onNavigate: () => {}, tasks: [] });
+    const tiles = [0, 1].map(index => ({ index, disabled: false, offsetTop: 0, focus: vi.fn(), matches: () => true }));
+    const container = { getAttribute: () => 'grid', querySelectorAll: () => tiles };
+    for (const one of tiles) one.closest = selector => (selector === '[data-nav]' ? container : null);
+    const press = modifiers => {
+      const event = { key: 'ArrowRight', target: tiles[0], defaultPrevented: false, preventDefault: vi.fn(), ...modifiers };
+      section.props.onKeyDown(event);
+      return event.preventDefault.mock.calls.length;
+    };
+    expect(press({ altKey: true })).toBe(0);
+    expect(press({ metaKey: true })).toBe(0);
+    expect(press({ ctrlKey: true })).toBe(0);
+    expect(tiles[1].focus).not.toHaveBeenCalled();
+    expect(press({})).toBe(1);
+    expect(tiles[1].focus).toHaveBeenCalledTimes(1);
+  });
+});
+
 describe('toolbar: breadcrumbs, layout, period, Today and History are separate controls', () => {
   it('renders a labelled breadcrumb trail with the current level last', () => {
     const html = view({ view: 'month', year: 2026, month: 10, day: '2026-10-14' });
@@ -269,6 +331,17 @@ describe('stable stage, responsive columns and motion', () => {
     expect(rule('.cal-history th')).toContain('font-size: var(--text-sm);');
     expect(rule('.cal-state')).toContain('font-size: var(--text-sm);');
     expect(rule('  .cal-history td[data-label]::before')).toContain('font-size: var(--text-sm);');
+  });
+
+  it('layers the History button tints over the opaque surface (no scene bleeding through in Paradise)', () => {
+    expect(nav).toContain('.cal-tool-btn:hover { background: linear-gradient(var(--hover-tint-2), var(--hover-tint-2)), var(--surface); }');
+    expect(nav).toMatch(/\.cal-tool-btn\[aria-pressed="true"\] \{\s*background: linear-gradient\(var\(--primary-soft\), var\(--primary-soft\)\), var\(--surface\);/);
+    expect(nav).not.toContain('background: var(--surface-h)');
+  });
+
+  it('keeps the dialog eyebrow style the Waiting dialog still uses', () => {
+    expect(read('../components/WaitingItemModal.jsx')).toContain('className="cal-dialog-eyebrow mono"');
+    expect(css).toContain('.cal-dialog-eyebrow { font-size: var(--text-xs); color: var(--fg3); }');
   });
 });
 

@@ -95,9 +95,14 @@ describe('Tasks · filter dropdown', () => {
     const code = source('../pages/TasksPage.jsx');
     for (const mode of ["id: 'date'", "id: 'priority'", "id: 'category'"]) expect(code).toContain(mode);
     expect(code).toContain('aria-pressed={sort === s.id}');
-    /* Escape closes the open sort list first and returns focus to its trigger */
-    expect(code).toContain("if (event.key !== 'Escape') return;");
-    expect(code).toContain('sortTriggerRef.current.focus()');
+    /* Escape closes the open sort list first and returns focus to its trigger —
+       handled on the wrapper, so it also works while focus is still on the trigger */
+    const wrapper = code.slice(code.indexOf('<div className="tasks-sort"'), code.indexOf('<button className="tasks-sort-trigger'));
+    expect(wrapper).toContain("if (event.key !== 'Escape' || !sortOpen) return;");
+    expect(wrapper).toContain('sortTriggerRef.current.focus()');
+    /* a disclosure of toggle buttons, not a listbox */
+    expect(code).not.toContain('aria-haspopup="listbox"');
+    expect(code).toContain('aria-expanded={sortOpen}');
   });
 
   it('switches the view from the select value', () => {

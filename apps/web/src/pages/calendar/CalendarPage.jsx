@@ -46,6 +46,29 @@ function storage() {
   }
 }
 
+/* The second click of a double click lands on whatever the first one
+   revealed — a tile of the next level, a Day details action, the next
+   History row's Restore. Inside the stage only single activations act
+   (keyboard activation reports detail 0; the portalled editor is outside
+   the stage element and keeps its own clicks). */
+export function ignoreRepeatClick(event) {
+  if (event.detail > 1 && event.currentTarget.contains(event.target)) event.stopPropagation();
+}
+
+/* After a navigation, a toolbar control that is still usable keeps focus, so
+   previous / next / Today / A·B / History can be pressed again; otherwise
+   (a tile, a breadcrumb that became the current level, a period arrow that
+   reached its bound, or nothing) focus moves into the stage. An open dialog
+   (Quick Add, the task editor) keeps focus. */
+export function stageFocusTarget(root, doc) {
+  if (!root || !doc || doc.querySelector('[role="dialog"]')) return null;
+  const active = doc.activeElement;
+  if (active && active.isConnected && !active.disabled && active.closest && active.closest('.cal-toolbar')) return null;
+  return root.querySelector('[data-autofocus="1"]:not([disabled])')
+    || root.querySelector('[data-tile]:not([disabled]):not([data-adjacent="1"])')
+    || root.querySelector('[data-tile]:not([disabled])');
+}
+
 /** Pure view: everything below the route shell, for rendering and tests. */
 export function CalendarView({
   view, bounds, intl, t, onNavigate, tasks = [], onRestore = () => {},
@@ -76,7 +99,8 @@ export function CalendarView({
       go(up);
       return;
     }
-    if (!ARROWS.has(event.key) || !target.matches || !target.matches('[data-tile]')) return;
+    if (!ARROWS.has(event.key) || event.altKey || event.ctrlKey || event.metaKey) return;
+    if (!target.matches || !target.matches('[data-tile]')) return;
     const container = target.closest('[data-nav]');
     if (!container) return;
     const tiles = Array.from(container.querySelectorAll('[data-tile]'));
@@ -186,7 +210,8 @@ export function CalendarView({
           </button>
         </div>
       </div>
-      <div className="cal-stage" ref={stageRef} data-level={level} data-layout={level === 'days' ? layout : undefined}>
+      <div className="cal-stage" ref={stageRef} data-level={level} data-layout={level === 'days' ? layout : undefined}
+        onClickCapture={ignoreRepeatClick}>
         {stage}
       </div>
     </section>
@@ -247,17 +272,14 @@ function CalendarPage({ onAddForDay = () => {} }) {
     setHash('#/calendar');
   }, [view.valid]);
 
-  /* After a navigation or a layout change: focus the selected tile, else the
-     first real tile of the view, without scrolling the page. Not on the
-     first mount — arriving on the Calendar never steals focus. */
+  /* After a navigation: focus the selected tile, else the first real tile of
+     the view, without scrolling the page — unless a usable toolbar control or
+     an open dialog holds focus (stageFocusTarget). Not on the first mount:
+     arriving on the Calendar never steals focus. */
   useEffect(() => {
     if (!pendingFocus.current) return;
     pendingFocus.current = false;
-    const root = stageRef.current;
-    if (!root) return;
-    const target = root.querySelector('[data-autofocus="1"]:not([disabled])')
-      || root.querySelector('[data-tile]:not([disabled]):not([data-adjacent="1"])')
-      || root.querySelector('[data-tile]:not([disabled])');
+    const target = stageFocusTarget(stageRef.current, document);
     if (target && typeof target.focus === 'function') target.focus({ preventScroll: true });
   });
 
@@ -289,14 +311,12 @@ function CalendarPage({ onAddForDay = () => {} }) {
     if (window.location.hash !== next) window.location.hash = next;
   }
 
+  /* The layout switch only re-lays the same days: focus stays where it is. */
   function chooseLayout(next) {
     if (next === layout) return;
     setLayoutState(next);
     writeLayout(storage(), next);
-    if (levelOf(view) === 'days') {
-      pendingFocus.current = true;
-      flip();
-    }
+    if (levelOf(view) === 'days') flip();
   }
 
   const dayActions = {

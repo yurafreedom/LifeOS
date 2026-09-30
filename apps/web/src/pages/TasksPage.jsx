@@ -121,25 +121,26 @@ function TasksPage({ tasks, waitingItems = [], onToggle, onAdd, onOpen }) {
             <span className="tasks-filter-chev" aria-hidden="true"><I.chevDown size={12}/></span>
           </span>
         </label>
-        <div className="tasks-sort">
+        <div className="tasks-sort"
+             onKeyDown={event => {
+               /* Escape closes the open sort list first — from the trigger or
+                  from an option — and returns focus to the trigger. */
+               if (event.key !== 'Escape' || !sortOpen) return;
+               event.preventDefault();
+               event.stopPropagation();
+               setSortOpen(false);
+               if (sortTriggerRef.current) sortTriggerRef.current.focus();
+             }}>
           <button className="tasks-sort-trigger mono"
                   ref={sortTriggerRef}
-                  aria-haspopup="listbox" aria-expanded={sortOpen}
+                  aria-expanded={sortOpen}
                   onClick={() => setSortOpen(o => !o)}>
             <span>{t('tasks_sort_label')}: {sorts.find(s => s.id === sort).label}</span>
             <I.chevDown size={12}/>
           </button>
           {sortOpen && (
             <div className="tasks-sort-pop"
-                 onMouseLeave={() => setSortOpen(false)}
-                 onKeyDown={event => {
-                   /* Escape closes the open sort list first and returns focus. */
-                   if (event.key !== 'Escape') return;
-                   event.preventDefault();
-                   event.stopPropagation();
-                   setSortOpen(false);
-                   if (sortTriggerRef.current) sortTriggerRef.current.focus();
-                 }}>
+                 onMouseLeave={() => setSortOpen(false)}>
               {sorts.map(s => (
                 <button key={s.id}
                         className={"tasks-sort-opt" + (sort === s.id ? " is-on" : "")}
