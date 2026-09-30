@@ -3154,3 +3154,39 @@ current schema; lifeos_test passing does not imply otherwise. Upgrading
 lifeos_dev is the owner's decision; agents migrate only lifeos_test.
 Next: owner review of the local commits; G3 and the JENKIN feature plans are
 NOT started.
+
+85. JENKIN BRANDING — EDITORIAL LOGO, FAVICON, OPTIONAL DEJAVU SANS (2026-10-01)
+Branch feat/jenkin-branding-assets-20261001 (parallel branding-only session;
+NOT yet integrated with handoff/jenkin-cloud-20260930 — numbering of this entry
+may need reconciling at integration). Report:
+Outputs/Implementations/jenkin-branding-logo-favicon-font_20261001.md.
+- Logo: the owner-approved 01 Editorial wordmark (outlined paths copied
+  verbatim from design-references/jenkin-branding/logo, currentColor, no font
+  dependency) in the expanded sidebar and on login; the serif J + amber point in
+  the collapsed sidebar. Ink #F6EFE4 on dark / paradise-night, #252A2B on light /
+  paradise-day. Component components/JenkinBrand.jsx; styles src/brand.css
+  (imported by main.jsx after styles.css, outside the pinned layer manifest).
+- Favicon: small-size adaptation of the approved J (SVG + ICO 16/32/48 +
+  180 px apple-touch) in apps/web/public/assets/.
+- Interface font: Settings → Appearance → Current (default, Onest / Work Sans)
+  or DejaVu Sans, with a localized Cyrillic + digits preview of both faces.
+  Device-local only (localStorage lifeOsFont = 'dejavu', else Current; applied
+  as <html data-font>, pre-paint in index.html). No backend/snapshot field.
+  DejaVu re-points --font-display / --font-body plus scoped overrides for the
+  selectors that name Onest / Work Sans directly (pinned by a test that scans
+  every stylesheet). --font-mono (the .mono role) is deliberately unchanged;
+  no universal selector, no !important. WOFF faces load only when used (the
+  Appearance preview loads DejaVu Regular).
+- Known font facts: Google's Work Sans has NO Cyrillic glyphs, so under Current
+  Cyrillic body and .mono text has always rendered in the OS fallback font;
+  only Onest (headings) renders Cyrillic as a webfont. Under DejaVu the same
+  holds for .mono Cyrillic (kept on --font-mono by owner instruction). Whether
+  .mono should get DejaVu as a Cyrillic fallback is an OPEN OWNER DECISION.
+- Verified: frontend 768 tests / 54 files, typecheck, lint, build; browser
+  matrix Current/DejaVu × RU/UK × 4 theme states × 1440/1024/768/390/320 over
+  sidebar, login (RU only — no locale switch there), Settings, Tasks, Calendar,
+  task dialog: 440 mocked-API views + 88 views against the real FastAPI backend
+  on lifeos_test — 0 overflow (after a DejaVu-scoped TopBar wrap at 768),
+  glyphs І Ї Є Ґ Ё proved rendered by the DejaVu webfont via CDP platform fonts.
+  Pre-existing, not fixed: no visible focus change on .qa-title (task dialog),
+  login inputs and .tb-cmd-input.

@@ -36,7 +36,7 @@
   .sb-logo .jenkin-wordmark, .sb-logo .jenkin-mark { transition: none; }
 }
 
-/* ── Optional interface font (app/interfaceFont.js) ───────────────────────
+/* ── Optional interface font (app/useInterfaceFont.js) ───────────────────────
    Only four faces from the approved package; the browser downloads a face
    only when <html data-font="dejavu"> makes it used. */
 @font-face { font-family: "DejaVu Sans"; src: url("./assets/fonts/dejavu-sans/DejaVuSans.woff") format("woff"); font-weight: 400; font-style: normal; font-display: swap; }
@@ -45,15 +45,91 @@
 @font-face { font-family: "DejaVu Sans"; src: url("./assets/fonts/dejavu-sans/DejaVuSans-BoldOblique.woff") format("woff"); font-weight: 700; font-style: italic; font-display: swap; }
 
 /* "Current" (no attribute) keeps Onest / Work Sans untouched. DejaVu Sans
-   re-points the font tokens and, because many layers name 'Onest' /
-   'Work Sans' directly, overrides every element under <body>. The Editorial
-   marks are outlined paths, so they are unaffected. */
+   re-points the display and body typography tokens; body text, buttons and
+   inputs (font: inherit) follow them. --font-mono is deliberately kept: the
+   .mono role (labels, counts, dates, tabular numbers) stays in its own face.
+   There is no universal selector: the layers below name 'Onest' or
+   'Work Sans' directly, so each such selector gets a scoped override to the
+   matching token (the list is pinned by jenkin-branding.test.jsx against
+   every stylesheet). Font previews in Settings set their own family.
+   The Editorial marks are outlined paths and are unaffected. */
 :root[data-font="dejavu"] {
   --font-display: "DejaVu Sans", system-ui, sans-serif;
   --font-body:    "DejaVu Sans", system-ui, sans-serif;
-  --font-mono:    "DejaVu Sans", system-ui, sans-serif;
 }
-:root[data-font="dejavu"] body,
-:root[data-font="dejavu"] body * {
-  font-family: "DejaVu Sans", system-ui, sans-serif !important;
+/* Layers that name 'Onest' directly (display role). */
+:root[data-font="dejavu"] .cal-h,
+:root[data-font="dejavu"] .cal-cube-num,
+:root[data-font="dejavu"] .cal-cube-name,
+:root[data-font="dejavu"] .cal-dialog-h,
+:root[data-font="dejavu"] .set-h,
+:root[data-font="dejavu"] .medc-name,
+:root[data-font="dejavu"] .mcd-name,
+:root[data-font="dejavu"] .mdp-stat-val,
+:root[data-font="dejavu"] .qa-title,
+:root[data-font="dejavu"] .page-title,
+:root[data-font="dejavu"] .clarify-note-title,
+:root[data-font="dejavu"] .pc-title,
+:root[data-font="dejavu"] .meds-item-name,
+:root[data-font="dejavu"] .meds-interactions-title,
+:root[data-font="dejavu"] .today-meta-line,
+:root[data-font="dejavu"] .panel-title,
+:root[data-font="dejavu"] .goal-title,
+:root[data-font="dejavu"] .milestone-line,
+:root[data-font="dejavu"] .tb-title,
+:root[data-font="dejavu"] .aa-q,
+:root[data-font="dejavu"] .aa-block-title {
+  font-family: var(--font-display);
 }
+/* Layers that name 'Work Sans' directly (body role). */
+:root[data-font="dejavu"] .cat-row-name,
+:root[data-font="dejavu"] .upcoming-row-title,
+:root[data-font="dejavu"] .upcoming-empty,
+:root[data-font="dejavu"] .bot-row-text,
+:root[data-font="dejavu"] .bot-empty,
+:root[data-font="dejavu"] .set-nav-btn,
+:root[data-font="dejavu"] .set-input,
+:root[data-font="dejavu"] .medc-action,
+:root[data-font="dejavu"] .tdm-input,
+:root[data-font="dejavu"] .qa-notes-input,
+:root[data-font="dejavu"] .qn-input-field,
+:root[data-font="dejavu"] .qn-item-open,
+:root[data-font="dejavu"] .clarify-row,
+:root[data-font="dejavu"] .clarify-btn-ghost,
+:root[data-font="dejavu"] .clarify-btn-primary,
+:root[data-font="dejavu"] .clarify-btn-danger,
+:root[data-font="dejavu"] .ef-display,
+:root[data-font="dejavu"] .ef-input,
+:root[data-font="dejavu"] .goal-add-input,
+:root[data-font="dejavu"] .mnav-label,
+:root[data-font="dejavu"] .sb-item,
+:root[data-font="dejavu"] .sb.is-collapsed .sb-item[data-tooltip]:hover::after,
+:root[data-font="dejavu"] .sb.is-collapsed .sb-logo[title]:hover::after,
+:root[data-font="dejavu"] .sb-account-name,
+:root[data-font="dejavu"] .sb-foot-name,
+:root[data-font="dejavu"] .tb-cmd-input {
+  font-family: var(--font-body);
+}
+/* DejaVu Sans is wider than Onest: in dark/light the 40px greeting beside
+   the 280px search no longer fits the main column at tablet widths (768px
+   overflowed by 5–15px, RU/UK). Wrap the search row under the greeting, the
+   same fix paradise.css already applies to its wider plate. ≤640px already
+   stacks the TopBar (responsive.css). */
+@media (min-width: 641px) {
+  :root[data-font="dejavu"] .tb { flex-wrap: wrap; }
+  :root[data-font="dejavu"] .tb-right { margin-left: auto; }
+}
+/* An element that is both one of the above and .mono keeps the mono face. */
+:root[data-font="dejavu"] .mono { font-family: var(--font-mono); }
+
+/* Settings → Appearance font preview: each sample renders in its own face
+   regardless of the active preference. */
+.set-font-preview { display: grid; gap: 6px; min-width: 0; }
+.set-font-sample {
+  display: grid; grid-template-columns: minmax(84px, auto) 1fr; gap: 10px; align-items: baseline;
+  min-width: 0; font-size: 14px; line-height: 1.35; color: var(--text);
+}
+.set-font-sample-label { font-size: 11px; color: var(--muted); }
+.set-font-sample-text { min-width: 0; overflow-wrap: anywhere; }
+.set-font-sample.is-current .set-font-sample-text { font-family: 'Work Sans', system-ui, sans-serif; }
+.set-font-sample.is-dejavu .set-font-sample-text { font-family: "DejaVu Sans", system-ui, sans-serif; }

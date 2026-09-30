@@ -1115,6 +1115,8 @@ export const ru = {
     set_font:         'шрифт интерфейса',
     set_font_current: 'текущий',
     set_font_dejavu:  'DejaVu Sans',
+    set_font_preview: 'предпросмотр',
+    set_font_sample:  'Съешь же ещё этих мягких французских булок, да выпей чаю. Ёё · 0123456789',
     set_density:      'плотность',
     set_density_cozy: 'уютная',
     set_density_compact:'плотная',

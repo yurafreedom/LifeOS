@@ -242,6 +242,16 @@ function AppearanceSection({ t, locale, setLocale }) {
           ))}
         </div>
       </Row>
+      <Row label={t('set_font_preview')}>
+        <div className="set-font-preview">
+          {fonts.map(([val, lbl]) => (
+            <div key={val} className={"set-font-sample is-" + val}>
+              <span className="set-font-sample-label mono">{lbl}</span>
+              <span className="set-font-sample-text" lang={locale}>{t('set_font_sample')}</span>
+            </div>
+          ))}
+        </div>
+      </Row>
       <Row label={t('set_accent_intensity')} hint="100%">
         <input type="range" className="set-range" min="50" max="120" defaultValue="100"/>
       </Row>

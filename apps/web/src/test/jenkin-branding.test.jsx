@@ -1,5 +1,5 @@
 import React from 'react';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
 import {
@@ -167,10 +167,65 @@ describe('Interface font preference', () => {
       ['DejaVuSans-Oblique.woff', '400', 'italic'],
       ['DejaVuSans-BoldOblique.woff', '700', 'italic'],
     ]);
-    const withoutComments = css.replace(/\/\*[\s\S]*?\*\//g, '');
-    const fontRules = withoutComments.split('}').filter(rule => /font-family|--font-/.test(rule) && !rule.includes('@font-face'));
-    for (const rule of fontRules) expect(rule).toContain(':root[data-font="dejavu"]');
     expect(text('../styles/tokens.css')).toContain("--font-body:    'Work Sans', system-ui, sans-serif;");
+  });
+
+  it('scopes DejaVu through the tokens and per-selector overrides, never a blanket rule', () => {
+    const css = text('../brand.css').replace(/\/\*[\s\S]*?\*\//g, '');
+    expect(css).not.toContain('!important');
+    expect(css).not.toMatch(/(^|[\s,])\*(\s|,|\{)/);
+    expect(css).not.toMatch(/(^|[\s,}])body[\s,{]/);
+    const rules = [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)].map(m => [m[1].trim(), m[2]]);
+    const tokenRule = rules.find(([sel]) => sel === ':root[data-font="dejavu"]');
+    expect(tokenRule[1]).toMatch(/--font-display:\s*"DejaVu Sans"/);
+    expect(tokenRule[1]).toMatch(/--font-body:\s*"DejaVu Sans"/);
+    /* the mono role keeps its face */
+    expect(css).not.toMatch(/--font-mono\s*:/);
+    expect(rules.find(([sel]) => sel === ':root[data-font="dejavu"] .mono')[1]).toContain('font-family: var(--font-mono)');
+    /* every other family declaration is either scoped to data-font or a preview sample */
+    for (const [sel, body] of rules) {
+      if (!/font-family/.test(body) || sel.startsWith('@font-face')) continue;
+      for (const part of sel.split(',')) {
+        expect(part.trim()).toMatch(/^:root\[data-font="dejavu"\] |^\.set-font-sample\.is-(current|dejavu) /);
+      }
+    }
+  });
+
+  it('overrides every stylesheet selector that names Onest or Work Sans directly', () => {
+    const brand = text('../brand.css').replace(/\/\*[\s\S]*?\*\//g, '');
+    const overrides = { display: new Set(), body: new Set() };
+    for (const [, sel, body] of brand.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+      const role = body.includes('var(--font-display)') ? 'display' : body.includes('var(--font-body)') ? 'body' : null;
+      if (role) for (const part of sel.split(',')) overrides[role].add(part.trim().replace(/\s+/g, ' '));
+    }
+    const files = [...readdirSync(new URL('../styles/', import.meta.url)).map(f => `../styles/${f}`), '../analytics.css'];
+    let hardcoded = 0;
+    for (const file of files) {
+      const css = text(file).replace(/\/\*[\s\S]*?\*\//g, '');
+      for (const [, sel, body] of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+        const family = body.match(/font(?:-family)?\s*:[^;]*(Onest|Work Sans)/);
+        if (!family) continue;
+        const role = family[1] === 'Onest' ? 'display' : 'body';
+        for (const part of sel.split(',')) {
+          hardcoded += 1;
+          expect(overrides[role], `${file}: ${part.trim()}`).toContain(`:root[data-font="dejavu"] ${part.trim().replace(/\s+/g, ' ')}`);
+        }
+      }
+    }
+    expect(hardcoded).toBeGreaterThan(40);
+  });
+
+  it.each(LifeLocales)('Appearance previews both faces with localized Cyrillic and numbers (%s)', locale => {
+    const t = LifeMakeT(locale);
+    const html = withLocale(locale, <AppearanceSection t={t} locale={locale} setLocale={vi.fn()} />,
+      { themeMode: 'dark', setTheme: vi.fn(), scenePref: 'auto', setScenePref: vi.fn() });
+    expect(html).toContain(t('set_font_preview'));
+    for (const face of ['current', 'dejavu']) {
+      expect(html).toContain(`<div class="set-font-sample is-${face}">`);
+    }
+    expect(html.split(`<span class="set-font-sample-text" lang="${locale}">${t('set_font_sample')}</span>`)).toHaveLength(3);
+    expect(t('set_font_sample')).toMatch(/0123456789/);
+    expect(t('set_font_sample')).toMatch(locale === 'uk' ? /І.*Ї.*Є.*Ґ/ : /Ё/);
   });
 
   it('ships byte-identical runtime WOFF faces and the license from the approved package', () => {

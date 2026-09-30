@@ -1,0 +1,74 @@
+== mock views 440 pageerrors []
+overflow views 0 []
+dejavu: non-DejaVu non-mono text 0 []
+.mono instances 9880 changed 0
+dejavu mono-role elems (non-.mono incl.) 5932
+focus stops 3160 missing [(('current', 'dialog', 'input.qa-title'), 40), (('current', 'login', 'input'), 20), (('current', 'tasks', 'input.tb-cmd-input'), 16), (('dejavu', 'dialog', 'input.qa-title'), 40), (('dejavu', 'login', 'input'), 20), (('dejavu', 'tasks', 'input.tb-cmd-input'), 16)]
+sidebar email checks 48 min font 12.0 max overflow 0
+   ('current', 'calHeading') {'Onest [web]': 40}
+   ('current', 'cube') {'Onest [web]': 40}
+   ('current', 'dialogEyebrow') {'DejaVu Sans [system] + Work Sans [web]': 40}
+   ('current', 'dialogTitle') {'Onest [web]': 40}
+   ('current', 'email') {'Work Sans [web]': 24}
+   ('current', 'eyebrow') {'DejaVu Sans [system] + Work Sans [web]': 20}
+   ('current', 'heading') {'DejaVu Sans [system] + Work Sans [web]': 20}
+   ('current', 'longTitle') {'DejaVu Sans [system] + Work Sans [web]': 40}
+   ('current', 'mnav') {'Liberation Sans [system]': 16}
+   ('current', 'monoLabel') {'DejaVu Sans [system]': 40}
+   ('current', 'navLabel') {'Liberation Sans [system]': 24}
+   ('current', 'pageTitle') {'Onest [web]': 40}
+   ('current', 'rowLabel') {'DejaVu Sans [system]': 40}
+   ('current', 'sampleCurrent') {'DejaVu Sans [system] + Work Sans [web]': 40}
+   ('current', 'sampleDejavu') {'DejaVu Sans [web]': 40}
+   ('dejavu', 'calHeading') {'DejaVu Sans [web]': 40}
+   ('dejavu', 'cube') {'DejaVu Sans [web]': 40}
+   ('dejavu', 'dialogEyebrow') {'DejaVu Sans [system] + Work Sans [web]': 40}
+   ('dejavu', 'dialogTitle') {'DejaVu Sans [web]': 40}
+   ('dejavu', 'email') {'DejaVu Sans [web]': 24}
+   ('dejavu', 'eyebrow') {'DejaVu Sans [system] + Work Sans [web]': 20}
+   ('dejavu', 'heading') {'DejaVu Sans [web]': 20}
+   ('dejavu', 'longTitle') {'DejaVu Sans [web]': 40}
+   ('dejavu', 'mnav') {'DejaVu Sans [web]': 16}
+   ('dejavu', 'monoLabel') {'DejaVu Sans [system]': 40}
+   ('dejavu', 'navLabel') {'DejaVu Sans [web]': 24}
+   ('dejavu', 'pageTitle') {'DejaVu Sans [web]': 40}
+   ('dejavu', 'rowLabel') {'DejaVu Sans [web]': 40}
+   ('dejavu', 'sampleCurrent') {'DejaVu Sans [system] + Work Sans [web]': 40}
+   ('dejavu', 'sampleDejavu') {'DejaVu Sans [web]': 40}
+== real views 88 pageerrors []
+overflow views 0 []
+dejavu: non-DejaVu non-mono text 0 []
+.mono instances 1936 changed 0
+dejavu mono-role elems (non-.mono incl.) 1160
+focus stops 632 missing [(('current', 'dialog', 'input.qa-title'), 8), (('current', 'login', 'input'), 4), (('current', 'tasks', 'input.tb-cmd-input'), 4), (('dejavu', 'dialog', 'input.qa-title'), 8), (('dejavu', 'login', 'input'), 4), (('dejavu', 'tasks', 'input.tb-cmd-input'), 4)]
+sidebar email checks 8 min font 12.0 max overflow 0
+   ('current', 'calHeading') {'Onest [web]': 8}
+   ('current', 'cube') {'Onest [web]': 8}
+   ('current', 'dialogEyebrow') {'DejaVu Sans [system] + Work Sans [web]': 8}
+   ('current', 'dialogTitle') {'Onest [web]': 8}
+   ('current', 'email') {'Work Sans [web]': 4}
+   ('current', 'eyebrow') {'DejaVu Sans [system] + Work Sans [web]': 4}
+   ('current', 'heading') {'DejaVu Sans [system] + Work Sans [web]': 4}
+   ('current', 'longTitle') {'DejaVu Sans [system] + Work Sans [web]': 8}
+   ('current', 'mnav') {'Liberation Sans [system]': 4}
+   ('current', 'monoLabel') {'DejaVu Sans [system]': 8}
+   ('current', 'navLabel') {'Liberation Sans [system]': 4}
+   ('current', 'pageTitle') {'Onest [web]': 8}
+   ('current', 'rowLabel') {'DejaVu Sans [system]': 8}
+   ('current', 'sampleCurrent') {'DejaVu Sans [system] + Work Sans [web]': 8}
+   ('current', 'sampleDejavu') {'DejaVu Sans [web]': 8}
+   ('dejavu', 'calHeading') {'DejaVu Sans [web]': 8}
+   ('dejavu', 'cube') {'DejaVu Sans [web]': 8}
+   ('dejavu', 'dialogEyebrow') {'DejaVu Sans [system] + Work Sans [web]': 8}
+   ('dejavu', 'dialogTitle') {'DejaVu Sans [web]': 8}
+   ('dejavu', 'email') {'DejaVu Sans [web]': 4}
+   ('dejavu', 'eyebrow') {'DejaVu Sans [system] + Work Sans [web]': 4}
+   ('dejavu', 'heading') {'DejaVu Sans [web]': 4}
+   ('dejavu', 'longTitle') {'DejaVu Sans [web]': 8}
+   ('dejavu', 'mnav') {'DejaVu Sans [web]': 4}
+   ('dejavu', 'monoLabel') {'DejaVu Sans [system]': 8}
+   ('dejavu', 'navLabel') {'DejaVu Sans [web]': 4}
+   ('dejavu', 'pageTitle') {'DejaVu Sans [web]': 8}
+   ('dejavu', 'rowLabel') {'DejaVu Sans [web]': 8}
+   ('dejavu', 'sampleCurrent') {'DejaVu Sans [system] + Work Sans [web]': 8}
+   ('dejavu', 'sampleDejavu') {'DejaVu Sans [web]': 8}
