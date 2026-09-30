@@ -3,7 +3,8 @@ import { PageHeader } from '../../components/HeroVignette.jsx';
 import { LIcons } from '../../components/icons.jsx';
 import { LifeDataContext } from '../../context/LifeDataContext.jsx';
 import { LifeLocaleContext, LifeStrings } from '../../context/LocaleContext.jsx';
-import { calendarBounds, formatMonth, monthKey, shiftMonth, yearInBounds, yearWindow } from '../../domain/calendarModel.ts';
+import { useKyivToday } from '../../app/useKyivToday.js';
+import { calendarBoundsForDay, formatMonth, monthKey, shiftMonth, yearInBounds, yearOf, yearWindow } from '../../domain/calendarModel.ts';
 import { calendarHash, parseCalendarHash } from './calendarRoute.js';
 import { DayCubes, MonthCubes, YearCubes } from './CubeGrids.jsx';
 import { CalendarHistory } from './CalendarHistory.jsx';
@@ -150,7 +151,15 @@ function CalendarPage({ onAddForDay = () => {} }) {
   const data = useContext(LifeDataContext);
   const tasks = (data.state && data.state.tasks) || [];
   const intl = LifeStrings[locale]._intl_locale;
-  const bounds = useMemo(() => calendarBounds(tasks), [tasks]);
+  /* Today is the live Europe/Kyiv day, not the day the task list last
+     changed: highlight, the Today button, the current-year window and the
+     Day Manager's overdue controls all move at midnight and on tab return.
+     Explicit routes and an open Day Manager/editor are untouched (the hash
+     and the Day Manager key do not depend on today); the undated #/calendar
+     keeps meaning "the current Kyiv month". */
+  const today = useKyivToday();
+  const [openedYear] = useState(() => yearOf(today));
+  const bounds = useMemo(() => calendarBoundsForDay(tasks, today, openedYear), [tasks, today, openedYear]);
   const [hash, setHash] = useState(readHash);
   /* Month a day was opened from by a history push — closing the Day Manager
      then goes Back to it, exactly like the browser Back button. */

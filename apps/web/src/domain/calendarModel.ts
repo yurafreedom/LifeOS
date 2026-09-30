@@ -81,9 +81,18 @@ export function minNavigableYear(currentYear: number, tasks: TaskRecord[] = []):
 export type CalendarBounds = { today: string; currentYear: number; minYear: number; maxYear: number };
 
 export function calendarBounds(tasks: TaskRecord[], now: string | number | Date = new Date()): CalendarBounds {
-  const today = todayDateOnly(now);
+  return calendarBoundsForDay(tasks, todayDateOnly(now));
+}
+
+/* Bounds for an already-known Kyiv day (the page passes useKyivToday(), which
+   re-renders at Kyiv midnight and on tab return). `floorYear` keeps a year the
+   open page could already navigate reachable after a New Year rollover, so an
+   explicit route into the year just left is never invalidated mid-session. */
+export function calendarBoundsForDay(tasks: TaskRecord[], today: string, floorYear?: number): CalendarBounds {
   const currentYear = yearOf(today);
-  return { today, currentYear, minYear: minNavigableYear(currentYear, tasks), maxYear: MAX_YEAR };
+  let minYear = minNavigableYear(currentYear, tasks);
+  if (Number.isInteger(floorYear)) minYear = Math.min(minYear, floorYear as number);
+  return { today, currentYear, minYear, maxYear: MAX_YEAR };
 }
 
 export const yearInBounds = (year: number, bounds: CalendarBounds) =>
