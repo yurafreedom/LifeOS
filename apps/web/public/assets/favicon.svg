@@ -1,12 +1,13 @@
-
-<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
-  <defs>
-    <linearGradient id="fav" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#FFC066"></stop>
-      <stop offset="48%" stop-color="#FF8A1E"></stop>
-      <stop offset="100%" stop-color="#FF6B0A"></stop>
-    </linearGradient>
-  </defs>
-  <rect width="32" height="32" rx="7" fill="#0E1117"></rect>
-  <circle cx="16" cy="16" r="6" fill="url(#fav)"></circle>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-label="JENKIN">
+  <!-- Small-size adaptation of the approved serif J app icon
+       (design-references/jenkin-branding/logo/jenkin-icon.svg): full-bleed
+       tile, J enlarged 12% about the tile centre with a hairline-thickening
+       stroke, and a larger amber point so both survive 16 px. -->
+  <rect width="160" height="160" rx="32" fill="#171B1D"/>
+  <g transform="translate(80 80) scale(1.12) translate(-80 -80)">
+    <g transform="translate(41.511 134.391) scale(0.163090 -0.163090)" fill="#F6EFE4" stroke="#F6EFE4" stroke-width="30" stroke-linejoin="round">
+      <path d="M419 657V683L321 681C279 681 233 681 191 683V657H215C293 657 295 646 295 610V147C295 55 245 0 194 0C168 0 108 12 82 73C86 72 91 71 95 71C114 71 138 84 138 114C138 138 121 156 96 156C72 156 53 141 53 112C53 45 114 -16 196 -16C274 -16 346 40 358 124C359 131 359 133 359 167V587C359 604 359 632 361 638C365 657 388 657 419 657Z"/>
+    </g>
+  </g>
+  <circle cx="127" cy="131" r="10" fill="#E9AC62"/>
 </svg>

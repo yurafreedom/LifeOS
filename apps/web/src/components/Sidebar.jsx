@@ -1,5 +1,6 @@
 import React from 'react';
 import { LifeLocaleContext } from '../context/LocaleContext.jsx';
+import { JenkinMark, JenkinWordmark } from './JenkinBrand.jsx';
 import { LIcons } from './icons.jsx';
 
 /* global React */
@@ -67,16 +68,7 @@ function Sidebar({ route, onNav, collapsed, setCollapsed, counts = {}, user, acc
                 onClick={() => onNav('home')}
                 aria-label={BRAND_NAME}
                 title={collapsed ? BRAND_NAME : undefined}>
-          {collapsed ? (
-            <span className="sb-logo-dot" aria-hidden="true" />
-          ) : (
-            <svg width="86" height="28" viewBox="0 0 124 40" fill="none" aria-hidden="true">
-              <text x="0" y="29" fontFamily="Onest, system-ui, sans-serif" fontWeight="900" fontSize="28" letterSpacing="-0.03em"
-                    textLength="118" lengthAdjust="spacingAndGlyphs">
-                <tspan className="logo-word" fill="#F5F5F7">{BRAND_NAME}</tspan>
-              </text>
-            </svg>
-          )}
+          {collapsed ? <JenkinMark /> : <JenkinWordmark />}
         </button>
         <button className="sb-toggle"
                 onClick={() => setCollapsed(v => !v)}

@@ -198,9 +198,9 @@ describe('JENKIN · visible branding', () => {
       <Sidebar route="home" onNav={vi.fn()} collapsed={false} setCollapsed={vi.fn()} user={null} />
     ));
     expect(html).toContain('aria-label="JENKIN"');
-    expect(html).toContain('>JENKIN</tspan>');
+    expect(html).toContain('<svg class="jenkin-wordmark"');
     expect(html).not.toMatch(/Life|·OS/);
-    expect(source('../pages/LoginPage.jsx')).toContain('<div className="auth-brand">JENKIN</div>');
+    expect(source('../pages/LoginPage.jsx')).toContain('<div className="auth-brand" role="img" aria-label="JENKIN"><JenkinWordmark /></div>');
     const index = source('../../index.html');
     expect(index).toContain('<title>JENKIN</title>');
     expect(index).toContain('<meta name="application-name" content="JENKIN" />');
