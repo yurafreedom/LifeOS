@@ -175,6 +175,12 @@ export const uk = {
     tasks_sort_priority:   'за пріоритетом',
     tasks_sort_category:   'за категорією',
     tasks_empty:           'задач поки немає. ⌘ K щоб додати першу.',
+    /* JENKIN compact Tasks: counted filter options; overdue / today say so in words */
+    tasks_filter_option:   '{0} · {1}',
+    tasks_due_overdue:     'прострочено · {0}',
+    tasks_due_today:       'сьогодні',
+    tasks_due_today_at:    'сьогодні · {0}',
+    tasks_done_toggle_aria:'виконано: {0}',
     profile_title:         'я',
     profile_subtitle:      'особисті дані. редагується на місці.',
     profile_add_section:   '+ додати секцію',

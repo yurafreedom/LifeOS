@@ -7,8 +7,8 @@ import { TaskDetailModal } from '../components/TaskDetailModal.jsx';
 import { LifeLocaleContext, LifeMakeT } from '../context/LocaleContext.jsx';
 import { msUntilNextDay, scheduleEdit, todayDateOnly, validateScheduleInput } from '../domain/calendarModel.ts';
 import {
-  archiveTask, closeTaskUnresolved, completeTask, findTask, moveTask, overdueTasks, patchTask,
-  sortTasksByDate, tasksDueToday, tasksForDay,
+  archiveTask, closeTaskUnresolved, completeTask, findTask, moveTask, overdueTasks, patchTask, restoreTask,
+  sortTasksByDate, taskViewCounts, tasksDueToday, tasksForDay, tasksForView, TASK_VIEWS,
 } from '../domain/tasks.ts';
 import { TasksPage } from '../pages/TasksPage.jsx';
 
@@ -51,6 +51,43 @@ describe('Today / Overdue selectors', () => {
     const doNow = task(11, { schedule: null, due: '', tag: null });
     expect(tasksDueToday([doNow], TODAY)).toEqual([]);
     expect(overdueTasks([doNow], TODAY)).toEqual([]);
+  });
+});
+
+describe('JENKIN · Tasks views and their counts', () => {
+  it('keeps the production views in their display order', () => {
+    expect(TASK_VIEWS).toEqual(['all', 'today', 'overdue', 'routine', 'stakes', 'done']);
+  });
+
+  it('every view starts from the non-closed tasks; counts are the row counts', () => {
+    expect(ids(tasksForView(TASKS, 'all', TODAY))).toEqual([1, 2, 3, 4, 5, 6, 7, 10]);
+    expect(ids(tasksForView(TASKS, 'today', TODAY))).toEqual([2]);
+    expect(ids(tasksForView(TASKS, 'overdue', TODAY))).toEqual([1]);
+    expect(ids(tasksForView(TASKS, 'routine', TODAY))).toEqual([1, 2, 3, 4, 6]);
+    expect(ids(tasksForView(TASKS, 'stakes', TODAY))).toEqual([5]);
+    expect(ids(tasksForView(TASKS, 'done', TODAY))).toEqual([7, 10]);
+    const counts = taskViewCounts(TASKS, TODAY);
+    for (const view of TASK_VIEWS) expect(counts[view]).toBe(tasksForView(TASKS, view, TODAY).length);
+  });
+
+  it('undated tasks, the legacy «today» tag and a dateless time are never in today / overdue', () => {
+    for (const view of ['today', 'overdue']) {
+      const hit = ids(tasksForView(TASKS, view, TODAY));
+      expect(hit).not.toContain(4);
+      expect(hit).not.toContain(5);
+      expect(hit).not.toContain(6);
+    }
+  });
+
+  it('counts move with the Kyiv day and with the task lifecycle', () => {
+    expect(taskViewCounts(TASKS, '2026-10-15')).toMatchObject({ today: 1, overdue: 2 });
+    const closed = archiveTask(TASKS, 2, '2026-10-14T10:00:00.000Z');
+    expect(taskViewCounts(closed, TODAY)).toMatchObject({ all: 7, today: 0 });
+    const restored = restoreTask(closed, 2);
+    expect(findTask(restored, 2).id).toBe(2);
+    expect(taskViewCounts(restored, TODAY)).toMatchObject({ all: 8, today: 1 });
+    const done = completeTask(TASKS, 1, '2026-10-14T10:00:00.000Z');
+    expect(taskViewCounts(done, TODAY)).toMatchObject({ overdue: 0, done: 3 });
   });
 });
 

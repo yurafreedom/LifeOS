@@ -195,7 +195,8 @@ describe('Clarify · Waiting retrieval surface', () => {
     const html = withLocale('ru', (
       <TasksPage tasks={[]} waitingItems={WAITING} onToggle={vi.fn()} onAdd={vi.fn()} onOpen={vi.fn()} />
     ));
-    expect(html).toContain('<option value="waiting">ожидание</option>');
+    /* JENKIN: the option carries the count of active Waiting records */
+    expect(html).toContain('<option value="waiting">ожидание · 2</option>');
     expect(html).toContain('class="tasks-filter-select"');
   });
 

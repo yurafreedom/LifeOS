@@ -158,6 +158,41 @@ export function overdueTasks(tasks: TaskRecord[], today: string): TaskRecord[] {
   return tasks.filter(task => isTaskOverdue(task, today));
 }
 
+/* ── Tasks page «показать» views (JENKIN compact Tasks) ─────────────────── */
+
+/* The ordinary task views of the Tasks filter, in their display order.
+   Waiting is its own collection (domain/waiting.ts) and not a task view.
+   Every view starts from the tasks that are not closed — archived and
+   closed-without-completion tasks live in Calendar History until Restore —
+   so a view's count is exactly the number of rows it shows:
+     all      every non-closed task (completed ones included, as listed)
+     today    tasksDueToday (active, schedule.date = the Kyiv day)
+     overdue  overdueTasks (active, schedule.date before the Kyiv day)
+     routine  active, not stakes
+     stakes   active, stakes («важное»)
+     done     completed */
+export type TaskView = 'all' | 'today' | 'overdue' | 'routine' | 'stakes' | 'done';
+export const TASK_VIEWS: readonly TaskView[] = ['all', 'today', 'overdue', 'routine', 'stakes', 'done'];
+
+export function tasksForView(tasks: TaskRecord[], view: TaskView, today: string): TaskRecord[] {
+  const open = tasks.filter(task => !isTaskClosed(task));
+  switch (view) {
+    case 'today': return tasksDueToday(open, today);
+    case 'overdue': return overdueTasks(open, today);
+    case 'routine': return open.filter(task => !task.stakes && isTaskActive(task));
+    case 'stakes': return open.filter(task => !!task.stakes && isTaskActive(task));
+    case 'done': return open.filter(task => !!task.done);
+    default: return open;
+  }
+}
+
+/** Row count of every task view — derived with tasksForView itself. */
+export function taskViewCounts(tasks: TaskRecord[], today: string): Record<TaskView, number> {
+  const counts = {} as Record<TaskView, number>;
+  for (const view of TASK_VIEWS) counts[view] = tasksForView(tasks, view, today).length;
+  return counts;
+}
+
 /* Chronological order for the Tasks «по дате» sort:
      1. dated tasks by `schedule.date`, earliest first;
      2. within one date, exactly the Calendar day order (tasksForDay): the

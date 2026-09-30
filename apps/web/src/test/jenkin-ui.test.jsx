@@ -17,27 +17,69 @@ function withLocale(locale, node) {
   );
 }
 
-const tasksPage = locale => withLocale(locale, (
-  <TasksPage tasks={[{ id: 1, title: 'купить корм', done: false, stakes: false, schedule: { date: '2026-10-02', time: '' } }]}
-             waitingItems={[]} onToggle={vi.fn()} onAdd={vi.fn()} onOpen={vi.fn()} />
+/* The live Kyiv day is mocked so counts and «today» cues are deterministic. */
+const kyiv = vi.hoisted(() => ({ today: '2026-10-14' }));
+vi.mock('../app/useKyivToday.js', () => ({ useKyivToday: () => kyiv.today }));
+
+const on = (date, time = '') => ({ schedule: { date, time } });
+const TASKS = [
+  { id: 1, title: 'купить корм', done: false, stakes: false, ...on('2026-10-16') },   // future
+  { id: 2, title: 'сегодня утром', done: false, stakes: false, ...on('2026-10-14', '09:30') },
+  { id: 3, title: 'сегодня важное', done: false, stakes: true, ...on('2026-10-14') },
+  { id: 4, title: 'вчерашнее', done: false, stakes: false, ...on('2026-10-13') },     // overdue
+  { id: 5, title: 'позавчера важное', done: false, stakes: true, ...on('2026-10-12', '18:00') }, // overdue
+  { id: 6, title: 'без даты', done: false, stakes: false, schedule: null, tag: 'today', due: 'eod' }, // legacy label only
+  { id: 7, title: 'время без даты', done: false, stakes: false, due: '17:00', schedule: { date: '', time: '17:00' } },
+  { id: 8, title: 'сделано сегодня', done: true, stakes: true, completed_at: '2026-10-14T08:00:00.000Z', ...on('2026-10-14') },
+  { id: 9, title: 'в архиве', done: false, stakes: true, closure: 'archived', closed_at: '2026-10-13T08:00:00.000Z', ...on('2026-10-14') },
+  { id: 10, title: 'закрыта', done: false, stakes: false, closure: 'closed_unresolved', closed_at: '2026-10-13T08:00:00.000Z', ...on('2026-10-10') },
+];
+const WAITING = [
+  { id: 'w1', title: 'ответ банка', waiting_for: null, created_at: '2026-10-01T09:00:00.000Z' },
+  { id: 'w2', title: 'договор', waiting_for: 'юрист', created_at: '2026-10-02T09:00:00.000Z' },
+  { id: 'w3', title: 'посылка', waiting_for: null, created_at: '2026-09-20T09:00:00.000Z', resolution: 'received', resolved_at: '2026-10-05T09:00:00.000Z' },
+];
+
+const tasksPage = (locale, tasks = TASKS, waitingItems = WAITING) => withLocale(locale, (
+  <TasksPage tasks={tasks} waitingItems={waitingItems} onToggle={vi.fn()} onAdd={vi.fn()} onOpen={vi.fn()} />
 ));
+const optionsOf = html => [...html.matchAll(/<option value="([a-z]+)"[^>]*>([^<]+)<\/option>/g)].map(m => [m[1], m[2]]);
 
 describe('Tasks · filter dropdown', () => {
   it.each([
     ['ru', 'показать', ['все', 'сегодня', 'просрочено', 'рутина', 'важное', 'ожидание', 'сделано']],
     ['uk', 'показати', ['усі', 'сьогодні', 'прострочено', 'рутина', 'важливе', 'очікування', 'зроблено']],
-  ])('%s: one labelled <select> keeps every existing filter, Waiting and Completed included', (locale, label, labels) => {
+  ])('%s: one labelled <select> keeps every existing filter, each with its truthful count', (locale, label, labels) => {
     const html = tasksPage(locale);
     expect(html).not.toContain('tasks-chip');
     expect(html.split('<select').length - 1).toBe(1);
     /* The visible label wraps the select, so it is its accessible name. */
     expect(html).toMatch(new RegExp(`<label class="tasks-filter"><span class="tasks-filter-label mono">${label}</span>`));
     const ids = ['all', 'today', 'overdue', 'routine', 'stakes', 'waiting', 'done'];
-    const options = [...html.matchAll(/<option value="([a-z]+)"[^>]*>([^<]+)<\/option>/g)].map(m => [m[1], m[2]]);
-    expect(options).toEqual(ids.map((id, i) => [id, labels[i]]));
-    expect(html).toContain('<option value="all" selected="">');
+    /* all 8 = every non-closed task (completed included, archived/closed not);
+       today 2 and overdue 2 by schedule.date on the Kyiv day (undated, the
+       legacy «today» tag and a dateless time never count); routine 5 and
+       important 2 are active only; Waiting 2 = the active records;
+       done 1. */
+    const counts = [8, 2, 2, 5, 2, 2, 1];
+    expect(optionsOf(html)).toEqual(ids.map((id, i) => [id, `${labels[i]} · ${counts[i]}`]));
+    expect(html).toMatch(/<option value="all" selected="">/);
     /* The chevron is decorative. */
     expect(html).toContain('class="tasks-filter-chev" aria-hidden="true"');
+  });
+
+  it('derives every count from the same pipeline that renders the rows', () => {
+    const code = source('../pages/TasksPage.jsx');
+    expect(code).toContain("let xs = tasksForView(tasks, filter === 'waiting' ? 'all' : filter, today);");
+    expect(code).toContain('...taskViewCounts(tasks, today),');
+    expect(code).toContain('waiting: activeWaitingItems(waitingItems).length,');
+    /* nothing hardcodes a count */
+    expect(code).not.toMatch(/counts\s*=\s*\{\s*all:\s*\d/);
+  });
+
+  it('shows zero honestly for an empty list', () => {
+    expect(optionsOf(tasksPage('ru', [], [])).map(o => o[1])).toEqual(
+      ['все · 0', 'сегодня · 0', 'просрочено · 0', 'рутина · 0', 'важное · 0', 'ожидание · 0', 'сделано · 0']);
   });
 
   it('keeps sorting as its own separate control', () => {
@@ -49,6 +91,13 @@ describe('Tasks · filter dropdown', () => {
     expect(html).toContain('сортировать: по дате');
     const select = html.slice(html.indexOf('<select'), html.indexOf('</select>'));
     expect(select).not.toContain('по дате');
+    /* all three production sort modes stay, each exposing its state */
+    const code = source('../pages/TasksPage.jsx');
+    for (const mode of ["id: 'date'", "id: 'priority'", "id: 'category'"]) expect(code).toContain(mode);
+    expect(code).toContain('aria-pressed={sort === s.id}');
+    /* Escape closes the open sort list first and returns focus to its trigger */
+    expect(code).toContain("if (event.key !== 'Escape') return;");
+    expect(code).toContain('sortTriggerRef.current.focus()');
   });
 
   it('switches the view from the select value', () => {
@@ -58,14 +107,52 @@ describe('Tasks · filter dropdown', () => {
   });
 });
 
-describe('Tasks · title size matches its date metadata', () => {
-  it('sets the Tasks title button and .task-due to the same --text-sm token', () => {
+describe('Tasks · title and date share 13 px, hierarchy by weight and colour', () => {
+  it('sets the Tasks title button and date to the same --text-md (13 px) token', () => {
     const life = source('../styles/pages-life.css');
-    const panels = source('../styles/panels.css');
-    expect(life).toMatch(/\.tasks-page \.task-title-btn \{ font-size: var\(--text-sm\);/);
-    expect(panels).toMatch(/\.task-due \{\s*font-size: var\(--text-sm\);/);
+    expect(source('../styles/tokens.css')).toMatch(/--text-md:\s+13px;/);
+    expect(life).toMatch(/\.tasks-page \.task-title-btn \{\s*font-size: var\(--text-md\); font-weight: 500;[^}]*color: var\(--fg1\);/);
+    expect(life).toMatch(/\.tasks-page \.task-due \{\s*font-size: var\(--text-md\); font-weight: 400;[^}]*color: var\(--fg3\);/);
     /* The title button resets `font`, which is why the size is set on it. */
     expect(source('../styles/modals.css')).toMatch(/\.task-title-btn \{[^}]*font: inherit;/);
+    /* Home keeps its own list sizes: the change is scoped to the Tasks page. */
+    expect(source('../styles/panels.css')).toMatch(/\.task-due \{\s*font-size: var\(--text-sm\);/);
+  });
+
+  it('says «просрочено» / «сегодня» in words, not only in colour (RU/UK)', () => {
+    const ru = tasksPage('ru');
+    expect(ru).toMatch(/<time class="task-due mono is-overdue" dateTime="2026-10-13">просрочено · 13 окт\.?<\/time>/);
+    expect(ru).toMatch(/<time class="task-due mono is-overdue" dateTime="2026-10-12T18:00">просрочено · 12 окт\.? · 18:00<\/time>/);
+    expect(ru).toContain('<time class="task-due mono is-today" dateTime="2026-10-14T09:30">сегодня · 09:30</time>');
+    expect(ru).toContain('<time class="task-due mono is-today" dateTime="2026-10-14">сегодня</time>');
+    expect(ru).toMatch(/<time class="task-due mono" dateTime="2026-10-16">16 окт\.?<\/time>/);
+    const uk = tasksPage('uk');
+    expect(uk).toMatch(/прострочено · 13 жовт\.?/);
+    expect(uk).toContain('>сьогодні · 09:30</time>');
+    /* a completed task dated today is not «today» work any more */
+    expect(ru).toMatch(/>сделано сегодня<\/button><div class="task-meta"><time class="task-due mono" dateTime="2026-10-14">14 окт\.?<\/time>/);
+    /* undated rows keep the legacy display label and never become today */
+    const row = title => ru.slice(ru.indexOf(`>${title}</button>`), ru.indexOf('</div></div>', ru.indexOf(`>${title}</button>`)));
+    expect(row('без даты')).not.toContain('<time');
+    expect(row('время без даты')).not.toContain('<time');
+    expect(row('время без даты')).toContain('<span class="task-due mono">17:00</span>');
+  });
+
+  it('labels each completion toggle with its task and state', () => {
+    const html = tasksPage('ru');
+    expect(html).toContain('aria-pressed="false" aria-label="выполнено: купить корм"');
+    expect(html).toContain('aria-pressed="true" aria-label="выполнено: сделано сегодня"');
+    expect(tasksPage('uk')).toContain('aria-label="виконано: купить корм"');
+  });
+
+  it('uses readable «today» ink on light surfaces and the danger colour for overdue', () => {
+    const life = source('../styles/pages-life.css');
+    expect(life).toContain('.tasks-page .task-due.is-overdue { color: var(--danger); }');
+    expect(life).toContain('.tasks-page .task-due.is-today { color: var(--today-text); }');
+    const tokens = source('../styles/tokens.css');
+    expect(tokens.slice(0, tokens.indexOf('[data-theme="light"] {'))).toContain('--today-text: var(--o2);');
+    expect(tokens.slice(tokens.indexOf('[data-theme="light"] {'))).toContain('--today-text: var(--o3);');
+    expect(source('../styles/paradise.css')).toContain('--today-text: var(--o3);');
   });
 });
 

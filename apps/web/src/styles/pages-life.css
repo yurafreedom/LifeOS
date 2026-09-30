@@ -50,28 +50,33 @@
   border-color: transparent;
   color: #fff;
 }
-/* JENKIN · Tasks filter dropdown — a native <select> with the sort
-   trigger's geometry, so filter and sort read as one toolbar. The label
-   stays visible; the chevron is decorative (aria-hidden). */
+/* JENKIN · Tasks filter dropdown — a native <select> (keyboard, screen
+   reader and the phone's own picker) whose options carry their row counts;
+   it shares the sort trigger's control geometry: 30 px, 6 px radius, matte
+   surface with a light edge. The label stays visible; the chevron is
+   decorative (aria-hidden). */
 .tasks-filter { display: inline-flex; align-items: center; gap: 8px; min-width: 0; }
 .tasks-filter-label { font-size: var(--text-sm); color: var(--fg3); }
 .tasks-filter-field { position: relative; display: inline-flex; align-items: center; min-width: 0; }
 .tasks-filter-select {
   appearance: none; -webkit-appearance: none;
-  height: var(--input-h); max-width: 100%;
+  height: var(--btn-h-md); max-width: 100%;
   padding: 0 calc(var(--ctrl-px) + 18px) 0 var(--ctrl-px);
-  border-radius: 8px;
+  border-radius: var(--r-sm);
   background: var(--surface);
-  border: 1px solid var(--border);
+  border: 1px solid var(--line-strong);
+  box-shadow: var(--mat-control-edge);
   color: var(--fg1);
-  font: 500 var(--text-sm) var(--font-body);
+  font: 500 var(--text-md) var(--font-body);
+  font-variant-numeric: tabular-nums;
   cursor: pointer;
+  transition: background-color 120ms var(--ease), border-color 120ms var(--ease), box-shadow 120ms var(--ease);
 }
 .tasks-filter-select:hover { background: var(--surface-h); }
 .tasks-filter-select:focus-visible {
   outline: none;
   border-color: var(--primary-focus-ring);
-  box-shadow: var(--primary-focus-shadow);
+  box-shadow: var(--mat-focus);
 }
 .tasks-filter-select option { background: var(--bg-elev-2, #1A1F28); color: var(--fg1); }
 .tasks-filter-chev {
@@ -81,35 +86,74 @@
 .tasks-sort { position: relative; }
 .tasks-sort-trigger {
   display: inline-flex; align-items: center; gap: 8px;
-  padding: 0 var(--ctrl-px); height: var(--input-h); border-radius: 8px;
+  padding: 0 var(--ctrl-px); height: var(--btn-h-md); border-radius: var(--r-sm);
   background: var(--surface);
-  border: 1px solid var(--border);
-  color: var(--fg2);
-  font-size: 12px;
+  border: 1px solid var(--line-strong);
+  box-shadow: var(--mat-control-edge);
+  color: var(--fg1);
+  font-size: var(--text-md); font-weight: 500;
+  transition: background-color 120ms var(--ease), border-color 120ms var(--ease), box-shadow 120ms var(--ease);
 }
 .tasks-sort-trigger:hover { background: var(--surface-h); color: var(--fg1); }
+.tasks-sort-trigger:focus-visible { outline: none; border-color: var(--primary-focus-ring); box-shadow: var(--mat-focus); }
 .tasks-sort-pop {
-  position: absolute; top: calc(100% + 6px); right: 0;
+  position: absolute; top: calc(100% + 4px); right: 0;
   min-width: 180px; padding: 4px;
-  background: var(--bg-elev-2, #1A1F28);
-  border: 1px solid var(--border-s);
+  display: flex; flex-direction: column; gap: 1px;
+  background: var(--bg-elev-1, #14181F);
+  border: 1px solid var(--line-strong);
   border-radius: var(--r-md);
   box-shadow: var(--sh-pop);
   z-index: 20;
 }
 .tasks-sort-opt {
-  width: 100%; text-align: left;
-  padding: 8px 10px; border-radius: var(--r-sm);
+  width: 100%; min-height: 30px; text-align: left;
+  padding: 6px 8px; border-radius: var(--r-sm);
   background: transparent; color: var(--fg2);
-  font-size: var(--text-sm);
+  font-size: var(--text-md);
 }
-.tasks-sort-opt:hover { background: var(--hover-tint); color: var(--fg1); }
-.tasks-sort-opt.is-on { color: var(--primary-l); }
-/* JENKIN · on the Tasks page the title is the same size as its date /
-   deadline metadata (.task-due, --text-sm). .task-title-btn resets `font`
-   to inherit (body 16px), so the size is set on the button here. */
-.tasks-page .task-title-btn { font-size: var(--text-sm); line-height: var(--line-body); }
+.tasks-sort-opt:hover { background: var(--hover-tint-2); color: var(--fg1); }
+.tasks-sort-opt.is-on { background: var(--primary-soft); color: var(--fg1); }
+.tasks-sort-opt:focus-visible { outline: none; box-shadow: var(--mat-focus); }
+
+/* JENKIN · compact Tasks list (approved design). Title and date share the
+   13 px size; the hierarchy comes from weight (500 / 400) and colour
+   (fg1 / fg3), never from size. Overdue and today also say so in words.
+   .task-title-btn resets `font` to inherit (body 16 px), so size and weight
+   are set on the button here. Scoped to the Tasks page. */
 .tasks-list-card { margin-top: 0; width: 100%; max-width: var(--readable); margin-inline: var(--readable-mi); }
+.tasks-page .tasks-list-card {
+  padding: 6px 8px;
+  background-image: var(--mat-sheen);
+  box-shadow: var(--mat-shadow);
+}
+.tasks-page .task-list .task-row {
+  display: grid; grid-template-columns: 18px minmax(0, 1fr) auto; align-items: center;
+  gap: 4px 12px; min-height: 38px; margin: 0; padding: 6px 8px;
+  border-radius: var(--r-sm); border-bottom: 1px solid var(--border-soft);
+}
+.tasks-page .task-list .task-row:last-child { border-bottom-color: transparent; }
+.tasks-page .task-list .task-row:hover { background-color: var(--hover-tint); }
+.tasks-page .task-title-btn {
+  font-size: var(--text-md); font-weight: 500; line-height: 1.35;
+  color: var(--fg1);
+}
+.tasks-page .task-title-btn.is-done { color: var(--fg3); }
+.tasks-page .task-meta { min-width: 0; justify-content: flex-end; }
+.tasks-page .task-due {
+  font-size: var(--text-md); font-weight: 400; line-height: 1.35;
+  color: var(--fg3); white-space: nowrap;
+}
+.tasks-page .task-due.is-overdue { color: var(--danger); }
+.tasks-page .task-due.is-today { color: var(--today-text); }
+.tasks-page .task-check:focus-visible,
+.tasks-page .task-title-btn:focus-visible { outline: none; box-shadow: var(--mat-focus); border-radius: var(--r-sm); }
+/* Phones: the date moves under the title, so a long title keeps its width. */
+@media (max-width: 480px) {
+  .tasks-page .task-list .task-row { grid-template-columns: 18px minmax(0, 1fr); align-items: start; }
+  .tasks-page .task-list .task-row .task-check { margin-top: 1px; }
+  .tasks-page .task-meta { grid-column: 2; justify-content: flex-start; flex-wrap: wrap; }
+}
 
 /* ============================================================
    Inline editable field (used across Profile cards)

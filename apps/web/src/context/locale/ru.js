@@ -185,6 +185,12 @@ export const ru = {
     tasks_sort_priority:   'по приоритету',
     tasks_sort_category:   'по категории',
     tasks_empty:           'задач пока нет. ⌘ K чтобы добавить первую.',
+    /* JENKIN compact Tasks: counted filter options; overdue / today say so in words */
+    tasks_filter_option:   '{0} · {1}',
+    tasks_due_overdue:     'просрочено · {0}',
+    tasks_due_today:       'сегодня',
+    tasks_due_today_at:    'сегодня · {0}',
+    tasks_done_toggle_aria:'выполнено: {0}',
     /* profile / me */
     profile_title:         'я',
     profile_subtitle:      'личные данные. редактируется на месте.',

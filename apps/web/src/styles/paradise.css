@@ -144,6 +144,7 @@
   --mat-control-edge: inset 0 1px 0 rgba(255,255,255,0.7);
   --mat-field: #FFFFFF;
   --warm-beige: #7A6650;
+  --today-text: var(--o3);
 }
 
 /* NIGHT — deltas from the dark base (:root) only; everything not
