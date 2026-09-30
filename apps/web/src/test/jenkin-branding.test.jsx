@@ -84,6 +84,32 @@ describe('Editorial logo', () => {
   });
 });
 
+describe('Brand control focus', () => {
+  /* WCAG 2.x contrast of opaque sRGB colours */
+  const contrast = (a, b) => {
+    const lum = hex => {
+      const [r, g, b2] = [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16) / 255)
+        .map(v => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4));
+      return 0.2126 * r + 0.7152 * g + 0.0722 * b2;
+    };
+    const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p);
+    return (x + 0.05) / (y + 0.05);
+  };
+
+  it('draws the logo focus ring in a colour that holds 3:1 on every sidebar', () => {
+    const css = text('../brand.css');
+    expect(css).toContain('.sb-logo:focus-visible { outline: 2px solid var(--jenkin-focus); outline-offset: 2px; }');
+    expect(css).toMatch(/\[data-theme="paradise"\]\[data-scene="night"\] \{[^}]*--jenkin-focus: #E9AC62;/);
+    expect(css).toMatch(/\[data-theme="paradise"\]\[data-scene="day"\] \{[^}]*--jenkin-focus: var\(--o3\);/);
+    const tokens = text('../styles/tokens.css');
+    const lightO3 = tokens.slice(tokens.indexOf('[data-theme="light"] {')).match(/--o3:\s*(#[0-9A-Fa-f]{6});/)[1];
+    expect(text('../styles/paradise.css')).toContain(`--o3: ${lightO3};`); /* paradise-day uses the same dark orange */
+    expect(contrast('#E9AC62', '#FFFFFF')).toBeLessThan(3);                /* why the amber is not used on light */
+    expect(contrast(lightO3, '#FFFFFF')).toBeGreaterThanOrEqual(3);
+    expect(contrast('#E9AC62', '#0E1117')).toBeGreaterThanOrEqual(3);
+  });
+});
+
 describe('Favicon', () => {
   it('links the adapted J icon in SVG, ICO and apple-touch forms', () => {
     const index = text('../../index.html');

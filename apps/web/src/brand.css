@@ -9,9 +9,11 @@
 :root, [data-theme="dark"], [data-theme="paradise"][data-scene="night"] {
   --jenkin-ink: #F6EFE4;
   --jenkin-point: #E9AC62;
+  --jenkin-focus: #E9AC62;          /* the amber point: ≥ 9:1 on the dark sidebars */
 }
 [data-theme="light"], [data-theme="paradise"][data-scene="day"] {
   --jenkin-ink: #252A2B;
+  --jenkin-focus: var(--o3);        /* the amber is ≈ 2:1 on white/cream; the dark orange ≥ 5:1 */
 }
 
 .jenkin-wordmark, .jenkin-mark {
@@ -31,7 +33,7 @@
 .sb-logo .jenkin-wordmark, .sb-logo .jenkin-mark { transition: filter 180ms ease; }
 .sb-logo:hover .jenkin-wordmark,
 .sb-logo:hover .jenkin-mark { filter: drop-shadow(0 0 5px rgb(233 172 98 / 18%)); }
-.sb-logo:focus-visible { outline: 2px solid var(--jenkin-point); outline-offset: 2px; }
+.sb-logo:focus-visible { outline: 2px solid var(--jenkin-focus); outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) {
   .sb-logo .jenkin-wordmark, .sb-logo .jenkin-mark { transition: none; }
 }
