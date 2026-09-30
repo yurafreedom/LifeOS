@@ -1,5 +1,6 @@
 import React from 'react';
 import { ApiError } from '../api/client.ts';
+import { JenkinWordmark } from '../components/JenkinBrand.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { LifeLocaleContext } from '../context/LocaleContext.jsx';
 
@@ -59,7 +60,7 @@ function LoginPage() {
   return (
     <main className="auth-screen">
       <section className="auth-card" aria-labelledby="auth-title">
-        <div className="auth-brand">JENKIN</div>
+        <div className="auth-brand" role="img" aria-label="JENKIN"><JenkinWordmark /></div>
         <p className="auth-eyebrow mono">{setupMode ? t('auth_setup_eyebrow') : t('auth_login_eyebrow')}</p>
         <h1 id="auth-title">{setupMode ? t('auth_setup_title') : t('auth_login_title')}</h1>
         <p className="auth-copy">{setupMode ? t('auth_setup_copy') : t('auth_login_copy')}</p>

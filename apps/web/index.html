@@ -7,9 +7,18 @@
     <title>JENKIN</title>
     <meta name="application-name" content="JENKIN" />
     <meta name="apple-mobile-web-app-title" content="JENKIN" />
+    <link rel="icon" href="/assets/favicon.ico" sizes="32x32" />
     <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
+    <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png" />
     <script>
       (function () {
+        /* Optional interface font (app/useInterfaceFont.js) before first paint. */
+        try {
+          if (localStorage.getItem('lifeOsFont') === 'dejavu') {
+            document.documentElement.setAttribute('data-font', 'dejavu');
+          }
+        } catch (error) {}
+
         var theme = null;
         try { theme = localStorage.getItem('lifeOsTheme'); } catch (error) {}
         if (theme !== 'dark' && theme !== 'light' && theme !== 'paradise') {

@@ -1,0 +1,3 @@
+# Preserve the upstream DejaVu license byte-for-byte (it contains one historical
+# trailing space); same rule as design-references/jenkin-branding/.gitattributes.
+LICENSE -diff
