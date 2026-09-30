@@ -1,11 +1,17 @@
 import React from 'react';
 import { PageHeader } from '../components/HeroVignette.jsx';
 import { LIcons } from '../components/icons.jsx';
+import { formatInstantDate } from '../analytics/projectAnalytics.ts';
+import { WAITING_RESOLUTION_KEYS, WaitingItemModal, waitingOutcomeMessage } from '../components/WaitingItemModal.jsx';
+import { LifeDataContext } from '../context/LifeDataContext.jsx';
 import { LifeLocaleContext } from '../context/LocaleContext.jsx';
 import { isTaskActive, isTaskClosed } from '../domain/tasks.ts';
+import { activeWaitingItems, canRestoreWaiting, closedWaitingItems } from '../domain/waiting.ts';
 
 /* global React */
-const { useState: useStateTP, useMemo: useMemoTP, useContext: useCtxTP } = React;
+const {
+  useState: useStateTP, useMemo: useMemoTP, useContext: useCtxTP, useEffect: useEffectTP, useRef: useRefTP,
+} = React;
 
 /* Tasks tab — master view of every task across routine + stakes.
    Filter chips on the left, sort dropdown on the right. Reuses the same
@@ -13,7 +19,11 @@ const { useState: useStateTP, useMemo: useMemoTP, useContext: useCtxTP } = React
 
    The "ожидание" chip is the retrieval surface for Clarify's Delegate outcome.
    Waiting items are a distinct persisted collection, NOT tasks and NOT a task
-   tag — they render as their own list so the difference stays visible. */
+   tag — they render as their own list so the difference stays visible.
+   GTD G1: active records open WaitingItemModal; resolved ones sit in a
+   collapsed «закрыто» list with their outcome and date (restore where the
+   domain allows it). Actions go through LifeDataContext.runWaitingCommand,
+   which reports applied | unchanged | invalid — only `applied` is announced. */
 function TasksPage({ tasks, waitingItems = [], onToggle, onAdd, onOpen }) {
   const { t } = useCtxTP(LifeLocaleContext);
   const I = LIcons;
@@ -89,30 +99,7 @@ function TasksPage({ tasks, waitingItems = [], onToggle, onAdd, onOpen }) {
       </div>
 
       {waitingView ? (
-        waitingItems.length === 0 ? (
-          <div className="empty-state">{t('waiting_empty')}</div>
-        ) : (
-          <section className="card panel tasks-list-card" aria-labelledby="tasks-waiting-title">
-            <div className="panel-head">
-              <h3 className="panel-title" id="tasks-waiting-title">{t('waiting_section_title')}</h3>
-              <span className="panel-meta mono">{t('waiting_section_meta')}</span>
-            </div>
-            <ul className="waiting-list">
-              {waitingItems.map(item => (
-                <li key={item.id} className="waiting-row">
-                  <span className="waiting-icon" aria-hidden="true">{I.user({ size: 14 })}</span>
-                  <span className="waiting-title">{item.title}</span>
-                  <span className="waiting-meta">
-                    {item.waiting_for
-                      ? <span className="waiting-for">{t('waiting_for', item.waiting_for)}</span>
-                      : null}
-                    <span className="waiting-date mono">{item.created_at.slice(0, 10)}</span>
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </section>
-        )
+        <WaitingSection waitingItems={waitingItems} />
       ) : filtered.length === 0 ? (
         <div className="empty-state">{t('tasks_empty')}</div>
       ) : (
@@ -139,8 +126,155 @@ function TasksPage({ tasks, waitingItems = [], onToggle, onAdd, onOpen }) {
           </div>
         </section>
       )}
+
     </div>
   );
 }
 
-export { TasksPage };
+/* Tasks → «ожидание» (GTD G1). Active records first, with their count; the
+   resolved ones in a «закрыто» list that starts collapsed. Rows open the
+   detail dialog; «вернуть» appears only where the domain allows a restore. */
+function WaitingSection({ waitingItems, defaultClosedOpen = false }) {
+  const { t } = useCtxTP(LifeLocaleContext);
+  const I = LIcons;
+  const data = useCtxTP(LifeDataContext);
+  const runWaiting = data && data.runWaitingCommand;
+  const intlLocale = t('_intl_locale');
+  const [openWaitingId, setOpenWaitingId] = useStateTP(null);
+  const [closedOpen, setClosedOpen] = useStateTP(defaultClosedOpen);
+  const [waitingStatus, setWaitingStatus] = useStateTP(null);
+  const [focusWaitingId, setFocusWaitingId] = useStateTP(null);
+  const waitingHeadingRef = useRefTP(null);
+  const waitingListRef = useRefTP(null);
+  const emptyRef = useRefTP(null);
+
+  const activeWaiting = useMemoTP(() => activeWaitingItems(waitingItems), [waitingItems]);
+  const closedWaiting = useMemoTP(() => closedWaitingItems(waitingItems), [waitingItems]);
+  const openWaiting = openWaitingId == null
+    ? null
+    : waitingItems.find(item => String(item.id) === String(openWaitingId));
+
+  /* After the dialog closes or a row moves between lists, put focus back on
+     the same record's row if it is still rendered, else on the list heading —
+     never leave it on <body>. Runs after the dialog's own focus return. */
+  useEffectTP(() => {
+    if (focusWaitingId == null) return;
+    setFocusWaitingId(null);
+    const active = document.activeElement;
+    if (active && active !== document.body && document.contains(active)) return;
+    const root = waitingListRef.current;
+    const row = root && Array.from(root.querySelectorAll('[data-waiting-id]'))
+      .find(element => element.getAttribute('data-waiting-id') === String(focusWaitingId));
+    const fallback = row || waitingHeadingRef.current || emptyRef.current;
+    if (fallback) fallback.focus();
+  }, [focusWaitingId]);
+
+  function openWaitingRecord(id) {
+    setWaitingStatus(null);
+    setOpenWaitingId(id);
+  }
+  function commandWaiting(command) {
+    if (!runWaiting) return null;
+    return runWaiting(command);
+  }
+  function closeWaitingModal(note) {
+    const id = openWaitingId;
+    setOpenWaitingId(null);
+    if (note !== undefined) setWaitingStatus(note);
+    setFocusWaitingId(id);
+  }
+  function restoreFromList(item) {
+    const command = { kind: 'restore', id: item.id };
+    const outcome = commandWaiting(command);
+    setWaitingStatus(waitingOutcomeMessage(outcome, command, t, item.title));
+    setFocusWaitingId(item.id);
+  }
+
+  const status = (
+    <p className={'cal-status wt-list-status' + (waitingStatus ? ' is-' + waitingStatus.tone : '')}
+       role={waitingStatus && waitingStatus.tone === 'error' ? 'alert' : 'status'}>
+      {waitingStatus ? waitingStatus.text : ''}
+    </p>
+  );
+
+  return (
+    <>
+      {waitingItems.length === 0 ? (
+        <div className="empty-state" ref={emptyRef} tabIndex={-1}>
+          {status}
+          {t('waiting_empty')}
+        </div>
+      ) : (
+        <section className="card panel tasks-list-card" aria-labelledby="tasks-waiting-title" ref={waitingListRef}>
+          <div className="panel-head">
+            <h3 className="panel-title" id="tasks-waiting-title" ref={waitingHeadingRef} tabIndex={-1}>{t('waiting_section_title')}</h3>
+            <span className="panel-meta mono">{t('waiting_section_meta')} · {t('waiting_active_meta', activeWaiting.length)}</span>
+          </div>
+          {status}
+          {activeWaiting.length === 0 ? (
+            <p className="wt-empty">{t('waiting_active_empty')}</p>
+          ) : (
+            <ul className="waiting-list">
+              {activeWaiting.map(item => (
+                <li key={item.id} className="waiting-row">
+                  <span className="waiting-icon" aria-hidden="true">{I.user({ size: 14 })}</span>
+                  <button type="button" className="waiting-title waiting-open" data-waiting-id={item.id}
+                          aria-haspopup="dialog" onClick={() => openWaitingRecord(item.id)}>{item.title}</button>
+                  <span className="waiting-meta">
+                    {item.waiting_for
+                      ? <span className="waiting-for">{t('waiting_for', item.waiting_for)}</span>
+                      : null}
+                    <span className="waiting-date mono">{formatInstantDate(item.created_at, intlLocale)}</span>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+          {closedWaiting.length > 0 ? (
+            <div className="wt-closed-section">
+              <button type="button" className="wt-closed-toggle mono" aria-expanded={closedOpen}
+                      aria-controls="tasks-waiting-closed" onClick={() => setClosedOpen(open => !open)}>
+                <span className={'wt-closed-chev' + (closedOpen ? ' is-open' : '')} aria-hidden="true">{I.chevRight({ size: 12 })}</span>
+                <span>{t('waiting_closed_count', closedWaiting.length)}</span>
+              </button>
+              {closedOpen ? (
+                <ul className="waiting-list is-closed" id="tasks-waiting-closed" aria-label={t('waiting_closed_title')}>
+                  {closedWaiting.map(item => (
+                    <li key={item.id} className="waiting-row is-closed">
+                      <span className="waiting-icon" aria-hidden="true">{I.user({ size: 14 })}</span>
+                      <button type="button" className="waiting-title waiting-open" data-waiting-id={item.id}
+                              aria-haspopup="dialog" onClick={() => openWaitingRecord(item.id)}>{item.title}</button>
+                      <span className="waiting-meta">
+                        <span className={'wt-res is-' + item.resolution}>{t(WAITING_RESOLUTION_KEYS[item.resolution])}</span>
+                        <span className="waiting-date mono">{formatInstantDate(item.resolved_at, intlLocale)}</span>
+                        {canRestoreWaiting(item) ? (
+                          <button type="button" className="cal-act wt-restore"
+                                  aria-label={t('waiting_restore_aria', item.title)}
+                                  onClick={() => restoreFromList(item)}>{t('waiting_restore')}</button>
+                        ) : null}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+            </div>
+          ) : null}
+        </section>
+      )}
+
+      {openWaitingId != null ? (
+        <WaitingItemModal
+          key={openWaitingId}
+          item={openWaiting}
+          t={t}
+          intlLocale={intlLocale}
+          onCommand={commandWaiting}
+          onClose={() => closeWaitingModal(undefined)}
+          onDone={note => closeWaitingModal(note)}
+        />
+      ) : null}
+    </>
+  );
+}
+
+export { TasksPage, WaitingSection };

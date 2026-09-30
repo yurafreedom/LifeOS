@@ -1,6 +1,7 @@
 import { validateReferenceRecord, validateWaitingItemRecord } from '../../domain/clarify.ts';
 import { validateProjectRecord } from '../../domain/projects.ts';
 import { validateTaskRecord } from '../../domain/tasks.ts';
+import { validateWaitingLifecycle } from '../../domain/waiting.ts';
 import { buildDefaultGoals, buildDefaultHabits, seedTransactions } from './initialState.js';
 
 function isPlainObject(value) {
@@ -51,7 +52,12 @@ function migrateStateCopy(input) {
   if (!Array.isArray(state.waitingItems)) {
     throw new Error('State collection waitingItems is invalid.');
   }
-  state.waitingItems.forEach(validateWaitingItemRecord);
+  /* Waiting lifecycle (G1) · optional resolution fields, validated only when
+     present; legacy four-field rows remain valid active records. */
+  state.waitingItems.forEach(item => {
+    validateWaitingItemRecord(item);
+    validateWaitingLifecycle(item);
+  });
   if (!Object.prototype.hasOwnProperty.call(state, 'references')) state.references = [];
   if (!Array.isArray(state.references)) {
     throw new Error('State collection references is invalid.');

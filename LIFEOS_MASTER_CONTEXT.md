@@ -2464,6 +2464,9 @@ fix/lifeos-completion-audit (section 78) and validated in the canonical checkout
 merged until a PR is reviewed and merged by the owner's normal policy; verify
 live. Do not start an invented Slice 9.
 
+GTD completion status and the proposed GTD slice order (G1 Waiting For
+lifecycle first, owner decisions pending) are recorded in section 79.
+
 Latest features can be tested in apps/web + apps/api on a disposable account.
 Destructive retention QA must use lifeos_test, never personal data.
 LifeOS as a whole is NOT complete: confirmed remaining product gaps are in §78.
@@ -2887,6 +2890,49 @@ gap list above (Discovery → Plan → Implementation). Publishing/deploying is 
 implied by the audit.
 
 ====================================================================
+79. GTD STATUS — RECONCILED 2026-09-30
+====================================================================
+
+Evidence: Outputs/Discoveries/lifeos-gtd-current-state_20260930-131011.md
+Plan:     Outputs/Plans/lifeos-gtd-completion-plan_20260930-131011.md
+Both were written on local branch fix/lifeos-completion-audit (HEAD 1b396eb,
+not pushed at the time). GTD code on that HEAD is identical to remote main
+5e858bb except the TasksPage closure exclusion from section 78.
+
+Verified (code read + 120 targeted frontend tests on 2026-09-30):
+- Capture (Quick Notes inbox) and Clarify, all six outcomes, complete and
+  durable in the server snapshot. Defer = explicit future schedule.date; no
+  hidden someday bucket.
+- Waiting items: create + read-only list only. No edit, no person entry (Clarify
+  Delegate always stores waiting_for = null), no resolve/convert/delete.
+- References: create + read-only list only.
+- Tasks «сегодня/просрочено» use legacy predicates, not schedule.date, so
+  clarified Do Now / Defer tasks never appear under «сегодня».
+- No Task↔Project link and no next action; Clarify→Project creates a bare Project.
+- No GTD Weekly Review. AA Review/Debrief and System Review are not substitutes.
+  The System Review copy (aa_sr_relation_to_rest, RU/UK) mentions a
+  «недельный обзор задач» that does not exist.
+- No Focus Now / Engage surface; Home task card is seed data.
+
+Requirement standing (inference from sources, not an owner decision):
+next actions, Weekly Review, Focus Now, @contexts/energy/time, Someday/Maybe,
+Areas, horizons, Inbox Zero and Waiting follow-up dates come only from the
+2026-07-01 MASTER-PROMPT §C proposal (archived as obsolete-instructions;
+forensic: PROPOSED_SCOPE_INPUT). They are not requirements until the owner
+accepts them. The original conversations.json export is missing.
+
+Unknown: owner authorship of that proposal; live browser reload round-trip for
+waitingItems/references (inferred OK, not re-run).
+
+Recommended next GTD slice: G1 Waiting For lifecycle (frontend-only, additive
+optional fields, snapshot v2, no migration), after the completion-audit branch
+is published. Blocking owner decisions: OD-G1-1 resolution model, OD-G1-2
+where the person is entered, OD-G1-3 follow-up date (see the plan §7).
+G1 status update (2026-09-30): owner approved the recommended OD-G1-1..3 and
+G1 is IMPLEMENTED in the working tree, uncommitted — see section 81. The
+Waiting bullets above describe the state before G1.
+
+====================================================================
 80. UI SOUND EFFECTS — IMPLEMENTED 2026-09-30 (UNCOMMITTED)
 ====================================================================
 
@@ -2915,3 +2961,53 @@ not committed, not pushed, no PR. Verify live.
 - Frontend after this: 601 tests / 47 files, typecheck, lint, build PASS;
   production-preview browser checks on lifeos_test; 0 overflow in Settings
   at 320/390/768/1440 × RU/UK × dark/light/paradise.
+
+====================================================================
+81. GTD G1 — WAITING FOR LIFECYCLE — IMPLEMENTED 2026-09-30 (UNCOMMITTED)
+====================================================================
+
+Report: Outputs/Implementations/lifeos-gtd-g1-waiting-lifecycle_20260930-162127.md
+Working tree on fix/lifeos-completion-audit (HEAD 1b396eb when written), on
+top of the uncommitted audit D1–D3 and UI-sound work; not committed, not
+pushed, no PR. Verify live.
+
+Owner decisions applied (approved 2026-09-30): resolved Waiting records are
+KEPT with resolution received | cancelled | converted + resolved_at
+(+ converted_task_id for converted); active and closed are shown separately;
+received/cancelled restore with the same id; converted never restores through
+Waiting; permanent delete is separate and confirmed; the person stays optional
+free text edited after Delegate; the one-tap Clarify Delegate is unchanged; no
+follow-up dates, reminders, contacts, Calendar entries or AA facts; convert
+creates one ordinary undated Task (createClarifiedTaskRecord) with the Waiting
+title, the person stays on the closed Waiting record, no invented notes.
+
+- Domain: apps/web/src/domain/waiting.ts (pure). applyWaitingCommand returns
+  applied | unchanged | invalid; conversion writes the Task and closes the
+  record in ONE returned state; repeat conversion is `unchanged` (one task).
+  validateWaitingLifecycle runs in migrate.js after clarify's validator; legacy
+  four-field rows stay valid active records. domain/clarify.ts, ClarifyPanel,
+  clarifyHandlers and all Clarify tests are byte-identical to origin/main.
+- Provider: LifeDataContext.runWaitingCommand runs the transition inside the
+  functional updater under flushSync, so the outcome is read from the state
+  React applies (queued updates included), not the render closure. Only
+  `applied` is announced; stale/missing ids give a localized error.
+- UI: Tasks → «ожидание» (WaitingSection in TasksPage.jsx): openable rows,
+  active count, collapsed «закрыто» list with localized outcome + Kyiv date,
+  «вернуть» only for received/cancelled; WaitingItemModal (useDialog focus trap,
+  Escape, Save = submit, outcomes keep the dialog open on the closed record,
+  two-step delete). RU/UK +37 keys each (dictionary pin 1806/1805).
+- Sound: no new emits. Outcomes play the ordinary click (dialog stays open);
+  Received is not task.complete; no save.success for a local snapshot change.
+  Confirmed delete closes the dialog and plays close_window, the same as the
+  existing TaskDetailModal delete.
+- Persistence: additive fields in snapshot v2; no backend, migration or version
+  change. Verified: legacy load, JSON round-trip, reload, export ZIP
+  (user_snapshots) carries the fields. Older client (real origin/main 5e858bb
+  bundle in the browser) loads a G1 snapshot and its own PUT preserved
+  waitingItems byte-identically, BUT it shows closed records as ordinary
+  waiting rows and cannot act on them (mixed-version limitation, transient).
+- Frontend 653 tests / 49 files, typecheck, lint, build PASS; backend 748
+  passed + 1 skipped with LIFEOS_AA_WRITE_ENABLED=false (the local ignored
+  apps/api/.env otherwise opens the AA gate for one gate test); ruff PASS;
+  alembic head/current 20260930_0009.
+Next: owner review of the whole working tree; G2 is NOT started.

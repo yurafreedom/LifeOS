@@ -155,3 +155,51 @@ describe('state migration', () => {
     expect(migrated.habits[0]).toMatchObject({ id: 'legacy', name: 'Read' });
   });
 });
+
+/* ── GTD G1 · Waiting lifecycle fields at the snapshot boundary ───────── */
+
+describe('state migration · Waiting lifecycle (G1)', () => {
+  const CREATED = '2026-09-28T09:14:00.000Z';
+  const RESOLVED = '2026-09-30T10:00:00.000Z';
+  const legacy = { id: 'waiting-legacy', title: 'ответ из банка', waiting_for: null, created_at: CREATED };
+  const lifecycle = [
+    legacy,
+    { id: 'waiting-edited', title: 'счёт', waiting_for: 'Аня', created_at: CREATED, updated_at: RESOLVED },
+    { id: 'waiting-received', title: 'документы', waiting_for: 'Олег', created_at: CREATED,
+      resolution: 'received', resolved_at: RESOLVED, updated_at: RESOLVED },
+    { id: 'waiting-cancelled', title: 'звонок', waiting_for: null, created_at: CREATED,
+      resolution: 'cancelled', resolved_at: RESOLVED, updated_at: RESOLVED },
+    { id: 'waiting-converted', title: 'договор', waiting_for: 'Ира', created_at: CREATED,
+      resolution: 'converted', resolved_at: RESOLVED, converted_task_id: 1_900_000_000_000, updated_at: RESOLVED },
+  ];
+
+  it('loads a legacy four-field Waiting snapshot unchanged', () => {
+    const source = { ...buildInitialState(), waitingItems: [legacy] } as Record<string, any>;
+    const before = structuredClone(source);
+    const migrated = migrateStateCopy(source);
+    expect(migrated).toEqual(before);
+    expect(Object.keys(migrated.waitingItems[0]).sort()).toEqual(['created_at', 'id', 'title', 'waiting_for']);
+  });
+
+  it('round-trips every lifecycle shape through the server JSON body and a reload, leaving other collections intact', () => {
+    const source = {
+      ...buildInitialState(),
+      waitingItems: lifecycle,
+      references: [{ id: 'reference-1', text: 'пароль от роутера на коробке', created_at: CREATED }],
+      projects: [{ id: 'project-1', title: 'ремонт', created_at: CREATED, started_at: CREATED, status: 'active' }],
+    } as Record<string, any>;
+    const first = migrateStateCopy(source);
+    /* PUT /api/v1/state stores `payload` as JSON; GET returns it; the client migrates again. */
+    const reloaded = migrateStateCopy(JSON.parse(JSON.stringify({ payload: first })).payload);
+    expect(reloaded).toEqual(source);
+    expect(reloaded.version).toBe(2);
+  });
+
+  it('rejects a malformed lifecycle field instead of dropping it', () => {
+    const broken = { ...legacy, resolution: 'converted', resolved_at: RESOLVED };
+    expect(() => migrateStateCopy({ ...buildInitialState(), waitingItems: [broken] }))
+      .toThrow(/must link its task/);
+    expect(() => migrateStateCopy({ ...buildInitialState(), waitingItems: [{ ...legacy, resolution: 'done', resolved_at: RESOLVED }] }))
+      .toThrow(/resolution is invalid/);
+  });
+});

@@ -198,6 +198,7 @@ Both dictionaries are loaded synchronously (12 modules read
 | add a domain action | `LifeDataContext.jsx` provider body. Projects/transactions enqueue the durable AA write **before** mutating the snapshot — keep that order |
 | task semantics (Calendar date = `schedule.date`, completion/closure/restore, move, per-day `order`, `created_at`, optional-field validators) | `domain/tasks.ts` (pure; the provider only wires actions). History is derived from `state.tasks`, never `activityLog` |
 | Calendar date math (month lengths, weekdays, 30-year windows, bounds ≤ 2100, Kyiv today) | `domain/calendarModel.ts` |
+| Waiting For lifecycle after Delegate (edit title/person, received / cancelled, restore, convert → undated Task, delete; lifecycle-field validation; active/closed selectors) — GTD G1 | `domain/waiting.ts` (pure `applyWaitingCommand` → `applied` \| `unchanged` \| `invalid`; `commitWaitingCommand` is the provider bridge). Provider: `LifeDataContext.runWaitingCommand` (runs the updater under `flushSync`, so the outcome comes from the state React applies, not the render closure). UI: `pages/TasksPage.jsx::WaitingSection` + `components/WaitingItemModal.jsx`. Record **creation** stays in `domain/clarify.ts` (unchanged) |
 
 `buildInitialState` / `migrateStateCopy` are re-exported from `LifeDataContext.jsx`.
 

@@ -282,6 +282,57 @@
 }
 .waiting-date { font-size: 11px; color: var(--fg4); }
 
+/* Waiting For lifecycle (GTD G1) — openable rows, the collapsed «закрыто»
+   list and the detail dialog (which reuses the Calendar editor chrome). */
+.waiting-open {
+  background: none; border: none; padding: 0; margin: 0;
+  font: inherit; font-size: var(--text-md); line-height: 1.45;
+  color: var(--fg1); text-align: left; cursor: pointer;
+  min-width: 0; overflow-wrap: anywhere;
+}
+.waiting-open:hover { color: var(--primary-l); }
+.waiting-open:focus-visible,
+.wt-closed-toggle:focus-visible {
+  outline: 2px solid var(--primary-l); outline-offset: 2px; border-radius: 4px;
+}
+.tasks-list-card .panel-title[tabindex="-1"]:focus { outline: none; }
+.waiting-row.is-closed .waiting-open { color: var(--fg2); }
+.waiting-meta { flex-wrap: wrap; justify-content: flex-end; }
+.wt-list-status { margin: 0; min-height: 0; }
+.wt-list-status.is-error, .wt-message.is-error { color: var(--red); }
+.wt-empty { margin: 0; padding: var(--pad-sm) 0; color: var(--fg3); font-size: var(--text-sm); }
+.wt-closed-section { margin-top: 4px; padding-top: 6px; border-top: 1px solid var(--border); }
+.wt-closed-toggle {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: none; border: none; padding: 6px 0;
+  color: var(--fg3); font-size: var(--text-xs); cursor: pointer;
+}
+.wt-closed-toggle:hover { color: var(--fg1); }
+.wt-closed-chev { display: inline-flex; transition: transform 0.15s ease; }
+.wt-closed-chev.is-open { transform: rotate(90deg); }
+.wt-res {
+  font-size: 11px; padding: 3px 8px; border-radius: var(--r-pill);
+  background: var(--tag-bg); color: var(--fg2); white-space: nowrap;
+}
+.wt-res.is-received { background: var(--success-soft); color: var(--success); }
+.wt-res.is-converted { color: var(--primary-l); }
+.cal-act.wt-restore { height: 24px; padding: 0 8px; font-size: 12px; }
+.wt-head-text { min-width: 0; }
+.wt-heading { overflow-wrap: anywhere; }
+.wt-heading:focus { outline: none; }
+.wt-outcomes, .wt-closed { display: flex; flex-direction: column; gap: 6px; }
+.wt-outcome-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.wt-closed-line { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 0; }
+.wt-closed-date { font-size: var(--text-xs); color: var(--fg3); }
+.wt-closed-person, .wt-closed-note { margin: 0; font-size: var(--text-sm); color: var(--fg2); overflow-wrap: anywhere; }
+.wt-closed-note { color: var(--fg3); }
+.wt-message { margin: 0; }
+.wt-modal .wt-foot { justify-content: space-between; }
+@media (max-width: 480px) {
+  .waiting-row { grid-template-columns: auto minmax(0, 1fr); }
+  .waiting-row .waiting-meta { grid-column: 2; justify-content: flex-start; }
+}
+
 /* ============================================================
    Clarify panel — GTD «прояснить» step (handoff layout 1c)
    Reuses .qa-backdrop / .qa-modal chrome so theme, paradise and the

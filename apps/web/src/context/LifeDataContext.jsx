@@ -1,4 +1,5 @@
 import React from 'react';
+import { flushSync } from 'react-dom';
 import { LifeActivity } from '../lib/activity.js';
 import {
   applyClarifyTransition,
@@ -14,6 +15,7 @@ import {
   createProjectRecord,
   setProjectForecastWithDurableIntent,
 } from '../domain/projects.ts';
+import { commitWaitingCommand } from '../domain/waiting.ts';
 import { ApiError } from '../api/client.ts';
 import { sfx } from '../sound/index.ts';
 import { StateImportPrompt } from '../components/StateImportPrompt.jsx';
@@ -543,6 +545,20 @@ function LifeDataProvider({ user, onSessionExpired, onLogout, children }) {
     return reference;
   }
 
+  /* ── Waiting For lifecycle · GTD G1 ─────────────────── */
+  /* Edit / received / cancelled / restore / convert / delete, each ONE pure
+     domain/waiting.ts transition applied inside the functional updater. The
+     outcome ('applied' | 'unchanged' | 'invalid') is read from the state the
+     updater actually received — flushSync runs it before this returns — never
+     from the render-time `state` closure, so a stale or missing record can
+     not be reported as a success. Local snapshot change only: the sync
+     coordinator persists it afterwards, like every other edit. */
+  function runWaitingCommand(command) {
+    const now = new Date().toISOString();
+    const prepared = command && command.kind === 'convert' ? { ...command, taskId: Date.now() } : command;
+    return commitWaitingCommand(setStateRaw, flushSync, prepared, now);
+  }
+
   /* ── Profile ──────────────────────────────────────── */
   function updateProfile(slice, patch) {
     mutate(prev => ({ profile: { ...prev.profile, [slice]: { ...prev.profile[slice], ...patch } } }),
@@ -727,6 +743,7 @@ function LifeDataProvider({ user, onSessionExpired, onLogout, children }) {
                   clarifyQuickNoteToTask, clarifyQuickNoteToDeferredTask,
                   clarifyQuickNoteToWaiting, clarifyQuickNoteToProject,
                   clarifyQuickNoteToReference,
+    /* waiting */ runWaitingCommand,
     /* profile + dog */ updateProfile, updateDog,
     /* meds */ updateMedication, deleteMedication, setMedicationStatus,
               setMedicationInventory, takeDose, snoozeDose, skipDose,
