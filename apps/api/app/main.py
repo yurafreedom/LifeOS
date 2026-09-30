@@ -15,6 +15,7 @@ from app.routes import (
     aa_import,
     aa_measurements,
     aa_projects,
+    aa_retention,
     aa_reviews,
     aa_signals,
     aa_subjects,
@@ -75,4 +76,5 @@ def create_app(
     app.include_router(aa_projects.router)
     app.include_router(aa_experiments.router)
     app.include_router(aa_system_review.router)
+    app.include_router(aa_retention.router)
     return app

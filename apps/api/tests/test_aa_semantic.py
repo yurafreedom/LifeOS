@@ -647,7 +647,7 @@ def test_export_account_delete_and_all_eight_new_tables(
         seed_policy_and_override(db, other.user_id, UUID(other_fact["id"]))
     authenticate(client, settings, owner)
     manifest, tables = read_export(client.get("/api/v1/export"))
-    assert manifest["alembic_revision"] == "20260930_0008"
+    assert manifest["alembic_revision"] == "20260930_0009"
     for name in SEMANTIC_TABLES:
         assert len(tables[name]) == 1 and tables[name][0]["user_id"] == str(owner.user_id)
     assert (

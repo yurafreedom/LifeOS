@@ -156,6 +156,9 @@ export default function FinanceAnalytics({ onHistory }) {
     </form>
     <div className="card panel">
       <AAFacts facts={[...(actual ? [actual] : []), ...(target ? [target] : [])]} />
+      {month.retention_truncated ? <p className="aa-retention-note" role="note">
+        {t('aa_ret_finance_truncated', month.retention_horizon)}
+      </p> : null}
       <AADelta summary={summary} comparison={comparison} />
       <AAQualityStrip coverage={month.coverage} />
       {month.coverage.future_count ? <p className="aa-note">{month.coverage.future_count} дня ещё не наступили и не считаются нулями.</p> : null}

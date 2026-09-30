@@ -36,6 +36,7 @@ from app.analytics.enums import (
 from app.analytics.subjects import SubjectRef
 from app.models import AAMeasurement, AASourceCoverage
 from app.services.aa_facts import AAServiceError, FactNotFoundError
+from app.services.retention.horizon import effective_horizon
 
 logger = logging.getLogger(__name__)
 
@@ -267,6 +268,7 @@ def coverage_report_for_window(
         )
     ).one()
     corrected_count, estimated_count, legacy_count, freshest_recorded_at = stats
+    horizon = effective_horizon(db, user_id=user_id)
 
     return build_coverage_report(
         window_start=window_start,
@@ -280,4 +282,5 @@ def coverage_report_for_window(
         freshest_recorded_at=freshest_recorded_at,
         has_legacy_imports=bool(legacy_count),
         reason=None if claims else "не установлена",
+        retention_horizon=horizon.date if horizon is not None else None,
     )

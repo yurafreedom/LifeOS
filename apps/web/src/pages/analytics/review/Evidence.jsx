@@ -37,6 +37,7 @@ function alongsideFacts(items, t) {
     value_availability: item.availability === 'explicitly_unknown' ? 'explicitly_unknown' : null,
     epistemic_kind: item.epistemic_kind,
     redacted: item.redacted,
+    redaction_reason: item.redaction_reason,
     note: flagText(item, t),
   }));
 }

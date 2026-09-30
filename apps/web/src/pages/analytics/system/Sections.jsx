@@ -12,6 +12,7 @@ import {
   instantText,
   periodTitle,
   refText,
+  srDeletedKey,
   valueText,
 } from './format.js';
 
@@ -100,7 +101,7 @@ function ItemBody({ item }) {
 export function ChangeCard({ item, names, importance, pendingImportance, onImportance, onLink, readOnly = false }) {
   const t = useAAText();
   if (item.redacted) {
-    return <div className="aa-change is-redacted"><span className="aa-flag-erased">{t('aa_sr_source_deleted')}</span></div>;
+    return <div className="aa-change is-redacted"><span className="aa-flag-erased">{t(srDeletedKey(item))}</span></div>;
   }
   const label = refText(item.ref, names, t);
   return <div className="aa-change" data-kind={item.kind}>

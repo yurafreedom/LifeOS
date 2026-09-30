@@ -126,7 +126,9 @@ def _revision(engine, user_id, **overrides) -> str:
 
 def test_m7_is_the_single_head_on_m6(test_database_url):
     script = ScriptDirectory.from_config(_config(test_database_url))
-    assert script.get_heads() == [M7]
+    # M8 (Slice 8 retention) is the head and sits directly on M7.
+    assert script.get_heads() == ["20260930_0009"]
+    assert script.get_revision("20260930_0009").down_revision == M7
     assert script.get_revision(M7).down_revision == M6
 
 
@@ -143,7 +145,7 @@ def test_m7_tables_are_mapped_exported_truncated_and_present(engine):
         )
     assert set(M7_TABLES) <= mapped
     assert mapped == set(EXPORT_TABLES) == present
-    assert len(present) == 27
+    assert len(present) == 29  # 27 after M7; M8 adds the two retention tables
     assert set(M7_TABLES) <= set(TRUNCATED_TABLES)
 
 

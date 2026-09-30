@@ -24,6 +24,7 @@ from app.models import (
     AASystemReviewRevision,
     AATarget,
 )
+from app.services.retention.horizon import RetentionHorizon, effective_horizon
 from app.services.system_review.candidates import candidate_payload, generate, rank
 from app.services.system_review.changes import (
     experiment_items,
@@ -124,10 +125,46 @@ def _grounded(changed: list[dict[str, Any]], consequences: dict[str, Any]) -> li
     return grounded
 
 
+def _truncated(horizon: RetentionHorizon | None, period: Period) -> bool:
+    return horizon is not None and horizon.truncates_day(period.window_start)
+
+
+def _empty_consequences() -> dict[str, Any]:
+    return {
+        "expenses": [],
+        "position": None,
+        "priorities": [],
+        "self_check": None,
+        "unplanned_count": 0,
+        "contexts_without_transaction": [],
+        "funding_summary": None,
+    }
+
+
+def _truncated_month_review() -> dict[str, Any]:
+    """A month before an applied retention horizon: its evidence was erased by the
+    user's rule. Nothing is derived from what survives (a late explicit write does
+    not make the month whole), no proposal is generated and no consequence is
+    projected — the month is disclosed as truncated instead of shown as quiet."""
+    return {
+        "month": None,
+        "changed": [],
+        "improved": [],
+        "repeated": [],
+        "tradeoffs": [],
+        "consequences": _empty_consequences(),
+        "quality": [],
+        "candidates": [],
+    }
+
+
 def _month_review(
     db: Session, *, user_id: UUID, period: Period, now: datetime,
     contexts: list[AAFinanceContext], experiments: list[AAExperiment],
+    horizon: RetentionHorizon | None = None,
 ) -> dict[str, Any]:
+    if _truncated(horizon, period):
+        return _truncated_month_review()
     month = finance_month(db, user_id=user_id, period=period, now=now)
     observations = free_observations(db, user_id=user_id, period=period, limit=MAX_GROUP_ITEMS + 1)
     changed = order_items(
@@ -139,12 +176,15 @@ def _month_review(
     consequences = consequences_for_month(
         db, user_id=user_id, period=period, month=month, contexts=contexts
     )
-    windows = [shift_month(period, -2), shift_month(period, -1), period]
+    candidate_windows = [shift_month(period, -2), shift_month(period, -1), period]
+    # A recurrence window erased by retention is listed, never read as "did not happen".
+    windows = [w for w in candidate_windows if not _truncated(horizon, w)]
     repeated = repeated_items(
         db, user_id=user_id, windows=windows, now=now,
         unplanned_by_window=unplanned_by_window(
             db, user_id=user_id, windows=windows, contexts=contexts
         ),
+        truncated_windows=[w.key for w in candidate_windows if _truncated(horizon, w)],
     )
     candidates = generate(
         db, user_id=user_id, period=period, contexts=contexts, changes=changed,
@@ -165,9 +205,13 @@ def _month_review(
 def _year_review(
     db: Session, *, user_id: UUID, period: Period, now: datetime,
     contexts: list[AAFinanceContext], experiments: list[AAExperiment],
+    horizon: RetentionHorizon | None = None,
 ) -> dict[str, Any]:
     today_month = current_month(period.timezone, now)
-    months = [m for m in months_of(period) if m.window_start <= today_month.window_start]
+    elapsed = [m for m in months_of(period) if m.window_start <= today_month.window_start]
+    # Months erased by retention are marked, never averaged in as quiet months.
+    months = [m for m in elapsed if not _truncated(horizon, m)]
+    truncated_months = [m.key for m in elapsed if _truncated(horizon, m)]
     changed: list[dict[str, Any]] = []
     tradeoffs: list[dict[str, Any]] = []
     quality: list[dict[str, Any]] = []
@@ -204,6 +248,7 @@ def _year_review(
             unplanned_by_window=unplanned_by_window(
                 db, user_id=user_id, windows=months, contexts=contexts
             ),
+            truncated_windows=truncated_months,
         ),
         "tradeoffs": tradeoffs,
         "consequences": {
@@ -254,9 +299,10 @@ def build_review(
     require_started(period, now)
     contexts = active_contexts(db, user_id=user_id)
     experiments = _experiments(db, user_id)
+    horizon = effective_horizon(db, user_id=user_id)
     build = _month_review if period.kind == "month" else _year_review
     parts = build(db, user_id=user_id, period=period, now=now, contexts=contexts,
-                  experiments=experiments)
+                  experiments=experiments, horizon=horizon)
     answered = responded_keys(db, user_id=user_id)
     live_fingerprints = {c.proposal_key: c.fingerprint for c in parts["candidates"]}
     pending = [c for c in parts["candidates"] if c.proposal_key not in answered]
@@ -284,6 +330,7 @@ def build_review(
         "status": logical_status(period, finalized=saved["finalized_revision"] is not None,
                                  now=now),
         "not_a_verdict": True,
+        "retention": _retention_block(horizon, period, now),
         "saved": saved,
         "sections": {
             "changed": _bounded(parts["changed"]),
@@ -302,6 +349,25 @@ def build_review(
         },
         "linkable": linkable,
         "importance": importance_map(db, user_id=user_id, keys=sorted(set(keys))),
+    }
+
+
+def _retention_block(
+    horizon: RetentionHorizon | None, period: Period, now: datetime
+) -> dict[str, Any]:
+    """Slice 8 disclosure. ``None`` horizon ⇒ nothing was ever erased by retention."""
+    if horizon is None:
+        return {"horizon": None, "truncated": False, "truncated_months": []}
+    if period.kind == "month":
+        months = [period]
+    else:
+        today_month = current_month(period.timezone, now)
+        months = [m for m in months_of(period) if m.window_start <= today_month.window_start]
+    truncated = [m.key for m in months if _truncated(horizon, m)]
+    return {
+        "horizon": horizon.date.isoformat(),
+        "truncated": bool(truncated),
+        "truncated_months": truncated,
     }
 
 
@@ -450,8 +516,11 @@ def waiting(db: Session, *, user_id: UUID, timezone: str, now: datetime) -> dict
     months_with_evidence = evidence_months(
         db, user_id=user_id, start=start, end=current.start, timezone=timezone
     )
+    horizon = effective_horizon(db, user_id=user_id)
     for offset in range(REVIEW_AVAILABLE_MONTHS, 0, -1):
         month = shift_month(current, -offset)
+        if _truncated(horizon, month):
+            continue
         if month.key in months_with_evidence and ("month", month.key) not in finalized:
             items.append({"kind": "monthly_review", "period": month.key})
     if (

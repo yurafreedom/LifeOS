@@ -53,6 +53,7 @@ from app.models import (
 )
 from app.services.aa_facts import AAServiceError
 from app.services.aa_finance import MONTHLY_METRIC, TRANSACTION_METRIC
+from app.services.retention.horizon import effective_horizon
 
 logger = logging.getLogger(__name__)
 
@@ -201,6 +202,12 @@ def _finance_periods(
 
     current = _period_id(now.astimezone(ZoneInfo(timezone)).date())
     earliest = _earliest_discovery_period(now, timezone)
+    horizon = effective_horizon(db, user_id=user_id)
+    if horizon is not None:
+        # Slice 8: a month before an applied retention horizon lost its evidence to
+        # the user's rule. It is not a quiet month; it is simply not evaluated, so
+        # no episode is re-created for it and the zero state never vouches for it.
+        earliest = max(earliest, _period_id(horizon.date))
     # Only periods that have begun: a future month is not under-covered, it has
     # not happened.
     return sorted(period for period in periods if earliest <= period <= current)

@@ -118,7 +118,11 @@ def repeated_items(
     windows: list[Period],
     now: datetime,
     unplanned_by_window: dict[str, int],
+    truncated_windows: list[str] | None = None,
 ) -> list[dict[str, Any]]:
+    """``truncated_windows`` (Slice 8) were erased by the user's retention rule: they
+    are excluded from ``windows`` by the caller and disclosed on every item."""
+    truncated = list(truncated_windows or [])
     held, unknown = rule_occurrences(db, user_id=user_id, windows=windows, now=now)
     items: list[dict[str, Any]] = []
     for rule_id in sorted(held):
@@ -129,6 +133,7 @@ def repeated_items(
                 "source": rule_id,
                 "windows": occurrences,
                 "coverage_unknown_windows": unknown,
+                "retention_truncated_windows": truncated,
                 "sources": [],
             })
     for project_id, months in sorted(
@@ -141,6 +146,7 @@ def repeated_items(
                 "subject_key": f"project:project:{project_id}",
                 "windows": [{"window": key} for key in months],
                 "coverage_unknown_windows": [],
+                "retention_truncated_windows": truncated,
                 "sources": [],
             })
     windows_with_unplanned = [key for key, count in sorted(unplanned_by_window.items()) if count]
@@ -152,6 +158,7 @@ def repeated_items(
                 {"window": key, "count": unplanned_by_window[key]} for key in windows_with_unplanned
             ],
             "coverage_unknown_windows": [],
+            "retention_truncated_windows": truncated,
             "sources": [],
         })
     return items

@@ -13,7 +13,7 @@ import {
 } from '../../../analytics/systemReviewFacts';
 import { useAAText } from '../../../components/analytics/useAAText.js';
 import { ConsequencesSection } from './Consequences.jsx';
-import { periodTitle } from './format.js';
+import { dateText, periodTitle } from './format.js';
 import { LinkDialog } from './LinkDialog.jsx';
 import { ProposalsSection, RelationsSection } from './Relations.jsx';
 import { SavedReviewSection } from './SavedReview.jsx';
@@ -93,6 +93,10 @@ export function ReviewView({ review, error, period, tab, waiting, names, life, p
       ? <TradeoffView review={review} names={names} pending={pending} actions={actions} onLink={onLink} />
       : <>
         <div className="aa-banner" role="note"><b>{t('aa_sr_not_verdict_title')}</b> {t('aa_sr_banner')}</div>
+        {review.retention?.truncated ? <p className="aa-retention-note" role="note">
+          {t('aa_sr_retention_truncated', dateText(review.retention.horizon, t),
+            review.retention.truncated_months.map(key => periodTitle(key, t)).join(', '))}
+        </p> : null}
         <ChangedSection review={review} names={names} pending={pending} actions={actions} onLink={onLink} />
         <ImprovedSection review={review} names={names} />
         <RepeatedSection review={review} names={names} />

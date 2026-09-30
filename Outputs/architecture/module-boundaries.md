@@ -34,6 +34,7 @@ reverse edges are the lazy imports inside `analytics/rules/__init__.py::_registr
 | Project Analytics (forecast version history, Actual, dual delta; read-only) | `services/aa_project_analytics.py` + `routes/aa_projects.py` + `schemas/aa_projects.py` |
 | Experiments (lifecycle, adherence, evidence, decision; Slice 6) | facade `services/aa_experiments.py` + `routes/aa_experiments.py` + `schemas/aa_experiments.py` |
 | System Review, relations, importance, finance context, exports (Slice 7) | facade `services/aa_system_review.py` + `routes/aa_system_review.py` + `schemas/aa_system_review.py` |
+| AA history retention (policy, preview, apply, horizon; Slice 8) | facade `services/aa_retention.py` + `routes/aa_retention.py` + `schemas/aa_retention.py` |
 | vocabulary / enums | `analytics/enums.py` (fan-in 30 — a flat vocabulary is the right shape) |
 
 ### Review / Debrief
@@ -99,6 +100,27 @@ Internal direction: `errors`, `refs`, `periods` → `contracts` → `resolve` �
 `importance`/`relations`/`contexts` → `changes` → `consequences` → `candidates`/`repeated`
 → `read_model` → `revisions`; `redaction` → models + `refs`; `exports` → models only.
 A GET never writes (READ ONLY transaction in the route).
+
+### Retention (Slice 8)
+
+Facade: **`app/services/aa_retention.py`** — import only from here
+(`routes/aa_retention.py`, tests). No module in the package imports the facade.
+
+| I want to change… | Go to `app/services/retention/` |
+|---|---|
+| error codes, engine / consequences version, allowed months, advisory lock | `contracts.py` |
+| the effective historical-completeness horizon (completed runs only) | `horizon.py` — **leaf** (models only); read by history, finance, coverage, signals, Project Analytics, System Review and legacy import |
+| policy versions (append-only; never deletes) | `policy.py` |
+| which rows a horizon may erase (whole chain / window / Project unit, semantic axes) | `eligibility.py` |
+| set-based provenance redaction (UUID-token hash join) | `provenance.py` |
+| preview token, atomic Apply, run audit | `engine.py` |
+
+Bulk frozen-evidence redactors live beside their per-fact adapters:
+`reviews/redaction.py` (`review_items_for_sources`, `redact_review_items`) and
+`system_review/redaction.py` (`system_review_revisions_for`, `relations_for`,
+`importance_for` + their bulk erasers), exported through their facades.
+Retention never calls `aa_deletion.delete_fact`, never tombstones and never writes
+`aa_deletion_receipts`. The F6 anti-resurrection guard lives in `services/aa_legacy_import.py`.
 
 ---
 
@@ -178,6 +200,7 @@ Facade: **`api/analytics.ts`** (`export *` of each domain).
 | Project Analytics | `api/analytics/projects.ts` |
 | Experiments (reads; writes are queue builders in `analytics/experimentFacts.ts`, queue reads in `analytics/experimentQueue.ts`) | `api/analytics/experiments.ts` |
 | System Review (reads + export download; writes are queue builders in `analytics/systemReviewFacts.ts`, queue reads in `analytics/systemReviewQueue.ts`) | `api/analytics/systemReview.ts` |
+| History retention (direct calls only — policy and Apply never use the write queue) | `api/analytics/retention.ts` |
 
 A new domain = a new module + one facade line. Domain modules import shared
 types from `facts.ts` only.
@@ -195,7 +218,7 @@ types from `facts.ts` only.
 | `pages/analytics/ExperimentPage.jsx` (route shell; re-exports `ExperimentDetailView`, `ExperimentListView`) | `pages/analytics/experiment/{format.js, ExperimentList.jsx, CreateForm.jsx, Detail.jsx, EvidenceForms.jsx, DecisionStep.jsx}`; shared `components/analytics/{AAExpStages, AAAdherence}.jsx` |
 | `pages/analytics/SystemReviewPage.jsx` (lazy route shell; exports `ReviewView`, `pendingIndex`) | `pages/analytics/system/{format.js, ReviewView.jsx, Sections.jsx, Tradeoff.jsx, Relations.jsx, LinkDialog.jsx, Consequences.jsx, ContextForms.jsx, SelfCheck.jsx, SavedReview.jsx, RevisionView.jsx, Waiting.jsx}`; shared `components/analytics/AAImportance.jsx` |
 | `pages/calendar/CalendarPage.jsx` (lazy route shell; exports the pure `CalendarView`) | `pages/calendar/{calendarRoute.js, CubeGrids.jsx, DayManagerModal.jsx, CalendarTaskEditor.jsx, CalendarHistory.jsx}`; stacked-dialog behaviour in `components/useDialog.js` |
-| `components/SettingsPage.jsx` (re-exports `ExportSection`) | `components/settings/{ExportSection.jsx, DangerSection.jsx, Row.jsx}`; small static sections stay in the page on purpose |
+| `components/SettingsPage.jsx` (re-exports `ExportSection`) | `components/settings/{ExportSection.jsx, DangerSection.jsx, RetentionSection.jsx, Row.jsx}`; small static sections stay in the page on purpose. `RetentionSection` exports the pure `RetentionView` + `runApply`; activityLog cleanup stays in `DangerSection` |
 
 ### Styles — the cascade is the product
 

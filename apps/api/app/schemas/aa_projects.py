@@ -4,7 +4,7 @@
 Baseline, and a Forecast is neither. The dual delta is its own truthful shape.
 """
 
-from datetime import datetime
+from datetime import date, datetime
 from typing import Literal
 from uuid import UUID
 
@@ -14,7 +14,12 @@ from app.schemas.aa_comparison import DerivedDeltaOut, SemanticOut
 from app.schemas.aa_measurement import MeasurementOut
 
 ProjectAnalyticsState = Literal[
-    "no_facts", "too_early", "actual_not_recorded", "no_forecast", "compared"
+    "no_facts",
+    "too_early",
+    "actual_not_recorded",
+    "no_forecast",
+    "compared",
+    "history_deleted_by_retention",
 ]
 
 
@@ -36,6 +41,10 @@ class ProjectAnalyticsOut(BaseModel):
     as_of: datetime | None
     evaluated_at: datetime
     state: ProjectAnalyticsState
+    # Slice 8: the whole unit was erased by retention (≠ ``no_facts``); unrelated to
+    # the page cap ``forecast_versions_truncated``.
+    retention_history_deleted: bool = False
+    retention_horizon: date | None = None
     forecast_versions: list[SemanticOut]
     forecast_version_count: int
     forecast_versions_truncated: bool

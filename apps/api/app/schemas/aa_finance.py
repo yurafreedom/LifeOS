@@ -55,6 +55,10 @@ class LegacyImportOut(BaseModel):
     overrides_replayed: int
     coverage_imported: int
     coverage_replayed: int
+    # F6 (Slice 8): semantic dates before an applied retention horizon are never
+    # reconstructed — erased history stays erased.
+    transactions_retention_skipped: int = 0
+    coverage_retention_skipped: int = 0
     activity_log_imported: Literal[0] = 0
     expectations_backfilled: Literal[0] = 0
     forecasts_backfilled: Literal[0] = 0
@@ -94,9 +98,12 @@ class FinanceMonthOut(BaseModel):
     subject_key: str
     timezone: str
     as_of: datetime
-    availability: Literal["present", "no_data", "insufficient_data"]
+    availability: Literal["present", "no_data", "insufficient_data", "retention_truncated"]
     actual: ValueOut | None
     known_subtotal: ValueOut | None
+    # Slice 8: the month starts before an applied retention horizon.
+    retention_horizon: date | None = None
+    retention_truncated: bool = False
     transaction_count: int
     excluded_count: int
     unknown_membership_count: int

@@ -88,8 +88,8 @@ def inputs(
 
 
 def elapsed_days(report: CoverageReport) -> int:
-    """Denominator honouring ``future != missing``."""
-    return report.expected_denominator - report.future_count
+    """Denominator honouring ``future != missing`` and retention-erased days."""
+    return report.expected_denominator - report.future_count - report.retention_truncated_count
 
 
 def has_coverage_evidence(rule_inputs: Inputs) -> bool:

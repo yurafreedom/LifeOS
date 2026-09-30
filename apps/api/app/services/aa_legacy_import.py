@@ -1,4 +1,14 @@
-"""Explicit, retry-safe reconstruction of genuine legacy transaction facts."""
+"""Explicit, retry-safe reconstruction of genuine legacy transaction facts.
+
+F6 (Slice 8): reconstruction must never resurrect history the user erased with a
+retention Apply. Snapshot transactions stay operational, and a hard delete frees
+the deterministic idempotency key, so without a guard a rerun would recreate
+every pruned fact. The guard reads the effective horizon from *completed* runs
+(so switching back to UNLIMITED does not reopen the door) and skips — and counts
+— any transaction or coverage claim whose semantic date lies before it, unless its
+AA row still exists (then it is an ordinary replay). An explicit, user-entered
+measurement with an old date is a different path and stays accepted.
+"""
 
 import hashlib
 from datetime import UTC, datetime, time
@@ -6,10 +16,12 @@ from decimal import Decimal, InvalidOperation
 from uuid import UUID
 from zoneinfo import ZoneInfo
 
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.analytics.enums import SourceKind
 from app.analytics.subjects import SubjectRef
+from app.models import AAMeasurement, AASourceCoverage
 from app.schemas.aa_common import ProvenanceIn, SubjectIn, ValueIn
 from app.schemas.aa_comparison import OverrideCreate, Policy, PolicyCreate
 from app.schemas.aa_finance import LegacyImportCreate, LegacyImportOut
@@ -17,6 +29,7 @@ from app.schemas.aa_measurement import MeasurementCreate
 from app.services.aa_coverage_claims import CoverageClaimRequest, record_coverage_claim
 from app.services.aa_facts import append_measurement
 from app.services.aa_metric_policy import record_override, record_policy
+from app.services.retention.horizon import effective_horizon
 from app.services.state import get_user_snapshot
 
 TRANSACTION_METRIC = "finance.transaction_amount"
@@ -54,7 +67,9 @@ def import_legacy_transactions(
     if not isinstance(category_overrides, dict):
         category_overrides = {}
 
+    horizon = effective_horizon(db, user_id=user_id)
     imported = replayed = overrides_imported = overrides_replayed = 0
+    transactions_skipped = coverage_skipped = 0
     for item in transactions:
         if not isinstance(item, dict):
             raise ValueError("snapshot transaction must be an object")
@@ -69,6 +84,13 @@ def import_legacy_transactions(
             raise ValueError("snapshot transaction amount/date is invalid") from None
         if amount < 0:
             raise ValueError("snapshot transaction amount must not be negative")
+        occurred_at = datetime.combine(occurred_date, time.min, tzinfo=ZoneInfo(request.timezone))
+        if horizon is not None and horizon.truncates_instant(occurred_at) and not _exists(
+            db, AAMeasurement, user_id, _transaction_key(transaction_id)
+        ):
+            # Erased by the user's retention rule: never reconstructed.
+            transactions_skipped += 1
+            continue
         category_id = str(item.get("category_id", ""))
         setting = category_overrides.get(category_id, {})
         category_included = not (
@@ -81,9 +103,7 @@ def import_legacy_transactions(
                 metric_key=TRANSACTION_METRIC,
                 subject=SubjectIn(domain="finance", type="transaction", id=transaction_id),
                 value=ValueIn(type="money", unit_code="UAH", num=amount),
-                occurred_at=datetime.combine(
-                    occurred_date, time.min, tzinfo=ZoneInfo(request.timezone)
-                ),
+                occurred_at=occurred_at,
                 occurred_tz=request.timezone,
                 provenance=_legacy_provenance(transaction_id=transaction_id),
                 dimensions={
@@ -134,6 +154,16 @@ def import_legacy_transactions(
 
     coverage_imported = coverage_replayed = 0
     for claim in request.coverage:
+        claim_key = _key(
+            "coverage", f"{claim.source_id}:{claim.period}:{claim.window_start}:{claim.window_end}"
+        )
+        # A window wholly before the horizon, or straddling it, would claim
+        # completeness for erased days: never reconstructed.
+        if horizon is not None and horizon.truncates_day(claim.window_start) and not _exists(
+            db, AASourceCoverage, user_id, claim_key
+        ):
+            coverage_skipped += 1
+            continue
         _, was_replayed = record_coverage_claim(
             db,
             user_id=user_id,
@@ -151,10 +181,7 @@ def import_legacy_transactions(
                 method="LEGACY_IMPORT",
                 source_ref={"source_id": claim.source_id},
                 original_recorded_at_known=False,
-                idempotency_key=_key(
-                    "coverage",
-                    f"{claim.source_id}:{claim.period}:{claim.window_start}:{claim.window_end}",
-                ),
+                idempotency_key=claim_key,
             ),
         )
         coverage_replayed += int(was_replayed)
@@ -169,4 +196,12 @@ def import_legacy_transactions(
         overrides_replayed=overrides_replayed,
         coverage_imported=coverage_imported,
         coverage_replayed=coverage_replayed,
+        transactions_retention_skipped=transactions_skipped,
+        coverage_retention_skipped=coverage_skipped,
     )
+
+
+def _exists(db: Session, model, user_id: UUID, idempotency_key: str) -> bool:
+    return db.scalar(
+        select(model.id).where(model.user_id == user_id, model.idempotency_key == idempotency_key)
+    ) is not None
