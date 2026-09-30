@@ -134,12 +134,20 @@ export function activeWaitingItems(items: WaitingRecord[]): WaitingRecord[] {
   return items.filter(isWaitingActive);
 }
 
-/** Closed records, most recently resolved first (stable for ties). */
+/* The instant a record was resolved, as epoch ms. `resolved_at` may carry any
+   UTC offset (the validator accepts +03:00 as well as Z), so it is compared as
+   a parsed instant, never as a string. */
+function resolvedAtMs(item: WaitingRecord): number {
+  const ms = typeof item.resolved_at === 'string' ? Date.parse(item.resolved_at) : NaN;
+  return Number.isFinite(ms) ? ms : -Infinity;
+}
+
+/** Closed records, most recently resolved first (stable for equal instants). */
 export function closedWaitingItems(items: WaitingRecord[]): WaitingRecord[] {
   return items
-    .map((item, index) => ({ item, index }))
+    .map((item, index) => ({ item, index, at: resolvedAtMs(item) }))
     .filter(({ item }) => !isWaitingActive(item))
-    .sort((a, b) => String(b.item.resolved_at).localeCompare(String(a.item.resolved_at)) || a.index - b.index)
+    .sort((a, b) => (a.at === b.at ? a.index - b.index : (b.at > a.at ? 1 : -1)))
     .map(({ item }) => item);
 }
 
@@ -189,8 +197,33 @@ function uniqueTaskId(tasks: unknown[], preferred: number): number {
   return id;
 }
 
-function logEntry(entityType: string, entityId: unknown, action: string, details: UnknownRecord, timestamp: string) {
-  return { entity_type: entityType, entity_id: entityId, action, details, timestamp };
+/* Activity ids. LifeActivity.append would otherwise mint a fresh id on every
+   call, so the same transition evaluated twice (a StrictMode re-run of the
+   state updater) would produce two different logs. A command therefore gets
+   its ids up front: the provider bridge prepares them once, outside the
+   updater (prepareWaitingActivityIds); a direct caller that passes none gets
+   ids derived from the command itself, which are equally deterministic. */
+export const WAITING_ACTIVITY_SLOTS = 2; // convert writes two entries; every other command one
+
+let activityCounter = 0;
+export function prepareWaitingActivityIds(): string[] {
+  const random = () => (typeof globalThis.crypto?.randomUUID === 'function'
+    ? globalThis.crypto.randomUUID()
+    : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`);
+  return Array.from({ length: WAITING_ACTIVITY_SLOTS }, () => {
+    activityCounter += 1;
+    return `aw-${activityCounter.toString(36)}-${random()}`;
+  });
+}
+
+function derivedActivityIds(command: WaitingCommand, at: string): string[] {
+  return Array.from({ length: WAITING_ACTIVITY_SLOTS }, (_, slot) => `aw-${command.kind}-${command.id}-${at}-${slot}`);
+}
+
+function logEntry(
+  id: string, entityType: string, entityId: unknown, action: string, details: UnknownRecord, timestamp: string,
+) {
+  return { id, entity_type: entityType, entity_id: entityId, action, details, timestamp };
 }
 
 const invalid = (state: UnknownRecord | null | undefined, code: WaitingErrorCode): WaitingOutcome =>
@@ -203,10 +236,14 @@ export function applyWaitingCommand(
   previous: UnknownRecord | null | undefined,
   command: WaitingCommand,
   now: Instant = new Date(),
+  activityIds?: readonly string[],
 ): WaitingOutcome {
   if (!isPlainObject(previous) || !Array.isArray(previous.waitingItems)) return invalid(previous, 'state_missing');
   if (!isPlainObject(command) || typeof command.id !== 'string') return invalid(previous, 'invalid_command');
   const at = toInstant(now);
+  const ids = activityIds && activityIds.length >= WAITING_ACTIVITY_SLOTS
+    ? activityIds
+    : derivedActivityIds(command, at);
   const items = previous.waitingItems as WaitingRecord[];
   const index = items.findIndex(item => isPlainObject(item) && sameId(item.id, command.id));
   if (index < 0) return invalid(previous, 'missing');
@@ -228,7 +265,7 @@ export function applyWaitingCommand(
         state: {
           ...previous,
           waitingItems: replace(next),
-          activityLog: LifeActivity.append(log, logEntry('waiting', item.id, 'updated',
+          activityLog: LifeActivity.append(log, logEntry(ids[0], 'waiting', item.id, 'updated',
             { title: next.title, fields: edit.fields }, at)),
         },
       };
@@ -249,7 +286,7 @@ export function applyWaitingCommand(
         state: {
           ...previous,
           waitingItems: replace(next),
-          activityLog: LifeActivity.append(log, logEntry('waiting', item.id, command.resolution, details, at)),
+          activityLog: LifeActivity.append(log, logEntry(ids[0], 'waiting', item.id, command.resolution, details, at)),
         },
       };
     }
@@ -264,7 +301,7 @@ export function applyWaitingCommand(
         state: {
           ...previous,
           waitingItems: replace(next),
-          activityLog: LifeActivity.append(log, logEntry('waiting', item.id, 'restored',
+          activityLog: LifeActivity.append(log, logEntry(ids[0], 'waiting', item.id, 'restored',
             { title: next.title, from: item.resolution }, at)),
         },
       };
@@ -285,9 +322,9 @@ export function applyWaitingCommand(
       };
       const details: UnknownRecord = { title: next.title, task_id: task.id };
       if (edit.fields.length) details.fields = edit.fields;
-      let activityLog = LifeActivity.append(log, logEntry('task', task.id, 'created',
+      let activityLog = LifeActivity.append(log, logEntry(ids[0], 'task', task.id, 'created',
         { title: task.title, waiting_id: item.id }, at));
-      activityLog = LifeActivity.append(activityLog, logEntry('waiting', item.id, 'converted', details, at));
+      activityLog = LifeActivity.append(activityLog, logEntry(ids[1], 'waiting', item.id, 'converted', details, at));
       return {
         status: 'applied',
         item: next,
@@ -303,7 +340,7 @@ export function applyWaitingCommand(
         state: {
           ...previous,
           waitingItems: items.filter((_, i) => i !== index),
-          activityLog: LifeActivity.append(log, logEntry('waiting', item.id, 'deleted',
+          activityLog: LifeActivity.append(log, logEntry(ids[0], 'waiting', item.id, 'deleted',
             { title: item.title, resolution: item.resolution ?? null }, at)),
         },
       };
@@ -321,18 +358,20 @@ export function applyWaitingCommand(
    the outcome synchronously. `flush` must execute the scheduled updater before
    returning (the provider passes react-dom's flushSync). A provider that never
    runs the updater (unmounted) yields `invalid`, never a false success.
-   `now` and `taskId` are fixed by the caller, so a re-invoked updater
-   (StrictMode) computes the identical outcome. */
+   `now`, `taskId` and the activity ids are all fixed before the updater is
+   scheduled, so a re-invoked updater (StrictMode) computes the identical
+   state — activity ids included — while every separate command gets new ids. */
 export function commitWaitingCommand(
   setState: (updater: (prev: UnknownRecord) => UnknownRecord) => void,
   flush: (run: () => void) => void,
   command: WaitingCommand,
   now: Instant,
+  activityIds: readonly string[] = prepareWaitingActivityIds(),
 ): WaitingOutcome {
   let outcome: WaitingOutcome | null = null;
   flush(() => {
     setState(prev => {
-      const result = applyWaitingCommand(prev, command, now);
+      const result = applyWaitingCommand(prev, command, now, activityIds);
       outcome = result;
       return result.status === 'applied' ? result.state : prev;
     });

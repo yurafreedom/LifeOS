@@ -3011,6 +3011,12 @@ title, the person stays on the closed Waiting record, no invented notes.
   apps/api/.env otherwise opens the AA gate for one gate test); ruff PASS;
   alembic head/current 20260930_0009.
 Committed 2026-09-30 as c1353e1 (see section 82 for the commit sequence).
+Follow-up (focused commit after G2, no history rewrite): closedWaitingItems
+orders by the parsed resolved_at instant (offsets such as +03:00 vs Z), stable
+for equal instants; Waiting transitions are deterministic including activity
+ids — commitWaitingCommand prepares the ids once outside the React updater
+(a StrictMode re-run yields the identical state), separate commands get
+distinct ids, and a direct pure call derives ids from its inputs.
 
 ====================================================================
 82. GTD G2 — TASK DATES AND RESCHEDULING — IMPLEMENTED 2026-09-30 (LOCAL COMMITS)

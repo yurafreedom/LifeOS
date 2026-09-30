@@ -324,3 +324,78 @@ describe('waiting lifecycle · compatibility with the unchanged Clarify code pat
     ]);
   });
 });
+
+describe('waiting lifecycle · closed ordering by instant', () => {
+  const closed = (id: string, resolved_at: string) => ({ ...legacyItem(id), resolution: 'received' as const, resolved_at });
+
+  it('compares resolved_at as instants, not strings, across UTC offsets', () => {
+    /* 12:00+03:00 is 09:00Z — earlier than 10:00Z although it sorts later as text. */
+    const items = [closed('offset', '2026-09-30T12:00:00+03:00'), closed('zulu', '2026-09-30T10:00:00Z')];
+    expect(closedWaitingItems(items).map(item => item.id)).toEqual(['zulu', 'offset']);
+    expect(closedWaitingItems([...items].reverse()).map(item => item.id)).toEqual(['zulu', 'offset']);
+  });
+
+  it('keeps stored order for the same instant written differently', () => {
+    const items = [
+      closed('first', '2026-09-30T13:00:00+03:00'),
+      closed('newest', '2026-09-30T11:00:00Z'),
+      closed('second', '2026-09-30T10:00:00.000Z'),
+      closed('third', '2026-09-30T10:00:00Z'),
+    ];
+    expect(closedWaitingItems(items).map(item => item.id)).toEqual(['newest', 'first', 'second', 'third']);
+  });
+});
+
+describe('waiting lifecycle · deterministic transitions', () => {
+  const commands: WaitingCommand[] = [
+    { kind: 'update', id: 'waiting-1', changes: { waiting_for: 'Аня' } },
+    { kind: 'resolve', id: 'waiting-1', resolution: 'received' },
+    { kind: 'convert', id: 'waiting-1', taskId: 1_900_000_000_000 },
+    { kind: 'delete', id: 'waiting-1' },
+  ];
+
+  it.each(commands)('identical inputs give an identical state, activity ids included ($kind)', command => {
+    const state = stateWith([legacyItem()]);
+    const ids = ['aw-test-1', 'aw-test-2'];
+    const first = applied(applyWaitingCommand(state, command, T1, ids));
+    const again = applied(applyWaitingCommand(state, command, T1, ids));
+    expect(again.state).toEqual(first.state);
+    expect(first.state.activityLog.slice(state.activityLog.length).map((entry: State) => entry.id))
+      .toEqual(command.kind === 'convert' ? ['aw-test-1', 'aw-test-2'] : ['aw-test-1']);
+    /* Without prepared ids the pure transition is still deterministic. */
+    expect(applied(applyWaitingCommand(state, command, T1)).state)
+      .toEqual(applied(applyWaitingCommand(state, command, T1)).state);
+  });
+
+  it('a re-run updater (StrictMode) computes the identical state; separate commands get distinct ids', () => {
+    let current = stateWith([legacyItem(), legacyItem('waiting-2', 'второе')]);
+    const evaluations: State[] = [];
+    const setState = (updater: (prev: State) => State) => {
+      const a = updater(current);
+      const b = updater(current); // StrictMode invokes the updater twice with the same prev
+      evaluations.push(a, b);
+      current = b;
+    };
+    const flush = (run: () => void) => run();
+
+    commitWaitingCommand(setState, flush, { kind: 'convert', id: 'waiting-1', taskId: 1_900_000_000_000 }, T1);
+    commitWaitingCommand(setState, flush, { kind: 'resolve', id: 'waiting-2', resolution: 'cancelled' }, T1);
+
+    expect(evaluations[1]).toEqual(evaluations[0]);
+    expect(evaluations[3]).toEqual(evaluations[2]);
+    const added = current.activityLog.slice(-3).map((entry: State) => entry.id);
+    expect(new Set(added).size).toBe(3);
+    /* Atomic conversion and duplicate prevention are unchanged. */
+    expect(current.tasks.filter((task: State) => task.title === 'счёт от подрядчика')).toHaveLength(1);
+    expect(current.waitingItems.find((item: State) => item.id === 'waiting-1')).toMatchObject({ resolution: 'converted' });
+  });
+
+  it('two commits of the same command in the same instant still get distinct activity ids', () => {
+    let current = stateWith([legacyItem()]);
+    const setState = (updater: (prev: State) => State) => { current = updater(current); };
+    commitWaitingCommand(setState, run => run(), { kind: 'update', id: 'waiting-1', changes: { title: 'A' } }, T1);
+    commitWaitingCommand(setState, run => run(), { kind: 'update', id: 'waiting-1', changes: { title: 'B' } }, T1);
+    const [a, b] = current.activityLog.slice(-2).map((entry: State) => entry.id);
+    expect(a).not.toBe(b);
+  });
+});
