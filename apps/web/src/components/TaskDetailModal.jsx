@@ -1,31 +1,75 @@
 import React from 'react';
 import { LifeLocaleContext } from '../context/LocaleContext.jsx';
 import { LifeCatTintClass, LifeExpenseCats } from '../data/categories.js';
-import { MAX_YEAR, MIN_INPUT_YEAR, scheduleEdit } from '../domain/calendarModel.ts';
-import { taskDate, taskDisplayTitle, taskTime } from '../domain/tasks.ts';
+import { MAX_YEAR, MIN_INPUT_YEAR, persistedSchedule, scheduleEdit } from '../domain/calendarModel.ts';
+import { rebaseUntouched, reconcileDraft, resolveDraftConflicts } from '../domain/editDraft.ts';
+import { taskDisplayTitle } from '../domain/tasks.ts';
 import { ActivityTimeline } from './ActivityTimeline.jsx';
+import { EditConflictNotice } from './EditConflictNotice.jsx';
 import { LIcons } from './icons.jsx';
 import { useDialog } from './useDialog.js';
 
 /* global React */
 const { useState: useStateTD, useEffect: useEffectTD, useContext: useCtxTD, useRef: useRefTD } = React;
 
-/* Only the fields the user actually changed. The modal receives the persisted
-   task, and this patch is merged onto it by id — untouched fields (schedule,
-   due, created_at, …) are never rewritten, and a seed task keeps its titleKey
-   (so it stays localised) unless its title was edited. */
-function taskDetailPatch(task, draft, t, cats) {
+/* The persisted task as detail-editor values (schedule = one {date, time}). */
+function taskDetailValues(task, t) {
+  return {
+    title: taskDisplayTitle(task, t),
+    stakes: !!task.stakes,
+    catId: task.category ? task.category.id : null,
+    /* A task without subtasks has none — never a demo list. */
+    subtasks: Array.isArray(task.subtasks) ? task.subtasks : [],
+    notes: task.notes || '',
+    schedule: persistedSchedule(task),
+  };
+}
+
+const PATCH_FIELDS = ['title', 'stakes', 'catId', 'subtasks', 'notes'];
+const DETAIL_FIELDS = ['title', 'stakes', 'catId', 'subtasks', 'notes', 'schedule'];
+
+/* An emptied title is never saved (it keeps the persisted one), so it does
+   not count as an edit either. */
+const draftValues = (draft, baseline) => ({ ...draft, title: draft.title.trim() ? draft.title : baseline.title });
+
+/* Only the fields the user actually changed — against `baseline`, the values
+   the modal started from, NOT the latest task (which may have changed under
+   the open modal). The patch is merged onto the persisted task by id, so
+   untouched fields (schedule, due, created_at, …) keep their latest value and
+   a seed task keeps its titleKey (so it stays localised) unless its title was
+   edited. A field that also changed in the persisted task is left out here;
+   taskDetailResult reports it as a conflict. */
+function taskDetailPatch(task, draft, t, cats, baseline = taskDetailValues(task, t)) {
+  const latest = taskDetailValues(task, t);
+  const { apply } = reconcileDraft(baseline, draftValues(draft, baseline), latest, PATCH_FIELDS);
   const patch = {};
   const nextTitle = draft.title.trim();
-  if (nextTitle && nextTitle !== taskDisplayTitle(task, t)) patch.title = nextTitle;
-  if (draft.stakes !== !!task.stakes) patch.stakes = draft.stakes;
-  const currentCatId = task.category ? task.category.id : null;
-  if (draft.catId !== currentCatId) patch.category = cats.find(c => c.id === draft.catId) || null;
-  const currentSubs = Array.isArray(task.subtasks) ? task.subtasks : [];
-  if (JSON.stringify(draft.subtasks) !== JSON.stringify(currentSubs)) patch.subtasks = draft.subtasks;
-  if (draft.notes !== (task.notes || '')) patch.notes = draft.notes;
+  if (apply.includes('title') && nextTitle !== latest.title) patch.title = nextTitle;
+  if (apply.includes('stakes')) patch.stakes = draft.stakes;
+  if (apply.includes('catId')) patch.category = cats.find(c => c.id === draft.catId) || null;
+  if (apply.includes('subtasks')) patch.subtasks = draft.subtasks;
+  if (apply.includes('notes')) patch.notes = draft.notes;
   return patch;
 }
+
+/* The whole save decision: validation errors, then conflicts (nothing saved),
+   then { patch, schedule, clearsDate } exactly as before. */
+function taskDetailResult(task, draft, t, cats, { baseline = taskDetailValues(task, t), canSchedule = true } = {}) {
+  const latest = taskDetailValues(task, t);
+  const { conflicts } = reconcileDraft(baseline, draftValues(draft, baseline), latest, PATCH_FIELDS);
+  const edit = canSchedule
+    ? scheduleEdit(task, draft.schedule, baseline.schedule)
+    : { errors: null, schedule: undefined, clearsDate: false };
+  if (edit.errors) return { errors: edit.errors };
+  if (edit.conflict) conflicts.push({ field: 'schedule', ...edit.conflict });
+  if (conflicts.length > 0) return { errors: null, conflicts: DETAIL_FIELDS.flatMap(f => conflicts.filter(c => c.field === f)) };
+  return { errors: null, patch: taskDetailPatch(task, draft, t, cats, baseline), schedule: edit.schedule, clearsDate: edit.clearsDate };
+}
+
+const CONFLICT_LABEL = {
+  title: 'cal_field_title', stakes: 'edit_field_stakes', catId: 'qa_category',
+  subtasks: 'td_subtasks', notes: 'qa_notes_expanded', schedule: 'td_schedule',
+};
 
 /* GTD G2 · the Tasks detail can set, change or clear the Calendar date/time,
    with exactly the Calendar editor's rules (calendarModel.scheduleEdit): a time
@@ -41,21 +85,44 @@ function TaskDetailModal({ task, onClose, onUpdate, onComplete, onDelete, canSch
   const I = LIcons;
   const cats = LifeExpenseCats;
 
-  const [title, setTitle]     = useStateTD(task ? taskDisplayTitle(task, t) : '');
-  const [stakes, setStakes]   = useStateTD(task ? !!task.stakes : false);
-  const [catId, setCatId]     = useStateTD(task && task.category ? task.category.id : null);
+  /* `baseline` = the persisted values the fields started from (see
+     taskDetailResult); `initial` seeds both it and the field states. */
+  const [initial]             = useStateTD(() => (task ? taskDetailValues(task, t) : null));
+  const [baseline, setBase]   = useStateTD(initial);
+  const [title, setTitle]     = useStateTD(initial ? initial.title : '');
+  const [stakes, setStakes]   = useStateTD(initial ? initial.stakes : false);
+  const [catId, setCatId]     = useStateTD(initial ? initial.catId : null);
   const [catOpen, setCatOpen] = useStateTD(false);
-  /* A task without subtasks has none — never a demo list. */
-  const [subtasks, setSubs]   = useStateTD(task && Array.isArray(task.subtasks) ? task.subtasks : []);
+  const [subtasks, setSubs]   = useStateTD(initial ? initial.subtasks : []);
   const [newSub, setNewSub]   = useStateTD('');
-  const [notes, setNotes]     = useStateTD(task ? (task.notes || '') : '');
+  const [notes, setNotes]     = useStateTD(initial ? initial.notes : '');
   const [confirmDel, setCD]   = useStateTD(false);
   const [menuOpen, setMO]     = useStateTD(false);
-  const [date, setDate]       = useStateTD(task ? (taskDate(task) || '') : '');
-  const [time, setTime]       = useStateTD(task && taskDate(task) ? taskTime(task) : '');
+  const [date, setDate]       = useStateTD(initial ? initial.schedule.date : '');
+  const [time, setTime]       = useStateTD(initial ? initial.schedule.time : '');
   const [errors, setErrors]   = useStateTD({});
   const [confirmClear, setConfirmClear] = useStateTD(false);
   const [failure, setFailure] = useStateTD(null);
+  const [conflicts, setConflicts] = useStateTD(null);
+
+  const draft = { title, stakes, catId, subtasks, notes, schedule: { date, time } };
+  function applyDraft(values) {
+    setTitle(values.title); setStakes(values.stakes); setCatId(values.catId);
+    setSubs(values.subtasks); setNotes(values.notes);
+    setDate(values.schedule.date); setTime(values.schedule.time);
+  }
+
+  /* The persisted task changed under the open modal: fields the user has not
+     touched show (and keep) the latest saved value. A missing task keeps the
+     draft as it is. */
+  const latestKey = task && !missing ? JSON.stringify(taskDetailValues(task, t)) : null;
+  useEffectTD(() => {
+    if (latestKey == null || !baseline) return;
+    const moved = rebaseUntouched(baseline, draft, JSON.parse(latestKey), DETAIL_FIELDS);
+    if (!moved) return;
+    setBase(moved.baseline);
+    applyDraft(moved.draft);
+  }, [latestKey]);
 
   const catBoxRef = useRefTD(null);
   const dialogRef = useRefTD(null);
@@ -84,18 +151,35 @@ function TaskDetailModal({ task, onClose, onUpdate, onComplete, onDelete, canSch
 
   if (!task) return null;
 
-  function commit() {
+  function commit(values = draft, base = baseline) {
     if (missing) return;
-    const patch = taskDetailPatch(task, { title, stakes, catId, subtasks, notes }, t, cats);
-    const edit = canSchedule ? scheduleEdit(task, { date, time }) : { errors: null, schedule: undefined, clearsDate: false };
+    const edit = taskDetailResult(task, values, t, cats, { baseline: base, canSchedule });
     if (edit.errors) { setErrors(edit.errors); return; }
     setErrors({});
+    if (edit.conflicts) { setConflicts(edit.conflicts); return; }
+    setConflicts(null);
     if (edit.clearsDate && !confirmClear) { setConfirmClear(true); return; }
+    const { patch } = edit;
     if (Object.keys(patch).length === 0 && edit.schedule === undefined) { onClose(); return; }
     const result = onUpdate(task.id, patch, edit.schedule);
     if (result && result.ok === false) { setFailure(t('td_err_missing')); return; }
     onClose();
   }
+  /* 'mine' saves the draft over the value now saved (explicit choice);
+     'saved' takes the saved values into the fields and keeps the modal open. */
+  function resolveConflicts(choice) {
+    const next = resolveDraftConflicts(baseline, draft, taskDetailValues(task, t), conflicts.map(c => c.field), choice);
+    setBase(next.baseline);
+    applyDraft(next.draft);
+    setConflicts(null);
+    if (choice === 'mine') commit(next.draft, next.baseline);
+  }
+  const conflictText = (field, value) => {
+    if (field === 'stakes') return t(value ? 'qa_stakes' : 'qa_routine');
+    if (field === 'catId') { const cat = cats.find(c => c.id === value); return cat ? cat.name[locale] : t('qa_no_category'); }
+    if (field === 'subtasks') return `${value.filter(x => x.done).length}/${value.length}`;
+    return undefined;
+  };
   function changeDate(value) {
     /* The time only refines a date: clearing the date clears its time. */
     setDate(value);
@@ -227,6 +311,10 @@ function TaskDetailModal({ task, onClose, onUpdate, onComplete, onDelete, canSch
           </div>
         ) : null}
 
+        {conflicts && !missing ? (
+          <EditConflictNotice conflicts={conflicts} labels={CONFLICT_LABEL} t={t} format={conflictText} onResolve={resolveConflicts} />
+        ) : null}
+
         {missing || failure ? (
           <p className="cal-field-err td-missing" role="alert">{failure || t('td_err_missing')}</p>
         ) : null}
@@ -291,4 +379,4 @@ function TaskDetailModal({ task, onClose, onUpdate, onComplete, onDelete, canSch
   );
 }
 
-export { TaskDetailModal, taskDetailPatch, taskDisplayTitle };
+export { TaskDetailModal, taskDetailPatch, taskDetailResult, taskDetailValues, taskDisplayTitle };

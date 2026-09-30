@@ -168,20 +168,38 @@ export function validateScheduleInput(input: { date?: unknown; time?: unknown })
   return { errors: null, schedule: date ? { date, time } : null };
 }
 
+export type ScheduleValue = { date: string; time: string };
 export type ScheduleEditResult =
-  | { errors: { date?: ScheduleInputError; time?: ScheduleInputError }; schedule?: undefined; clearsDate?: undefined }
-  | { errors: null; schedule: { date: string; time: string } | undefined; clearsDate: boolean };
+  | { errors: { date?: ScheduleInputError; time?: ScheduleInputError }; schedule?: undefined; clearsDate?: undefined; conflict?: undefined }
+  | { errors: null; schedule: ScheduleValue | undefined; clearsDate: boolean; conflict?: undefined }
+  | { errors: null; conflict: { mine: ScheduleValue; saved: ScheduleValue }; schedule?: undefined; clearsDate?: undefined };
+
+/** The persisted schedule as one editor value: a time only with a date. */
+export function persistedSchedule(task: TaskRecord): ScheduleValue {
+  const date = taskDate(task) || '';
+  return { date, time: date ? taskTime(task) : '' };
+}
+
+const sameSchedule = (a: ScheduleValue, b: ScheduleValue) => a.date === b.date && a.time === b.time;
 
 /* A task editor's date/time fields against the persisted task. `schedule` is
    undefined when neither changed; a cleared date is reported as
    { date: '', time: '' } (moveTask stores no schedule and drops `order`),
-   with `clearsDate` so the UI can confirm leaving the Calendar first. */
-export function scheduleEdit(task: TaskRecord, input: { date?: unknown; time?: unknown }): ScheduleEditResult {
+   with `clearsDate` so the UI can confirm leaving the Calendar first.
+
+   `baseline` is the schedule the editor started from (default: the task's).
+   Date + time are one unit: an input equal to the baseline is untouched and
+   never re-sent, even if the task has since moved; an edited input over a
+   schedule that ALSO changed meanwhile is a `conflict`, not a silent move. */
+export function scheduleEdit(task: TaskRecord, input: { date?: unknown; time?: unknown }, baseline?: ScheduleValue): ScheduleEditResult {
+  const latest = persistedSchedule(task);
+  const base = baseline || latest;
+  const typed = { date: typeof input.date === 'string' ? input.date.trim() : '', time: typeof input.time === 'string' ? input.time.trim() : '' };
+  if (sameSchedule(typed, base)) return { errors: null, schedule: undefined, clearsDate: false };
   const checked = validateScheduleInput(input);
   if (checked.errors) return { errors: checked.errors };
   const next = checked.schedule || { date: '', time: '' };
-  const initialDate = taskDate(task) || '';
-  const initialTime = initialDate ? taskTime(task) : '';
-  const changed = next.date !== initialDate || next.time !== initialTime;
-  return { errors: null, schedule: changed ? next : undefined, clearsDate: Boolean(initialDate) && !next.date };
+  if (sameSchedule(next, latest)) return { errors: null, schedule: undefined, clearsDate: false };
+  if (!sameSchedule(latest, base)) return { errors: null, conflict: { mine: next, saved: latest } };
+  return { errors: null, schedule: next, clearsDate: Boolean(latest.date) && !next.date };
 }

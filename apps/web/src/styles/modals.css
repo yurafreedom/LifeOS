@@ -366,3 +366,9 @@
   font-size: var(--text-md); line-height: 1.55;
   color: var(--fg2);
 }
+
+/* Edit conflict (task editors) — a field the user edited also changed in the
+   saved task while the editor was open; nothing was saved yet. */
+.edit-conflict { flex-direction: column; align-items: stretch; margin: 8px 0; padding: 8px 10px; border: 1px solid var(--border-s); border-radius: 8px; }
+.edit-conflict-list { margin: 0; padding-left: 18px; overflow-wrap: anywhere; }
+.edit-conflict-actions { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
