@@ -2827,8 +2827,8 @@ Audit fixes (on branch fix/lifeos-completion-audit; not in remote main when writ
    were red before the fix. Server preview/apply semantics were already correct.
 No backend, schema, dependency, queue or stored data mutation is part of these fixes.
 
-Follow-up frontend fixes D1–D3 (2026-09-30, same branch, UNCOMMITTED working
-tree on top of 1b396eb when written; report
+Follow-up frontend fixes D1–D3 (2026-09-30, same branch; uncommitted when
+written on top of 1b396eb, since committed locally as 1845c5f; report
 Outputs/Implementations/lifeos-audit-frontend-fixes_20260930-134139.md):
 3. D1 ForecastHistory branches on the server's retention_history_deleted /
    history_deleted_by_retention (never on an empty array): empty sections say
@@ -2933,7 +2933,7 @@ G1 is IMPLEMENTED in the working tree, uncommitted — see section 81. The
 Waiting bullets above describe the state before G1.
 
 ====================================================================
-80. UI SOUND EFFECTS — IMPLEMENTED 2026-09-30 (UNCOMMITTED)
+80. UI SOUND EFFECTS — IMPLEMENTED 2026-09-30 (LOCAL COMMIT bc5bc64)
 ====================================================================
 
 Report: Outputs/Implementations/lifeos-ui-sound-effects_20260930-153327.md
@@ -2963,7 +2963,7 @@ not committed, not pushed, no PR. Verify live.
   at 320/390/768/1440 × RU/UK × dark/light/paradise.
 
 ====================================================================
-81. GTD G1 — WAITING FOR LIFECYCLE — IMPLEMENTED 2026-09-30 (UNCOMMITTED)
+81. GTD G1 — WAITING FOR LIFECYCLE — IMPLEMENTED 2026-09-30 (LOCAL COMMITS c1353e1, fdd1bb9)
 ====================================================================
 
 Report: Outputs/Implementations/lifeos-gtd-g1-waiting-lifecycle_20260930-162127.md
@@ -3056,4 +3056,45 @@ Do Now stays undated; legacy records are not backfilled.
   is a local snapshot mutation (no save.success).
 Frontend 682 tests / 50 files, typecheck, lint, build PASS; G2 date tests pass
 under TZ=UTC, Europe/Kyiv, America/Los_Angeles, Pacific/Kiritimati.
-Next: owner review of the local commits; G3 is NOT started.
+Next: owner review of the local commits; G3 is NOT started (see section 83).
+
+====================================================================
+83. AUDIT FOLLOW-UP — CALENDAR KYIV DAY + STALE EDITOR DRAFTS (LOCAL COMMITS)
+====================================================================
+
+Report: Outputs/Implementations/lifeos-calendar-today-editor-drafts_20260930-190500.md
+Local commits on fix/lifeos-completion-audit after fdd1bb9 (not pushed, no
+PR, verify live): ce985a7 Calendar Kyiv day, 4c6f04c editor drafts.
+Status of the branch at this point: 1845c5f D1–D3, bc5bc64 UI sound,
+c1353e1 GTD plan + G1, 59683ac G2, fdd1bb9 G1 follow-up, ce985a7, 4c6f04c.
+Sections 80–82 are the historical records of those commits.
+
+- Calendar: CalendarPage derives bounds from useKyivToday() through
+  calendarBoundsForDay(tasks, today, openedYear) — no new timer, no second
+  timezone path. Today highlight, the Today button, the current-year window
+  and the open Day Manager's overdue / «закрыть без выполнения» controls move
+  at Kyiv midnight and on tab return. Explicit month/year/day routes, the Day
+  Manager key and an open editor do not depend on today. The undated
+  #/calendar keeps meaning "the current Kyiv month" (follows the rollover).
+  The Kyiv year the page opened in stays navigable after a New Year rollover
+  (floor on minYear), so an explicit route into the year just left is not
+  replaced; a fresh load keeps the old min(current year, earliest task) rule.
+- Editors: domain/editDraft.ts (reconcileDraft / rebaseUntouched /
+  resolveDraftConflicts). CalendarTaskEditor and TaskDetailModal keep a
+  baseline; untouched fields follow the persisted task live and are never
+  re-sent; edited fields are saved; a field edited by the user AND changed in
+  the persisted task is a conflict — nothing saved, draft kept, localized
+  EditConflictNotice (RU/UK +7 keys, pin 1818/1817) with «взять сохранённое»
+  (take saved, stay open) or «оставить моё» (explicit overwrite; re-checked).
+  Date + time are one unit (scheduleEdit(task, input, baseline) → conflict).
+  An emptied Tasks-detail title stays "not an edit" (unchanged rule).
+  Missing-task protection, lifecycle, validation and clear-date confirmation
+  unchanged. Calendar editor: a task deleted while editing still unmounts the
+  editor (existing behaviour; the draft is lost) — known limitation.
+- Frontend 727 tests / 52 files, typecheck, lint, build PASS; new tests also
+  pass under TZ=UTC, Europe/Kyiv, America/Los_Angeles, Pacific/Kiritimati.
+  Production preview on lifeos_test: both editor repros, a same-field title
+  conflict (keep mine), a schedule conflict (take saved), deleted task in the
+  Tasks detail, Kyiv midnight (focus) and New Year (visibilitychange)
+  rollovers with an explicit route + open editor. No backend change.
+Next: owner review; G3 is NOT started.
