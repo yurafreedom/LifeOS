@@ -8,6 +8,7 @@ decisions and adjustments, a relation's note and status — survives: it has no
 source link, and D1 says hard erasure wins only over *source-derived* values.
 """
 
+from collections.abc import Collection
 from datetime import UTC, datetime
 from typing import Any
 from uuid import UUID
@@ -17,43 +18,55 @@ from sqlalchemy.orm import Session
 
 from app.analytics.enums import RedactionReason
 from app.models import AACrossReference, AAImportanceRating, AASystemReviewRevision
-from app.services.system_review.refs import REDACTED, embeds
+from app.services.system_review.errors import InvalidRefError
+from app.services.system_review.refs import REDACTED, RefKind, embeds, parse_ref
+
+# ``(table, str(id))`` pairs — the shape frozen items store their sources in.
+SourceSet = Collection[tuple[str, str]]
 
 
-def _item_uses(item: dict[str, Any], table: str, identity: str) -> bool:
+def _item_uses(item: dict[str, Any], sources: SourceSet) -> bool:
     return any(
-        isinstance(source, list) and len(source) == 2 and source[0] == table
-        and source[1] == identity
+        isinstance(source, list) and len(source) == 2 and (source[0], source[1]) in sources
         for source in item.get("sources", ())
     )
 
 
-def _redact_items(value: Any, table: str, identity: str) -> tuple[Any, bool]:
-    """Walk a frozen context; replace every item derived from the source."""
+def _walk(value: Any, sources: SourceSet, reason: RedactionReason) -> tuple[Any, int]:
+    """Walk a frozen context; replace every item derived from any source in the set.
+
+    Returns the new value and how many items were redacted.
+    """
     if isinstance(value, dict):
-        if "sources" in value and _item_uses(value, table, identity):
+        if "sources" in value and _item_uses(value, sources):
             return {
                 "ordinal": value.get("ordinal"),
                 "section": value.get("section"),
                 "kind": value.get("kind"),
                 "redacted": True,
-                "redaction_reason": str(RedactionReason.SOURCE_HARD_DELETED),
-            }, True
-        changed = False
+                "redaction_reason": str(reason),
+            }, 1
+        hits = 0
         out: dict[str, Any] = {}
         for key, inner in value.items():
-            out[key], hit = _redact_items(inner, table, identity)
-            changed |= hit
-        return out, changed
+            out[key], hit = _walk(inner, sources, reason)
+            hits += hit
+        return out, hits
     if isinstance(value, list):
-        changed = False
+        hits = 0
         out_list = []
         for inner in value:
-            redacted, hit = _redact_items(inner, table, identity)
+            redacted, hit = _walk(inner, sources, reason)
             out_list.append(redacted)
-            changed |= hit
-        return out_list, changed
-    return value, False
+            hits += hit
+        return out_list, hits
+    return value, 0
+
+
+def _redact_items(value: Any, table: str, identity: str) -> tuple[Any, bool]:
+    """Walk a frozen context; replace every item derived from the source."""
+    redacted, hits = _walk(value, {(table, identity)}, RedactionReason.SOURCE_HARD_DELETED)
+    return redacted, bool(hits)
 
 
 def redact_system_review_sources(
@@ -150,6 +163,173 @@ def erase_importance_for_source(
             .execution_options(synchronize_session=False)
         )
     db.flush()
+
+
+# ───────────── set-based variants for Slice 8 retention (one call per Apply) ─────────────
+
+
+def _fact_source(key: str | None) -> tuple[str, str] | None:
+    """``(table, id)`` a ref key names when it is a fact ref, else ``None``."""
+    if not key or key == REDACTED:
+        return None
+    try:
+        ref = parse_ref(key)
+    except InvalidRefError:
+        return None
+    if ref.kind != RefKind.FACT or ref.identity is None:
+        return None
+    return ref.table or "", str(ref.identity)
+
+
+def system_review_revisions_for(db: Session, user_id: UUID, ids: list[UUID]) -> list[UUID]:
+    """Saved revisions whose manifest names any id (GIN ``source_ids`` overlap)."""
+    if not ids:
+        return []
+    return sorted(
+        db.scalars(
+            select(AASystemReviewRevision.id).where(
+                AASystemReviewRevision.user_id == user_id,
+                AASystemReviewRevision.source_ids.overlap(ids),
+            )
+        )
+    )
+
+
+def redact_system_review_sources_bulk(
+    db: Session,
+    user_id: UUID,
+    revision_ids: list[UUID],
+    sources: SourceSet,
+    reason: RedactionReason,
+) -> int:
+    """Redact every frozen item derived from any source; ids leave ``source_ids``.
+
+    Reflection, decisions and adjustments are user-authored and untouched.
+    Returns the number of frozen items redacted.
+    """
+    if not revision_ids:
+        return 0
+    identities = {identity for _, identity in sources}
+    now = datetime.now(UTC)
+    redacted = 0
+    for revision in db.scalars(
+        select(AASystemReviewRevision)
+        .where(
+            AASystemReviewRevision.user_id == user_id,
+            AASystemReviewRevision.id.in_(revision_ids),
+        )
+        .with_for_update()
+    ):
+        frozen, hits = _walk(revision.frozen_context, sources, reason)
+        if hits:
+            revision.frozen_context = frozen
+            revision.redacted_at = now
+            redacted += hits
+        revision.source_ids = [
+            value for value in revision.source_ids if str(value) not in identities
+        ]
+    db.flush()
+    return redacted
+
+
+def _relation_hits(row: AACrossReference, sources: SourceSet) -> bool:
+    if _fact_source(row.from_key) in sources or _fact_source(row.to_key) in sources:
+        return True
+    return any(
+        isinstance(entry, dict) and _fact_source(entry.get("ref")) in sources
+        for entry in row.evidence or []
+    )
+
+
+def relations_for(db: Session, user_id: UUID, sources: SourceSet) -> list[UUID]:
+    """Relations whose endpoints/evidence name a source. Bounded by the account's
+    relations that carry a fact ref at all; membership is a set lookup."""
+    if not sources:
+        return []
+    rows = db.scalars(
+        select(AACrossReference).where(
+            AACrossReference.user_id == user_id,
+            or_(
+                AACrossReference.from_key.like("fact|%"),
+                AACrossReference.to_key.like("fact|%"),
+                cast(AACrossReference.evidence, Text).like('%"fact|%'),
+            ),
+        )
+    )
+    return sorted(row.id for row in rows if _relation_hits(row, sources))
+
+
+def redact_relation_endpoints_bulk(
+    db: Session, user_id: UUID, relation_ids: list[UUID], sources: SourceSet
+) -> int:
+    """Replace endpoints / evidence refs naming any source with ``redacted``.
+
+    The relation's type, status and the user's note survive (user-authored).
+    """
+    if not relation_ids:
+        return 0
+    now = datetime.now(UTC)
+    touched = 0
+    for row in db.scalars(
+        select(AACrossReference)
+        .where(AACrossReference.user_id == user_id, AACrossReference.id.in_(relation_ids))
+        .with_for_update()
+    ):
+        hit = False
+        if _fact_source(row.from_key) in sources:
+            row.from_key = REDACTED
+            hit = True
+        if _fact_source(row.to_key) in sources:
+            row.to_key = REDACTED
+            hit = True
+        evidence = []
+        for entry in row.evidence or []:
+            if isinstance(entry, dict) and _fact_source(entry.get("ref")) in sources:
+                evidence.append({"ref": REDACTED, "role": entry.get("role")})
+                hit = True
+            else:
+                evidence.append(entry)
+        if hit:
+            row.evidence = evidence
+            row.endpoint_redacted_at = row.endpoint_redacted_at or now
+            touched += 1
+    db.flush()
+    return touched
+
+
+def importance_for(db: Session, user_id: UUID, sources: SourceSet) -> list[UUID]:
+    if not sources:
+        return []
+    rows = db.execute(
+        select(AAImportanceRating.id, AAImportanceRating.target_key).where(
+            AAImportanceRating.user_id == user_id,
+            AAImportanceRating.target_key.like("fact|%"),
+        )
+    )
+    return sorted(identity for identity, target in rows if _fact_source(target) in sources)
+
+
+def erase_importance_bulk(db: Session, user_id: UUID, rating_ids: list[UUID]) -> int:
+    """Same semantics as the hard-delete adapter: a rating of an erased item says
+    nothing any more and leaves with it (a rating targets one item, so a doomed
+    rating's whole supersession chain is doomed with it)."""
+    if not rating_ids:
+        return 0
+    rows = db.scalars(
+        select(AAImportanceRating).where(
+            AAImportanceRating.user_id == user_id, AAImportanceRating.id.in_(rating_ids)
+        )
+    ).all()
+    for row in rows:
+        row.supersedes_id = None
+    db.flush()
+    erased = db.execute(
+        delete(AAImportanceRating)
+        .where(AAImportanceRating.user_id == user_id, AAImportanceRating.id.in_(rating_ids))
+        .execution_options(synchronize_session=False)
+    ).rowcount
+    db.flush()
+    return erased
 
 
 SLICE_7_REDACTORS = (

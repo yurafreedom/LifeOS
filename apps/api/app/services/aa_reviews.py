@@ -47,7 +47,11 @@ from app.services.reviews.errors import (
 )
 from app.services.reviews.persistence import revise_review, save_review
 from app.services.reviews.read_model import context_payload, list_reviews, read_review
-from app.services.reviews.redaction import redact_review_context
+from app.services.reviews.redaction import (
+    redact_review_context,
+    redact_review_items,
+    review_items_for_sources,
+)
 
 __all__ = [
     "LIST_LIMIT_MAX",
@@ -70,7 +74,9 @@ __all__ = [
     "list_reviews",
     "read_review",
     "redact_review_context",
+    "redact_review_items",
     "resolve_review_subject",
+    "review_items_for_sources",
     "revise_review",
     "save_review",
     "validate_window",
