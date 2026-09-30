@@ -57,11 +57,9 @@
   --font-display: "DejaVu Sans", system-ui, sans-serif;
   --font-body:    "DejaVu Sans", system-ui, sans-serif;
 }
-/* Layers that name 'Onest' directly (display role). */
-:root[data-font="dejavu"] .cal-h,
-:root[data-font="dejavu"] .cal-cube-num,
-:root[data-font="dejavu"] .cal-cube-name,
-:root[data-font="dejavu"] .cal-dialog-h,
+/* Layers that name 'Onest' directly (display role). The nested Calendar
+   (calendar-nav.css and the .cal-* rules of finance-calendar.css) uses the
+   typography tokens only, so it follows the preference without overrides. */
 :root[data-font="dejavu"] .set-h,
 :root[data-font="dejavu"] .medc-name,
 :root[data-font="dejavu"] .mcd-name,

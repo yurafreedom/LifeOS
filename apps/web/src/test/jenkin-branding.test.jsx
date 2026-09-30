@@ -191,7 +191,7 @@ describe('Interface font preference', () => {
     }
   });
 
-  it('overrides every stylesheet selector that names Onest or Work Sans directly', () => {
+  it('overrides exactly the stylesheet selectors that name Onest or Work Sans directly — no gaps, no dead entries', () => {
     const brand = text('../brand.css').replace(/\/\*[\s\S]*?\*\//g, '');
     const overrides = { display: new Set(), body: new Set() };
     for (const [, sel, body] of brand.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
@@ -199,7 +199,7 @@ describe('Interface font preference', () => {
       if (role) for (const part of sel.split(',')) overrides[role].add(part.trim().replace(/\s+/g, ' '));
     }
     const files = [...readdirSync(new URL('../styles/', import.meta.url)).map(f => `../styles/${f}`), '../analytics.css'];
-    let hardcoded = 0;
+    const hardcoded = { display: new Set(), body: new Set() };
     for (const file of files) {
       const css = text(file).replace(/\/\*[\s\S]*?\*\//g, '');
       for (const [, sel, body] of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
@@ -207,12 +207,42 @@ describe('Interface font preference', () => {
         if (!family) continue;
         const role = family[1] === 'Onest' ? 'display' : 'body';
         for (const part of sel.split(',')) {
-          hardcoded += 1;
-          expect(overrides[role], `${file}: ${part.trim()}`).toContain(`:root[data-font="dejavu"] ${part.trim().replace(/\s+/g, ' ')}`);
+          const scoped = `:root[data-font="dejavu"] ${part.trim().replace(/\s+/g, ' ')}`;
+          hardcoded[role].add(scoped);
+          expect(overrides[role], `${file}: ${part.trim()}`).toContain(scoped);
         }
       }
     }
-    expect(hardcoded).toBeGreaterThan(40);
+    /* the reverse direction: an override whose selector no longer names that
+       family anywhere (e.g. the retired Calendar cubes) is dead and must go */
+    for (const role of ['display', 'body']) {
+      for (const scoped of overrides[role]) expect(hardcoded[role], `dead ${role} override: ${scoped}`).toContain(scoped);
+    }
+    expect(hardcoded.display.size + hardcoded.body.size).toBeGreaterThan(40);
+  });
+
+  it('lets the nested Calendar follow the preference through the typography tokens alone', () => {
+    const rules = [];
+    for (const file of ['../styles/calendar-nav.css', '../styles/finance-calendar.css']) {
+      const css = text(file).replace(/\/\*[\s\S]*?\*\//g, '');
+      for (const [, sel, body] of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+        if (/\.cal-/.test(sel) && /font(?:-family)?\s*:/.test(body)) rules.push([sel.trim(), body]);
+      }
+    }
+    /* .cal-crumb, .cal-tile, .cal-num, .cal-wrow, .cal-day-title, .cal-day-month, .cal-dialog-h */
+    expect(rules.length).toBeGreaterThanOrEqual(7);
+    for (const [sel, body] of rules) {
+      for (const [, value] of body.matchAll(/font(?:-family)?\s*:([^;]*)/g)) {
+        expect(value, sel).not.toMatch(/Onest|Work Sans|DejaVu|serif|system-ui/);
+      }
+    }
+    /* the headings, tiles, week panels, day details, toolbar and editor use the tokens */
+    const calendar = text('../styles/finance-calendar.css');
+    expect(calendar).toMatch(/\.cal-dialog-h \{\s*font-family: var\(--font-display\);/);
+    expect(text('../styles/calendar-nav.css')).toMatch(/\.cal-crumb \{[^}]*font: 700 15px\/1 var\(--font-display\);/);
+    for (const file of ['CalendarPage.jsx', 'TileGrids.jsx', 'DayDetails.jsx', 'CalendarHistory.jsx', 'CalendarTaskEditor.jsx']) {
+      expect(text(`../pages/calendar/${file}`), file).not.toMatch(/fontFamily|font-family/);
+    }
   });
 
   it.each(LifeLocales)('Appearance previews both faces with localized Cyrillic and numbers (%s)', locale => {

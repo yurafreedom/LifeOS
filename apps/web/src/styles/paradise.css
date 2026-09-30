@@ -232,13 +232,6 @@
   color: #fff;
   filter: none;
 }
-[data-theme="paradise"][data-scene="day"] .sb-logo-dot {
-  box-shadow: 0 0 6px rgba(219,90,12,0.35);
-}
-/* Batch 1 rev: wordmark ink is dark on the light day sidebar/scene (the
-   accent · keeps its gradient). Dark theme + paradise-night keep the light
-   wordmark via the inline #F5F5F7 fill. Light theme is already dark. */
-[data-theme="paradise"][data-scene="day"] .sb-logo .logo-word { fill: #1a1f29; }
 
 /* The TopBar greeting keeps its compact variant-1a plate. Generic page
    headers now use the full-width variant-1b HeroVignette above; dark/light
@@ -578,8 +571,6 @@ html.scene-switching .app *::before, html.scene-switching .app *::after {
   background: var(--surface);
   box-shadow: var(--shadow-lg);
 }
-.auth-brand { font-size: 25px; font-weight: 900; letter-spacing: -.04em; }
-.auth-brand span { color: var(--accent); }
 .auth-eyebrow { margin: 26px 0 8px; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .12em; }
 .auth-card h1 { margin: 0; font-size: 27px; letter-spacing: -.035em; }
 .auth-copy { margin: 10px 0 24px; color: var(--muted); line-height: 1.55; }

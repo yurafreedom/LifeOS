@@ -28,10 +28,6 @@
    override needed. */
 [data-theme="light"] .sb-avatar { background: var(--blue-tint); color: var(--blue-3); }
 
-/* The logo dot — on light, drop the gradient and use solid orange */
-[data-theme="light"] .sb-logo .logo-dot { fill: var(--o2); }
-[data-theme="light"] .sb-logo tspan:not(.logo-dot) { fill: var(--text); }
-
 /* TopBar */
 [data-theme="light"] .tb-cmd:focus-within {
   border-color: var(--primary-focus-ring);

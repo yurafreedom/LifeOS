@@ -380,7 +380,7 @@ button.cal-tile:hover:not(:disabled) {
 .cal-dialog-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
 .cal-dialog-eyebrow { font-size: var(--text-xs); color: var(--fg3); }   /* still used by the Waiting dialog */
 .cal-dialog-h {
-  font-family: 'Onest', sans-serif; font-weight: 700; font-size: var(--text-xl);
+  font-family: var(--font-display); font-weight: 700; font-size: var(--text-xl);
   letter-spacing: -0.02em; color: var(--fg1); margin: 2px 0 0;
 }
 .cal-day-empty { padding: 18px 4px; color: var(--fg3); font-size: var(--text-sm); }

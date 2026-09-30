@@ -43,14 +43,7 @@
 }
 .sb-logo:hover { background: var(--hover-tint); }
 .sb.is-collapsed .sb-logo { flex: none; padding: 4px; justify-content: center; }
-.sb-logo svg { display: block; }
-.sb-logo-dot {
-  width: 14px; height: 14px; border-radius: var(--r-pill);
-  background: var(--accent);
-  display: inline-block;
-  box-shadow: 0 0 8px rgba(255,138,30,0.45);
-}
-[data-theme="light"] .sb-logo-dot { box-shadow: 0 0 6px rgba(219,90,12,0.35); }
+.sb-logo svg { display: block; }   /* the Editorial marks: components/JenkinBrand.jsx + brand.css */
 
 .sb-toggle {
   width: 26px; height: 26px; border-radius: var(--r-sm);
