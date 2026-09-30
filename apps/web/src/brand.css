@@ -1,4 +1,5 @@
-/* JENKIN branding: Editorial wordmark / serif J mark. Imported by main.jsx after styles.css (like
+/* JENKIN branding: Editorial wordmark / serif J mark, and the optional
+   DejaVu Sans interface font. Imported by main.jsx after styles.css (like
    analytics.css it sits outside the pinned layer manifest), so these rules
    win ties against the theme layers without reordering the cascade. */
 
@@ -33,4 +34,26 @@
 .sb-logo:focus-visible { outline: 2px solid var(--jenkin-point); outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) {
   .sb-logo .jenkin-wordmark, .sb-logo .jenkin-mark { transition: none; }
+}
+
+/* ── Optional interface font (app/interfaceFont.js) ───────────────────────
+   Only four faces from the approved package; the browser downloads a face
+   only when <html data-font="dejavu"> makes it used. */
+@font-face { font-family: "DejaVu Sans"; src: url("./assets/fonts/dejavu-sans/DejaVuSans.woff") format("woff"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "DejaVu Sans"; src: url("./assets/fonts/dejavu-sans/DejaVuSans-Bold.woff") format("woff"); font-weight: 700; font-style: normal; font-display: swap; }
+@font-face { font-family: "DejaVu Sans"; src: url("./assets/fonts/dejavu-sans/DejaVuSans-Oblique.woff") format("woff"); font-weight: 400; font-style: italic; font-display: swap; }
+@font-face { font-family: "DejaVu Sans"; src: url("./assets/fonts/dejavu-sans/DejaVuSans-BoldOblique.woff") format("woff"); font-weight: 700; font-style: italic; font-display: swap; }
+
+/* "Current" (no attribute) keeps Onest / Work Sans untouched. DejaVu Sans
+   re-points the font tokens and, because many layers name 'Onest' /
+   'Work Sans' directly, overrides every element under <body>. The Editorial
+   marks are outlined paths, so they are unaffected. */
+:root[data-font="dejavu"] {
+  --font-display: "DejaVu Sans", system-ui, sans-serif;
+  --font-body:    "DejaVu Sans", system-ui, sans-serif;
+  --font-mono:    "DejaVu Sans", system-ui, sans-serif;
+}
+:root[data-font="dejavu"] body,
+:root[data-font="dejavu"] body * {
+  font-family: "DejaVu Sans", system-ui, sans-serif !important;
 }

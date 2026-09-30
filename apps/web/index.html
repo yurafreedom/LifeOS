@@ -12,6 +12,13 @@
     <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png" />
     <script>
       (function () {
+        /* Optional interface font (app/useInterfaceFont.js) before first paint. */
+        try {
+          if (localStorage.getItem('lifeOsFont') === 'dejavu') {
+            document.documentElement.setAttribute('data-font', 'dejavu');
+          }
+        } catch (error) {}
+
         var theme = null;
         try { theme = localStorage.getItem('lifeOsTheme'); } catch (error) {}
         if (theme !== 'dark' && theme !== 'light' && theme !== 'paradise') {

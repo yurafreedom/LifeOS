@@ -2,11 +2,17 @@ import React from 'react';
 import { readFileSync } from 'node:fs';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
+import {
+  FONT_STORAGE_KEY, INTERFACE_FONTS, applyInterfaceFont, normalizeInterfaceFont,
+  readInterfaceFont, writeInterfaceFont,
+} from '../app/useInterfaceFont.js';
 import { EDITORIAL_GLYPHS, JenkinMark, JenkinWordmark } from '../components/JenkinBrand.jsx';
+import { AppearanceSection } from '../components/SettingsPage.jsx';
 import { Sidebar } from '../components/Sidebar.jsx';
-import { LifeLocaleContext, LifeMakeT } from '../context/LocaleContext.jsx';
+import { LifeLocaleContext, LifeLocales, LifeMakeT } from '../context/LocaleContext.jsx';
 
-/* JENKIN branding: approved 01 Editorial logo and serif J favicon. */
+/* JENKIN branding: approved 01 Editorial logo, serif J favicon, and the
+   optional device-local DejaVu Sans interface font. */
 
 const read = relative => readFileSync(new URL(relative, import.meta.url));
 const text = relative => read(relative).toString('utf8');
@@ -16,6 +22,16 @@ function withLocale(locale, node, extra = {}) {
   return renderToStaticMarkup(
     <LifeLocaleContext.Provider value={{ locale, t: LifeMakeT(locale), themeEff: 'dark', ...extra }}>{node}</LifeLocaleContext.Provider>,
   );
+}
+
+function memoryStorage(initial = {}) {
+  const data = new Map(Object.entries(initial));
+  return {
+    data,
+    getItem: key => (data.has(key) ? data.get(key) : null),
+    setItem: (key, value) => { data.set(key, String(value)); },
+    removeItem: key => { data.delete(key); },
+  };
 }
 
 describe('Editorial logo', () => {
@@ -87,5 +103,79 @@ describe('Favicon', () => {
     const png = read('../../public/assets/apple-touch-icon.png');
     expect(png.subarray(1, 4).toString('ascii')).toBe('PNG');
     expect([png.readUInt32BE(16), png.readUInt32BE(20)]).toEqual([180, 180]);
+  });
+});
+
+describe('Interface font preference', () => {
+  it('validates to Current unless DejaVu Sans is stored', () => {
+    expect(INTERFACE_FONTS).toEqual(['current', 'dejavu']);
+    expect(FONT_STORAGE_KEY).toBe('lifeOsFont');
+    for (const bad of [null, undefined, '', 'Dejavu', 'onest', '{"v":1}', 42]) {
+      expect(normalizeInterfaceFont(bad)).toBe('current');
+    }
+    expect(normalizeInterfaceFont('dejavu')).toBe('dejavu');
+    expect(readInterfaceFont(memoryStorage())).toBe('current');
+    expect(readInterfaceFont(memoryStorage({ lifeOsFont: 'dejavu' }))).toBe('dejavu');
+    expect(readInterfaceFont(memoryStorage({ lifeOsFont: 'serif' }))).toBe('current');
+    expect(readInterfaceFont(null)).toBe('current');
+    expect(readInterfaceFont({ getItem: () => { throw new Error('blocked'); } })).toBe('current');
+  });
+
+  it('stores only the non-default choice and survives storage failures', () => {
+    const storage = memoryStorage();
+    writeInterfaceFont(storage, 'dejavu');
+    expect(storage.data.get('lifeOsFont')).toBe('dejavu');
+    writeInterfaceFont(storage, 'current');
+    expect(storage.data.has('lifeOsFont')).toBe(false);
+    expect(() => writeInterfaceFont({ setItem: () => { throw new Error('quota'); }, removeItem() {} }, 'dejavu')).not.toThrow();
+    expect(() => writeInterfaceFont(null, 'dejavu')).not.toThrow();
+  });
+
+  it('applies as <html data-font> only for DejaVu Sans', () => {
+    const attrs = new Map();
+    const root = { setAttribute: (k, v) => attrs.set(k, v), removeAttribute: k => attrs.delete(k) };
+    applyInterfaceFont(root, 'dejavu');
+    expect(attrs.get('data-font')).toBe('dejavu');
+    applyInterfaceFont(root, 'current');
+    expect(attrs.has('data-font')).toBe(false);
+    expect(() => applyInterfaceFont(null, 'dejavu')).not.toThrow();
+  });
+
+  it('is applied before first paint by index.html with the same key and value', () => {
+    const index = text('../../index.html');
+    expect(index).toContain("localStorage.getItem('lifeOsFont') === 'dejavu'");
+    expect(index).toContain("document.documentElement.setAttribute('data-font', 'dejavu')");
+  });
+
+  it.each(LifeLocales)('Settings → Appearance offers Current and DejaVu Sans, Current by default (%s)', locale => {
+    const t = LifeMakeT(locale);
+    const html = withLocale(locale, <AppearanceSection t={t} locale={locale} setLocale={vi.fn()} />,
+      { themeMode: 'dark', setTheme: vi.fn(), scenePref: 'auto', setScenePref: vi.fn() });
+    expect(t('set_font')).not.toBe('set_font');
+    expect(html).toContain(`<div class="set-seg" role="group" aria-label="${t('set_font')}">`);
+    expect(html).toContain(`<button class="set-seg-btn is-on" aria-pressed="true">${t('set_font_current')}</button>`);
+    expect(html).toContain('<button class="set-seg-btn" aria-pressed="false">DejaVu Sans</button>');
+  });
+
+  it('keeps the default fonts and overrides every element only under data-font="dejavu"', () => {
+    const css = text('../brand.css');
+    const faces = [...css.matchAll(/@font-face \{ font-family: "DejaVu Sans"; src: url\("\.\/assets\/fonts\/dejavu-sans\/([\w-]+\.woff)"\) format\("woff"\); font-weight: (\d+); font-style: (\w+); font-display: swap; \}/g)]
+      .map(m => [m[1], m[2], m[3]]);
+    expect(faces).toEqual([
+      ['DejaVuSans.woff', '400', 'normal'],
+      ['DejaVuSans-Bold.woff', '700', 'normal'],
+      ['DejaVuSans-Oblique.woff', '400', 'italic'],
+      ['DejaVuSans-BoldOblique.woff', '700', 'italic'],
+    ]);
+    const withoutComments = css.replace(/\/\*[\s\S]*?\*\//g, '');
+    const fontRules = withoutComments.split('}').filter(rule => /font-family|--font-/.test(rule) && !rule.includes('@font-face'));
+    for (const rule of fontRules) expect(rule).toContain(':root[data-font="dejavu"]');
+    expect(text('../styles/tokens.css')).toContain("--font-body:    'Work Sans', system-ui, sans-serif;");
+  });
+
+  it('ships byte-identical runtime WOFF faces and the license from the approved package', () => {
+    for (const file of ['DejaVuSans.woff', 'DejaVuSans-Bold.woff', 'DejaVuSans-Oblique.woff', 'DejaVuSans-BoldOblique.woff', 'LICENSE']) {
+      expect(read(`../assets/fonts/dejavu-sans/${file}`).equals(read(`${REF}fonts/${file}`))).toBe(true);
+    }
   });
 });

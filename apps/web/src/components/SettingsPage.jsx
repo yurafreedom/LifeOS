@@ -1,4 +1,5 @@
 import React from 'react';
+import { useInterfaceFont } from '../app/useInterfaceFont.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { LifeDataContext } from '../context/LifeDataContext.jsx';
 import { LifeLocaleContext, LifeLocales } from '../context/LocaleContext.jsx';
@@ -175,6 +176,12 @@ function AppearanceSection({ t, locale, setLocale }) {
      day/night). When the effective theme isn't paradise, render the
      control disabled — same shape/size, just greyed + non-interactive. */
   const sceneOn = themeEff === 'paradise';
+  /* Optional interface font — device-local; the logo never changes with it. */
+  const [font, setFont] = useInterfaceFont();
+  const fonts = [
+    ['current', t('set_font_current')],
+    ['dejavu',  t('set_font_dejavu')],
+  ];
   const scenes = [
     ['auto',  t('set_scene_auto')],
     ['day',   t('set_scene_day')],
@@ -222,6 +229,16 @@ function AppearanceSection({ t, locale, setLocale }) {
         <div className="set-seg">
           {LifeLocales.map(loc => (
             <button key={loc} className={"set-seg-btn" + (locale === loc ? " is-on" : "")} onClick={() => setLocale(loc)}>{loc.toUpperCase()}</button>
+          ))}
+        </div>
+      </Row>
+      <Row label={t('set_font')}>
+        <div className="set-seg" role="group" aria-label={t('set_font')}>
+          {fonts.map(([val, lbl]) => (
+            <button key={val}
+                    className={"set-seg-btn" + (font === val ? " is-on" : "")}
+                    aria-pressed={font === val}
+                    onClick={() => setFont(val)}>{lbl}</button>
           ))}
         </div>
       </Row>
@@ -288,6 +305,6 @@ function ThemeGlyph({ kind }) {
   );
 }
 
-export { SettingsPage };
+export { SettingsPage, AppearanceSection };
 /* Re-exported for callers and tests that import it from the page. */
 export { ExportSection };
