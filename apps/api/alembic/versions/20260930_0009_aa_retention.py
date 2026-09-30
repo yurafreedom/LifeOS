@@ -12,6 +12,10 @@ stays 2:
 * ``ck_aa_review_context_items_redaction_reason`` gains ``source_retention_pruned``
   (owner decision O2), so a Review can say the source was erased by the user's
   retention rule rather than by a manual hard delete.
+* two evidence-backed indexes for set deletes (Slice 8 perf evidence): every
+  deleted measurement fires the NO ACTION check on ``superseded_by_id`` and the
+  ON DELETE CASCADE of ``aa_metric_membership_overrides.source_fact_id``; neither
+  column had a usable index, so a bulk delete was one sequential scan per row.
 
 Downgrade drops both tables and restores the narrow CHECK. Use ONLY on disposable
 or pre-write environments: once a retention run has redacted a Review item the
@@ -184,9 +188,25 @@ def upgrade():
         "redaction_reason IS NULL OR redaction_reason IN"
         " ('source_hard_deleted', 'source_retention_pruned')",
     )
+    op.create_index(
+        "ix_aa_measurements_superseded_by_id",
+        "aa_measurements",
+        ["superseded_by_id"],
+        postgresql_where=sa.text("superseded_by_id IS NOT NULL"),
+    )
+    op.create_index(
+        "ix_aa_metric_membership_overrides_source_fact",
+        "aa_metric_membership_overrides",
+        ["source_fact_id"],
+    )
 
 
 def downgrade():
+    op.drop_index(
+        "ix_aa_metric_membership_overrides_source_fact",
+        table_name="aa_metric_membership_overrides",
+    )
+    op.drop_index("ix_aa_measurements_superseded_by_id", table_name="aa_measurements")
     op.drop_constraint(REASON_CK, "aa_review_context_items", type_="check")
     op.create_check_constraint(
         REASON_CK,

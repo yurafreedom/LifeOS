@@ -34,6 +34,8 @@ class AAMetricMembershipOverride(
             "metric_key",
             "source_fact_id",
         ),
+        # M8 (Slice 8): the ON DELETE CASCADE lookup a measurement delete fires.
+        Index("ix_aa_metric_membership_overrides_source_fact", "source_fact_id"),
         Index(
             "ix_aa_metric_membership_overrides_active_user_metric_fact",
             "user_id",

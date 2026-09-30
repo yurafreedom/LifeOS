@@ -277,11 +277,12 @@ def test_retention_performance_evidence(engine, session_factory, account_factory
                       JOIN pruned ON pruned.hex = substr(s.h, g.i, 32)
                      WHERE t.user_id = :u AND t.source_ref IS NOT NULL""",
                  {**u, "hexes": [identity.hex for identity in doomed]}, out)
-        transaction = connection.begin()
-        _explain(connection, "whole-chain delete (one statement, rolled back)",
-                 "DELETE FROM aa_measurements WHERE user_id = :u"
-                 " AND id = ANY(CAST(:ids AS uuid[]))", {**u, "ids": doomed}, out)
-        transaction.rollback()
+        connection.rollback()
+        with connection.begin() as transaction:
+            _explain(connection, "whole-chain delete (one statement, rolled back)",
+                     "DELETE FROM aa_measurements WHERE user_id = :u"
+                     " AND id = ANY(CAST(:ids AS uuid[]))", {**u, "ids": doomed}, out)
+            transaction.rollback()
 
     with session_factory() as db:
         set_policy(db, user_id=owner.user_id, request=PolicyRequest(

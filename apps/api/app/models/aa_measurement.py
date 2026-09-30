@@ -65,6 +65,12 @@ class AAMeasurement(
             "occurred_at",
             postgresql_where=text("status = 'active'"),
         ),
+        # M8 (Slice 8): the NO ACTION check a set delete fires per erased row.
+        Index(
+            f"ix_{_TABLE}_superseded_by_id",
+            "superseded_by_id",
+            postgresql_where=text("superseded_by_id IS NOT NULL"),
+        ),
     )
 
     metric_key: Mapped[str] = mapped_column(
