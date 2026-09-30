@@ -15,6 +15,7 @@ import {
   setProjectForecastWithDurableIntent,
 } from '../domain/projects.ts';
 import { ApiError } from '../api/client.ts';
+import { sfx } from '../sound/index.ts';
 import { StateImportPrompt } from '../components/StateImportPrompt.jsx';
 import { readLegacyLocalState, recordLegacyDecision } from '../repositories/legacyLocalImport.ts';
 import { ServerStateRepository } from '../repositories/serverStateRepository.ts';
@@ -56,6 +57,15 @@ import {
 const { useState: useStateDP, useEffect: useEffectDP, useMemo: useMemoDP, useRef: useRefDP } = React;
 
 const LifeDataContext = React.createContext(null);
+
+/* UI sound at the completion boundary: the local state transition, which the
+   sync coordinator then queues for the server — the cue does not claim a
+   server acknowledgement. Only an open → done change sounds; reopening, an
+   already-done task or a missing id are silent. */
+export function completesTask(tasks, id) {
+  const current = findTask(tasks || [], id);
+  return !!current && !current.done;
+}
 const initialStateRequests = new Map();
 
 /* ── Provider ─────────────────────────────────────────── */
@@ -201,6 +211,7 @@ function LifeDataProvider({ user, onSessionExpired, onLogout, children }) {
        done flag, and emit the right action label in the same tx.
        Completing stamps completed_at and clears any closure; reopening
        clears completed_at (domain/tasks.ts::setTaskDone). */
+    emitTaskComplete(id);
     setStateRaw(prev => {
       const before = findTask(prev.tasks, id);
       if (!before) return prev;
@@ -237,7 +248,11 @@ function LifeDataProvider({ user, onSessionExpired, onLogout, children }) {
     });
   }
   function completeTask(id) {
+    emitTaskComplete(id);
     transitionTask(id, 'completed', tasks => completeTaskRecord(tasks, id));
+  }
+  function emitTaskComplete(id) {
+    if (completesTask(state && state.tasks, id)) sfx.emit('task.complete');
   }
   function closeTaskUnresolved(id) {
     transitionTask(id, 'closed_unresolved', tasks => closeTaskRecord(tasks, id));

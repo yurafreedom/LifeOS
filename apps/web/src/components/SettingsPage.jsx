@@ -9,6 +9,7 @@ import { LIcons } from './icons.jsx';
 import { DangerSection } from './settings/DangerSection.jsx';
 import { ExportSection } from './settings/ExportSection.jsx';
 import { RetentionSection } from './settings/RetentionSection.jsx';
+import { SoundSection } from './settings/SoundSection.jsx';
 import { Row } from './settings/Row.jsx';
 
 /* global React */
@@ -25,6 +26,7 @@ function SettingsPage() {
     { id: 'monobank',      label: t('set_monobank') },
     { id: 'notifications', label: t('set_notifications') },
     { id: 'appearance',    label: t('set_appearance') },
+    { id: 'sound',         label: t('set_sound') },
     { id: 'export',        label: t('set_export') },
     { id: 'retention',     label: t('set_retention') },
     { id: 'danger',        label: t('set_danger') },
@@ -49,6 +51,7 @@ function SettingsPage() {
           {sel === 'monobank'      && <MonobankSection t={t}/>}
           {sel === 'notifications' && <NotificationsSection t={t}/>}
           {sel === 'appearance'    && <AppearanceSection t={t} locale={locale} setLocale={setLocale}/>}
+          {sel === 'sound'         && <SoundSection t={t}/>}
           {sel === 'export'        && <ExportSection t={t}/>}
           {sel === 'retention'     && <RetentionSection t={t}/>}
           {sel === 'danger'        && <DangerSection t={t}/>}

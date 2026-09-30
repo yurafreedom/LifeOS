@@ -70,6 +70,7 @@ function TasksPage({ tasks, waitingItems = [], onToggle, onAdd, onOpen }) {
         </div>
         <div className="tasks-sort">
           <button className="tasks-sort-trigger mono"
+                  aria-haspopup="listbox" aria-expanded={sortOpen}
                   onClick={() => setSortOpen(o => !o)}>
             <span>{t('tasks_sort_label')}: {sorts.find(s => s.id === sort).label}</span>
             <I.chevDown size={12}/>

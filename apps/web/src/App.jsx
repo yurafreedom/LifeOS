@@ -14,6 +14,7 @@ import {
   SystemReviewPage,
 } from './app/lazyRoutes.jsx';
 import { useParadisePress } from './app/paradisePress.js';
+import { useUiSound } from './app/useUiSound.js';
 import { ANALYTICS_ROUTE_ENABLED, normalizeRoute, readRouteFromHash } from './app/routeRegistry.js';
 import { useSidebarCollapsed } from './app/useSidebarCollapsed.js';
 import { useTheme } from './app/useTheme.js';
@@ -171,6 +172,7 @@ function AppShell({ user }) {
   });
 
   useParadisePress();
+  useUiSound();
 
   const counts = {
     notes:  quickNotes.length,

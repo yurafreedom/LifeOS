@@ -256,6 +256,12 @@
 [data-theme="light"] .set-btn-primary:hover { background: var(--blue-2); }
 [data-theme="light"] .set-btn-ghost { background: var(--surface); }
 [data-theme="light"] .set-btn-ghost:hover { background: var(--surface-h); }
+[data-theme="light"] .set-sfx-event:hover,
+[data-theme="light"] .set-sfx-menu-item:hover { background: var(--surface-h); }
+[data-theme="light"] .set-sfx-event.is-on { background: var(--blue-tint); }
+[data-theme="light"] .set-sfx-event.is-on .set-sfx-event-asset,
+[data-theme="light"] .set-sfx-cand.is-on .set-sfx-cand-file,
+[data-theme="light"] .set-sfx-badge { color: var(--blue-3); }
 [data-theme="light"] .set-btn-danger { background: var(--red); color: #fff; }
 [data-theme="light"] .set-btn-danger:hover { background: var(--red-2); }
 [data-theme="light"] .set-add-row { color: var(--blue-3); }

@@ -154,7 +154,23 @@ deliberately: theme values are published through `LifeLocaleContext`.
 Shell effects: `app/useTheme.js` (theme + paradise scene, `localStorage`
 `lifeOsTheme`/`lifeOsScene`), `app/useSidebarCollapsed.js` (`lifeOsSidebar`),
 `app/paradisePress.js` (delegated pointer physics), `app/clarifyHandlers.js`
-(the six Clarify transitions + toasts).
+(the six Clarify transitions + toasts), `app/useUiSound.js` (UI sound
+listeners + Settings preference hook).
+
+### UI sound effects
+
+Facade: **`sound/index.ts`** — app code imports `sfx` / `installUiSound` /
+preference accessors from here only. Importing it has no side effects.
+
+| I want to… | Go to |
+|---|---|
+| add a clip, change a trim window or loudness trim | `sound/catalog.ts` `SOUND_ASSETS` (files in `assets/sfx/`, bundled by Vite) |
+| add a semantic event / change a default assignment or priority | `sound/catalog.ts` `SOUND_EVENTS` + RU/UK `sfx_ev_*` copy |
+| change what a click / Escape / hover means, eligibility, duplicate prevention | `sound/gestures.ts` (one cue per trusted gesture; `data-sfx="<event>"` / `data-sfx="none"` on markup) |
+| change playback (voices, channels, late drop, unlock, retry) | `sound/engine.ts` (Web Audio; never throws) |
+| change stored settings | `sound/preferences.ts` (`localStorage` `lifeOsSfx`, validated field by field) |
+| sound a success | `sfx.emit('<event>')` **at the app's existing success boundary** (task completion: `LifeDataContext.completesTask`; server save: `RetentionSection.savePolicy`) |
+| the Settings panel | `components/settings/SoundSection.jsx` |
 
 ### Locale
 

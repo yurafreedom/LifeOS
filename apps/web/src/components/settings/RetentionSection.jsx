@@ -7,6 +7,7 @@ import {
 } from '../../api/analytics';
 import { ApiError } from '../../api/client';
 import { localDateForInstant } from '../../analytics/timezone';
+import { sfx } from '../../sound';
 
 const { useCallback, useEffect, useRef, useState } = React;
 
@@ -60,6 +61,13 @@ export function policyBody(choice, state, understood, key) {
   if (choice === 'unlimited') return { mode: 'unlimited', idempotency_key: key };
   return { mode: 'finite', retain_months: choice, consequences_version: state.consequences_version,
     confirm_consequences: understood, idempotency_key: key };
+}
+
+/** Save a policy; the save cue sounds only after the server acknowledged the PUT. */
+export async function savePolicy(client, body, cue = event => sfx.emit(event)) {
+  const next = await client.putRetentionPolicy(body);
+  cue('save.success');
+  return next;
 }
 
 /**
@@ -257,7 +265,7 @@ export function RetentionSection({ t, api }) {
     async save() {
       patch({ busy: 'save', error: '' });
       try {
-        const next = await client.putRetentionPolicy(
+        const next = await savePolicy(client,
           policyBody(choice, state, Boolean(ui.understood), mintRetentionKey()));
         setState(next);
         patch({ busy: '', choice: undefined, understood: false, preview: null, message: t('ret_saved') });

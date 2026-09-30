@@ -111,7 +111,7 @@ function QuickAddModal({ open, onClose, onSave, defaultStakes = false, defaultTi
           </div>
 
           <div className="qa-cat" ref={catBoxRef}>
-            <button className={"qa-cat-trigger" + (selectedCat ? " is-set" : "")} onClick={() => setCatOpen(o => !o)}>
+            <button className={"qa-cat-trigger" + (selectedCat ? " is-set" : "")} aria-haspopup="listbox" aria-expanded={catOpen} onClick={() => setCatOpen(o => !o)}>
               {selectedCat ? (
                 <React.Fragment>
                   <span className={"qa-cat-dot " + LifeCatTintClass[selectedCat.tint]} aria-hidden="true">
@@ -155,14 +155,14 @@ function QuickAddModal({ open, onClose, onSave, defaultStakes = false, defaultTi
         {/* schedule expander */}
         <div className="qa-expander">
           {!showSched ? (
-            <button className="qa-expand-link mono" onClick={() => setSched(true)}>
+            <button className="qa-expand-link mono" data-sfx="panel.expand" onClick={() => setSched(true)}>
               <I.clock size={12}/> {t('qa_schedule_collapsed')}
             </button>
           ) : (
             <div className="qa-expand-body">
               <div className="qa-expand-head">
                 <span className="mono qa-expand-lab">{t('qa_schedule_expanded')}</span>
-                <button className="qa-expand-collapse" onClick={() => setSched(false)}><I.x size={11}/></button>
+                <button className="qa-expand-collapse" data-sfx="panel.collapse" onClick={() => setSched(false)}><I.x size={11}/></button>
               </div>
               <div className="qa-sched-row">
                 <input type="date" className="qa-sched-input mono" value={date} onChange={e => setDate(e.target.value)}/>
@@ -175,14 +175,14 @@ function QuickAddModal({ open, onClose, onSave, defaultStakes = false, defaultTi
         {/* notes expander */}
         <div className="qa-expander">
           {!showNotes ? (
-            <button className="qa-expand-link mono" onClick={() => setNotes(true)}>
+            <button className="qa-expand-link mono" data-sfx="panel.expand" onClick={() => setNotes(true)}>
               <I.plus size={12}/> {t('qa_notes_collapsed')}
             </button>
           ) : (
             <div className="qa-expand-body">
               <div className="qa-expand-head">
                 <span className="mono qa-expand-lab">{t('qa_notes_expanded')}</span>
-                <button className="qa-expand-collapse" onClick={() => setNotes(false)}><I.x size={11}/></button>
+                <button className="qa-expand-collapse" data-sfx="panel.collapse" onClick={() => setNotes(false)}><I.x size={11}/></button>
               </div>
               <textarea
                 className="qa-notes-input"

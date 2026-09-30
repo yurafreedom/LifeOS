@@ -2885,3 +2885,33 @@ only if authorized — commit, and the normal PR
 and merge-commit flow. Afterwards choose and plan the next product scope from the
 gap list above (Discovery → Plan → Implementation). Publishing/deploying is not
 implied by the audit.
+
+====================================================================
+80. UI SOUND EFFECTS — IMPLEMENTED 2026-09-30 (UNCOMMITTED)
+====================================================================
+
+Report: Outputs/Implementations/lifeos-ui-sound-effects_20260930-153327.md
+Working tree on fix/lifeos-completion-audit (HEAD 1b396eb when written);
+not committed, not pushed, no PR. Verify live.
+
+- Owner clips staged at repo-root sfx/ (untracked, read-only source). Runtime
+  copies in apps/web/src/assets/sfx/ (12 standalone byte-identical + 5
+  lossless cuts sfx_seg01/03/07/08/12 of sfx.mp3). sfx.mp3 = the 12 cues in
+  alphabetical order; 7 exact duplicates, 5 alternate renders. No sprite at
+  runtime; sfx.mp3 is not bundled.
+- Facade apps/web/src/sound/index.ts (catalog / preferences / engine /
+  gestures). One cue per trusted gesture; app events via sfx.emit at the
+  existing success boundary: task.complete = local open→done transition
+  (not server ack); save.success = server-acknowledged saves only (today the
+  retention policy PUT). Local-first saves get the activation cue only.
+- Preferences are browser-local localStorage `lifeOsSfx` (device setting,
+  like lifeOsTheme): enabled, volume 25 %, hover off by default. No backend,
+  no migration.
+- Settings → «Звуковые эффекты»: switches, volume, per-event assignment with
+  preview (works while muted), None, restore defaults, test bench.
+- Not listened to by the agent: default mappings for task.complete (release),
+  save.success (decoding) and the long expand (peak 2.7 s) / menu (~0.9 s)
+  swells await the owner's listening review.
+- Frontend after this: 601 tests / 47 files, typecheck, lint, build PASS;
+  production-preview browser checks on lifeos_test; 0 overflow in Settings
+  at 320/390/768/1440 × RU/UK × dark/light/paradise.
