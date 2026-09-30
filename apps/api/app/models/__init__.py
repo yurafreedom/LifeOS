@@ -15,6 +15,7 @@ from app.models.aa_metric_membership_override import AAMetricMembershipOverride
 from app.models.aa_metric_policy_version import AAMetricPolicyVersion
 from app.models.aa_observation import AAObservation
 from app.models.aa_preference import AAPreference
+from app.models.aa_retention import AARetentionPolicy, AARetentionRun
 from app.models.aa_review import (
     AAReview,
     AAReviewContextItem,
@@ -55,6 +56,8 @@ __all__ = [
     "AAReviewContextSource",
     "AAReviewFactor",
     "AARelationFeedback",
+    "AARetentionPolicy",
+    "AARetentionRun",
     "AAReviewRevision",
     "AASignalEpisode",
     "AASourceCoverage",

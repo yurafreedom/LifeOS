@@ -37,6 +37,8 @@ from app.models import (
     AAObservation,
     AAPreference,
     AARelationFeedback,
+    AARetentionPolicy,
+    AARetentionRun,
     AAReview,
     AAReviewContextItem,
     AAReviewContextSource,
@@ -94,6 +96,10 @@ EXPORT_TABLES = {
     "aa_relation_feedback": AARelationFeedback.__table__,
     "aa_finance_contexts": AAFinanceContext.__table__,
     "aa_system_review_revisions": AASystemReviewRevision.__table__,
+    # Retention (Slice 8): every policy version the user chose and one audit row
+    # per Apply — counts and horizons only, never a deleted value.
+    "aa_retention_policies": AARetentionPolicy.__table__,
+    "aa_retention_runs": AARetentionRun.__table__,
 }
 
 

@@ -98,6 +98,9 @@ class DayCoverage(StrEnum):
     MISSING = "missing"
     UNKNOWN_COVERAGE = "unknown_coverage"
     FUTURE = "future"
+    # Slice 8: the day lies before an applied retention horizon. Its evidence was
+    # erased by the user's retention rule, so it is neither observed nor unknown.
+    RETENTION_TRUNCATED = "retention_truncated"
 
 
 class DerivedAvailability(StrEnum):
@@ -351,6 +354,8 @@ class ExperimentResultState(StrEnum):
 
 class RedactionReason(StrEnum):
     SOURCE_HARD_DELETED = "source_hard_deleted"
+    # Slice 8 (O2): the source was erased by the user's AA retention rule.
+    SOURCE_RETENTION_PRUNED = "source_retention_pruned"
 
 
 class ReviewSourceState(StrEnum):
@@ -463,6 +468,28 @@ class FinanceContextKind(StrEnum):
     RESERVE = "reserve"
     ESSENTIALS = "essentials"
     SELF_CHECK = "self_check"
+
+
+class RetentionMode(StrEnum):
+    """AA history retention intent (Slice 8). No policy row means UNLIMITED."""
+
+    UNLIMITED = "unlimited"
+    FINITE = "finite"
+
+
+# The only finite durations the owner allows (O3): 5, 3 and 2 years. Nothing shorter.
+RETENTION_MONTHS: tuple[int, ...] = (60, 36, 24)
+
+
+class RetentionPolicyStatus(StrEnum):
+    ACTIVE = "active"
+    SUPERSEDED = "superseded"
+
+
+class RetentionRunStatus(StrEnum):
+    RUNNING = "running"
+    COMPLETED = "completed"
+    FAILED = "failed"
 
 
 class ReviewPeriodKind(StrEnum):
