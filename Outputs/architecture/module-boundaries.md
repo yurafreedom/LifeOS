@@ -94,7 +94,7 @@ Facade: **`app/services/aa_system_review.py`** — import only from here
 | live review + waiting assembly (pure reads) | `read_model.py` |
 | saved revisions (freeze, append, read) | `revisions.py` |
 | **D1 redaction of revisions / relations / importance** | `redaction.py` — registered in `aa_deletion.SOURCE_REDACTORS` through the facade |
-| PDF / DOCX / XLSX / MD | `exports/` (`document.py` model → `report.py` builder → one writer per format; `labels.py` = the only server copy; `fonts/` DejaVu + license) |
+| PDF / DOCX / XLSX / MD | `exports/` (`document.py` model → `report.py` builder → one writer per format; `labels.py` = the only server copy, including `PRODUCT_NAME` — the visible product name (JENKIN) in export labels and DOCX/XLSX/PDF metadata; download file names keep `lifeos-*`; `fonts/` DejaVu + license) |
 
 Internal direction: `errors`, `refs`, `periods` → `contracts` → `resolve` →
 `importance`/`relations`/`contexts` → `changes` → `consequences` → `candidates`/`repeated`
@@ -146,13 +146,15 @@ deliberately: theme values are published through `LifeLocaleContext`.
 | I want to… | Go to |
 |---|---|
 | add a route id | `app/routes.js` (`LIFE_ROUTES`; pinned size in `smoke.test.jsx`) |
-| change hash parsing / sub-routes (`medications/<id>`, `review/…`, `project-analytics/<id>`, `experiment/{new,<uuid>}`, `calendar/…`, `system-review/…`) | `app/routeRegistry.js` (`readRouteFromHash`, `normalizeRoute`; pinned by `route-registry.test.ts`). The Calendar's own grammar (`calendar/{YYYY,YYYY-MM,YYYY-MM-DD,years[/YYYY],history}`) is `pages/calendar/calendarRoute.js` |
+| change hash parsing / sub-routes (`medications/<id>`, `review/…`, `project-analytics/<id>`, `experiment/{new,<uuid>}`, `calendar/…`, `system-review/…`) | `app/routeRegistry.js` (`readRouteFromHash`, `normalizeRoute`; pinned by `route-registry.test.ts`). The Calendar's own grammar (`calendar/{YYYY,YYYY-MM,YYYY-MM-DD,years[/YYYY],history}`) is `pages/calendar/calendarRoute.js`; how those routes map onto the nested levels (Years → Months → Days → Day details), the selected date and its clamping, breadcrumbs, previous/next/Today steps and arrow-key geometry are the pure `pages/calendar/calendarNav.js` |
 | render a route | one `case` in `App.jsx::renderRoute()` |
 | make a route lazy / eager | `app/lazyRoutes.jsx` (`LAZY_ROUTE_LOADERS`; pinned by `lazy-routes.test.jsx`). Home, Login, ParadiseScene and shell chrome stay eager. One `Suspense` boundary around `renderRoute()`; its fallback is empty `.page` chrome — do not add a second loading design |
 | nav entries | `components/Sidebar.jsx`, `components/MobileBottomNav.jsx` + locale copy |
 
 Shell effects: `app/useTheme.js` (theme + paradise scene, `localStorage`
 `lifeOsTheme`/`lifeOsScene`), `app/useSidebarCollapsed.js` (`lifeOsSidebar`),
+`pages/calendar/calendarNav.js` `readLayout`/`writeLayout` (Calendar day layout A/B,
+`lifeOsCalendarLayout`, default B — a device preference, never in the snapshot),
 `app/paradisePress.js` (delegated pointer physics), `app/clarifyHandlers.js`
 (the six Clarify transitions + toasts), `app/useUiSound.js` (UI sound
 listeners + Settings preference hook).
@@ -196,8 +198,8 @@ Both dictionaries are loaded synchronously (12 modules read
 | change seeds / the initial snapshot | `context/lifeData/initialState.js` |
 | change snapshot migration / validation | `context/lifeData/migrate.js` (snapshot `version` stays 2) |
 | add a domain action | `LifeDataContext.jsx` provider body. Projects/transactions enqueue the durable AA write **before** mutating the snapshot — keep that order |
-| task semantics (Calendar date = `schedule.date`, completion/closure/restore, move, per-day `order`, `created_at`, optional-field validators) | `domain/tasks.ts` (pure; the provider only wires actions). History is derived from `state.tasks`, never `activityLog` |
-| Calendar date math (month lengths, weekdays, 30-year windows, bounds ≤ 2100, Kyiv today, `msUntilNextDay`) and the **one** task date/time input rule (`validateScheduleInput` / `scheduleEdit`: a time needs a date, clearing the date clears its time, used by the Calendar editor and the Tasks detail) | `domain/calendarModel.ts` |
+| task semantics (Calendar date = `schedule.date`, completion/closure/restore, move, per-day `order`, `created_at`, optional-field validators) | `domain/tasks.ts` (pure; the provider only wires actions). History is derived from `state.tasks`, never `activityLog`. The Tasks «показать» views and their counts are `tasksForView` / `taskViewCounts` (one pipeline for rows and counts); the nested Calendar's tile summaries are `activeTaskCounts` (active dated tasks per day / month / year = the Day details rows) |
+| Calendar date math (month lengths, weekdays, 12-year windows anchored at the current year, bounds ≤ 2100, Kyiv today, `msUntilNextDay`, the 7 × 6 month grid of layout A `monthGrid`, the real week panels of layout B `monthWeeks`, `clampedDate`, `addDays`, `dateInBounds`) and the **one** task date/time input rule (`validateScheduleInput` / `scheduleEdit`: a time needs a date, clearing the date clears its time, used by the Calendar editor and the Tasks detail) | `domain/calendarModel.ts` |
 | Tasks «сегодня» / «просрочено» / «по дате» (GTD G2: `schedule.date` against the Kyiv day; legacy tag/stakes/due never date authority) | `domain/tasks.ts` `tasksDueToday` / `overdueTasks` / `sortTasksByDate`; the live Kyiv day for an open page is `app/useKyivToday.js` (midnight timer + focus/visibility/pageshow re-check); Tasks detail save routing (schedule change → `moveTask`, missing task → `{ok:false}`) is `app/taskDetailSave.js` |
 | Waiting For lifecycle after Delegate (edit title/person, received / cancelled, restore, convert → undated Task, delete; lifecycle-field validation; active/closed selectors) — GTD G1 | `domain/waiting.ts` (pure `applyWaitingCommand` → `applied` \| `unchanged` \| `invalid`; `commitWaitingCommand` is the provider bridge). Provider: `LifeDataContext.runWaitingCommand` (runs the updater under `flushSync`, so the outcome comes from the state React applies, not the render closure). UI: `pages/TasksPage.jsx::WaitingSection` + `components/WaitingItemModal.jsx`. Record **creation** stays in `domain/clarify.ts` (unchanged) |
 
@@ -235,7 +237,7 @@ types from `facts.ts` only.
 | `pages/projects/ProjectAnalyticsPage.jsx` (route shell; exports the pure `ProjectAnalyticsView`) | `pages/projects/analytics/{ForecastComparison.jsx, ForecastHistory.jsx}`; helpers in `analytics/projectAnalytics.ts` |
 | `pages/analytics/ExperimentPage.jsx` (route shell; re-exports `ExperimentDetailView`, `ExperimentListView`) | `pages/analytics/experiment/{format.js, ExperimentList.jsx, CreateForm.jsx, Detail.jsx, EvidenceForms.jsx, DecisionStep.jsx}`; shared `components/analytics/{AAExpStages, AAAdherence}.jsx` |
 | `pages/analytics/SystemReviewPage.jsx` (lazy route shell; exports `ReviewView`, `pendingIndex`) | `pages/analytics/system/{format.js, ReviewView.jsx, Sections.jsx, Tradeoff.jsx, Relations.jsx, LinkDialog.jsx, Consequences.jsx, ContextForms.jsx, SelfCheck.jsx, SavedReview.jsx, RevisionView.jsx, Waiting.jsx}`; shared `components/analytics/AAImportance.jsx` |
-| `pages/calendar/CalendarPage.jsx` (lazy route shell; exports the pure `CalendarView`) | `pages/calendar/{calendarRoute.js, CubeGrids.jsx, DayManagerModal.jsx, CalendarTaskEditor.jsx, CalendarHistory.jsx}`; stacked-dialog behaviour in `components/useDialog.js` |
+| `pages/calendar/CalendarPage.jsx` (lazy route shell: hash, selected date, A/B preference, focus and transition restarts; exports the pure, hook-free `CalendarView`: breadcrumbs, controls, one stable stage; plus the two stage policies `stageFocusTarget` — where focus goes after a navigation, never away from a usable toolbar control or an open dialog — and `ignoreRepeatClick` — only single activations act inside the stage) | `pages/calendar/{calendarRoute.js, calendarNav.js, TileGrids.jsx, DayDetails.jsx, CalendarTaskEditor.jsx, CalendarHistory.jsx}` — `TileGrids.jsx` = year / month tiles and day layouts A and B, `DayDetails.jsx` = the in-stage fourth level with every former Day Manager action (its nested editor is portalled to `<body>`); stacked-dialog behaviour of the editor in `components/useDialog.js` |
 | `components/SettingsPage.jsx` (re-exports `ExportSection`) | `components/settings/{ExportSection.jsx, DangerSection.jsx, RetentionSection.jsx, Row.jsx}`; small static sections stay in the page on purpose. `RetentionSection` exports the pure `RetentionView` + `runApply`; activityLog cleanup stays in `DangerSection` |
 
 ### Styles — the cascade is the product
@@ -246,18 +248,18 @@ reorder**; add a rule to the layer that owns the component.
 
 | Layer (`src/styles/`) | Owns |
 |---|---|
-| `tokens.css` | UI-kit tokens, density, dark tokens, light-theme token overrides |
+| `tokens.css` | UI-kit tokens, density, dark tokens, light-theme token overrides; the JENKIN material tokens (`--mat-*`, `--warm-beige`, `--today-text`, `--today-num`) — paradise-day values live in the paradise-day token block of `paradise.css`, paradise-night inherits dark |
 | `shell.css` | layout, sidebar, top bar |
 | `panels.css` | today hero, panel card, task list, money, goals, habits, toast, milestone |
 | `modals.css` | quick add, task detail, settings page, placeholder |
 | `pages-core.css` | page chrome, hero vignette, quick notes, Clarify panel |
 | `pages-life.css` | tasks toolbar, inline field, profile, dog, health, medications (read-only) |
 | `home.css` | home dashboard, charts, upcoming, telegram footer |
-| `calendar-nav.css` | calendar toolbar chrome (level tabs, navigation), mobile bottom nav |
+| `calendar-nav.css` | nested Calendar chrome (breadcrumbs, A/B switch, previous / Today / next, History; the `cal` size container), mobile bottom nav |
 | `responsive.css` | < 640 px single column |
 | `theme-light.css` | the second light-theme override block |
 | `medications.css` | interactive medications, config drawer, detail/journal |
-| `finance-calendar.css` | flexible finance, calendar cubes, Day Manager, nested editor, History |
+| `finance-calendar.css` | flexible finance, the nested Calendar stage, tiles, layouts A/B, week panels, day details, day task rows, nested editor, History, the tile transition + reduced-motion fade |
 | `glass.css` | **cross-cutting glass-card layer — must stay second-to-last** |
 | `paradise.css` | **paradise theme — must stay last** |
 

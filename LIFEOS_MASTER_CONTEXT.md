@@ -4,6 +4,9 @@
 Reconciled: 2026-09-30. Remote main verified at 5e858bb0322be0cc729d3d7e73ce359597aada84.
 The completion-audit fixes are separated from merged state in section 78; their
 publication state must be verified live (branch fix/lifeos-completion-audit).
+2026-10-01: the JENKIN shell / compact Tasks / nested Calendar implementation is
+on the pushed branch handoff/jenkin-cloud-20260930 (section 85); remote main was
+re-verified unchanged at 5e858bb. Not merged; verify live.
 
 You are working on a real software project called LifeOS.
 
@@ -2468,7 +2471,10 @@ GTD completion status and the proposed GTD slice order (G1 Waiting For
 lifecycle first, owner decisions pending) are recorded in section 79.
 Owner's JENKIN requirements (visible rename, interface pass, planned Calendar /
 Events / Inbox / capture / recovery / Documents work) and the lifeos_dev
-migration gap: section 84.
+migration gap: section 84. The approved JENKIN shell, compact Tasks and nested
+tile Calendar are implemented on the pushed branch handoff/jenkin-cloud-20260930
+(section 85; not merged). Next: owner review of that branch; Events and the other
+JENKIN slices are NOT started.
 
 Latest features can be tested in apps/web + apps/api on a disposable account.
 Destructive retention QA must use lifeos_test, never personal data.
@@ -3154,3 +3160,82 @@ current schema; lifeos_test passing does not imply otherwise. Upgrading
 lifeos_dev is the owner's decision; agents migrate only lifeos_test.
 Next: owner review of the local commits; G3 and the JENKIN feature plans are
 NOT started.
+Status note (2026-10-01): superseded in part by section 85 — the nested Calendar
+(from the owner's approved prototype), the paradise-day unchecked task border and
+the backend JENKIN labels/metadata are now done on handoff/jenkin-cloud-20260930.
+The rest of this section is kept as the historical record.
+
+====================================================================
+85. JENKIN — SHELL, COMPACT TASKS, NESTED TILE CALENDAR (PUSHED BRANCH, 2026-10-01)
+====================================================================
+
+Report: Outputs/Implementations/jenkin-cloud-shell-tasks-calendar_20261001-013804.md
+Branch handoff/jenkin-cloud-20260930 (pushed; no merge, no deploy; verify live).
+Start d396fa9 (handoff commit, on top of bb3c147). Code commits: 0730f84 shell +
+account + backend labels, 12043cf compact Tasks, 095be58 nested Calendar,
+1594c4d contrast floors, 05c420a 12 px stage floor, f1f3892 review hardening;
+then one docs commit (this section, the report, module boundaries, screenshots).
+
+Implemented (scope A–C of JENKIN_CLOUD_TASK.md):
+- Material tokens (--mat-*, --warm-beige, --today-text, --today-num) in the
+  existing theme system for dark, light, paradise-day (night inherits dark); no
+  new stylesheet layer (cascade manifest still 14 layers). Contrast measured in
+  the browser: unchecked task boxes >= 3:1, text cues >= 4.5:1 in all four themes.
+- Account block: profile name only if entered, real email on its own line at
+  12 px (wraps, full value in title), real sync phase on a separate warm-beige
+  line. Backend visible output says JENKIN (FastAPI title; System Review RU/UK
+  labels; DOCX creator, XLSX application, PDF producer); file names stay lifeos-*.
+- Tasks: one filter <select> with truthful counts from the same pipeline as the
+  rows (tasksForView / taskViewCounts); sort separate; title/date 13 px with
+  weight/colour hierarchy; worded «сегодня» / «просрочено» cues.
+- Calendar: Years (12-year windows anchored at the current Kyiv year) → Months
+  (12 tiles) → Days (layout B default: four week-panel columns of 7 rows, weeks
+  5–6 wrap; layout A: 7 × 6) → Day details inside the stage (every former Day
+  Manager action; the editor stays a stacked dialog portalled to <body>).
+  Clickable breadcrumbs; separate previous/next, Today and History. One stable
+  stage: 620 px (>= 1024), 560 px (768–1023), auto (< 768). A/B is a device
+  preference (localStorage lifeOsCalendarLayout, default B). Geometry-aware
+  arrows; Escape one level up after local confirmations/dialogs; focus to the
+  selected tile after tile/breadcrumb/Escape/Back-Forward navigation, never away
+  from a usable toolbar control or an open dialog; only single activations act in
+  the stage; rotateY(360deg) transition with a reduced-motion fade, never awaited.
+  Route grammar, deep links, bounds (<= 2100), clamping, History and the live
+  Kyiv rollover are unchanged. No events, fake data or preview controls.
+
+Decisions: Day details is the in-stage fourth level (no Day Manager modal);
+year windows at the bounds are partial rather than showing unopenable years;
+toolbar controls keep focus so they can be repeated; contrast tokens deviate
+from the reference where the browser measured below WCAG floors.
+
+Verification (cloud, disposable lifeos_test at 20260930_0009, PostgreSQL 16):
+frontend 822 tests / 54 files (baseline 738 / 53), typecheck, lint, analytics
+build, git diff --check PASS; backend 750 passed + 1 skipped with a Kyiv
+PostgreSQL session zone (with UTC the pre-existing
+test_tombstone_clears_value_keeps_existence_and_retry_cannot_restore fails on
+the baseline too), ruff PASS, alembic head/current 20260930_0009. Real-browser
+matrix on the production build + real API: 1440/1024/768/390/320 × dark/light/
+paradise-day/paradise-night × RU/UK, both layouts, every level: 40/40 PASS
+(0 overflow, >= 12 px, stable stage). Keyboard/focus harness 45/45 in 7
+configurations incl. reduced motion; persistence flows 19/19 (Calendar) and
+11/11 (Tasks); Kyiv rollover 9/9; review fixes 28/28. Screenshots:
+screenshots/jenkin-cloud-20260930/. Not run: screen readers, WebKit/Firefox,
+the editor conflict choice in the browser (unit-tested, editor unchanged).
+No dependency or migration change. Bundle: CalendarPage chunk 19.84 → 28.70 kB,
+index JS 381.41 → 383.20 kB, CSS 174.15 → 184.67 kB.
+
+Limitations: lifeos_dev remains at 20260721_0001 (not migrated; owner decision).
+Legacy tag chips can sit next to the real date cue (G2 never rewrites legacy
+data). The Mac recovery stash is untouched (it does not exist in the cloud clone).
+
+FUTURE EVENTS SLICE — REQUIRED DST BEHAVIOUR (not implemented; do not solve it
+inside Calendar visuals): On 25 October 2026 in Europe/Kyiv, start 03:30 UTC+02
+and end 03:45 must not silently become end 04:30. Resolve ambiguous start and
+end independently, preserve entered wall-clock values and offset choices, and
+reject inconsistent chronology. Never repair an invalid end by silently
+assigning start + one hour.
+
+Next slices (each Discovery → Plan → owner decisions; none started): Events
+persistence and editing (with the DST rule above), Inbox / suggest-only smart
+capture, account recovery then passkeys, Documents metadata, phone-number-change
+checklist. Not to implement: HELSI, BankID, Дія integrations (unverified),
+private-key storage, outbound automation.
