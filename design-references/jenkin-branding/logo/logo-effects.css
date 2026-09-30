@@ -1,0 +1,7 @@
+/* Optional treatment for an inline SVG. Keep the static logo as the default. */
+.jenkin-wordmark { display: block; width: 150px; height: auto; color: #f6efe4; }
+[data-theme="light"] .jenkin-wordmark { color: #252a2b; }
+.jenkin-brand-link .jenkin-wordmark { transition: filter 180ms ease; }
+.jenkin-brand-link:hover .jenkin-wordmark { filter: drop-shadow(0 0 5px rgb(233 172 98 / 18%)); }
+.jenkin-brand-link:focus-visible { outline: 2px solid #e9ac62; outline-offset: 5px; border-radius: 3px; }
+@media (prefers-reduced-motion: reduce) { .jenkin-brand-link .jenkin-wordmark { transition: none; } }

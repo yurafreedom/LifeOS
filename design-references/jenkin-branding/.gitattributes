@@ -1,0 +1,3 @@
+# Preserve the upstream license byte-for-byte. Its historical text contains one
+# trailing space, so treat only this source-reference file as non-textual.
+fonts/LICENSE -diff
