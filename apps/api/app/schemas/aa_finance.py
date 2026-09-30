@@ -55,6 +55,10 @@ class LegacyImportOut(BaseModel):
     overrides_replayed: int
     coverage_imported: int
     coverage_replayed: int
+    # F6 (Slice 8): semantic dates before an applied retention horizon are never
+    # reconstructed — erased history stays erased.
+    transactions_retention_skipped: int = 0
+    coverage_retention_skipped: int = 0
     activity_log_imported: Literal[0] = 0
     expectations_backfilled: Literal[0] = 0
     forecasts_backfilled: Literal[0] = 0

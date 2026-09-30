@@ -48,13 +48,16 @@ def finance_month(
         )
 
 
+# Guards run as route dependencies so a non-JSON body is a 415, not a parser 422
+# (Slice 8 hardening, K15); same-origin still precedes any body semantics.
+WRITE_GUARDS = [Depends(require_json_content_type), Depends(require_aa_write_enabled)]
+
+
 def _authorize_write(request: Request, settings: Settings):
-    require_json_content_type(request)
-    require_aa_write_enabled(settings)
     enforce_same_origin(request, settings)
 
 
-@router.post("/finance/policies")
+@router.post("/finance/policies", dependencies=WRITE_GUARDS)
 def finance_policy(
     body: FinancePolicyCreate,
     request: Request,
@@ -74,7 +77,7 @@ def finance_policy(
     return {"id": str(row.id), "replayed": replayed}
 
 
-@router.post("/finance/membership-overrides")
+@router.post("/finance/membership-overrides", dependencies=WRITE_GUARDS)
 def membership_override(
     body: PolicyByMeasurementKeyCreate,
     request: Request,
