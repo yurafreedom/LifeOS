@@ -16,7 +16,7 @@ pushed to it or to `main`.
 | `acb513d` | `feat(brand)`: Editorial logo in the sidebar and login, serif J mark, and favicon set |
 | `61722fe` | `feat(settings)`: optional DejaVu Sans interface font |
 | `14b5b40` | `docs`: implementation report and module-boundaries entry |
-| *(correction commit, see git log)* | `fix(font)`: narrow DejaVu scope, keep `--font-mono`, Appearance preview, 768 px TopBar wrap, full verification matrix, screenshots, master context §85 |
+| `af44927` | `fix(font)`: narrow DejaVu scope, keep `--font-mono`, Appearance preview, 768 px TopBar wrap, full verification matrix, screenshots, master context §85 |
 
 ## What changed
 
