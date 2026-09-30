@@ -155,7 +155,16 @@ Shell effects: `app/useTheme.js` (theme + paradise scene, `localStorage`
 `lifeOsTheme`/`lifeOsScene`), `app/useSidebarCollapsed.js` (`lifeOsSidebar`),
 `app/paradisePress.js` (delegated pointer physics), `app/clarifyHandlers.js`
 (the six Clarify transitions + toasts), `app/useUiSound.js` (UI sound
-listeners + Settings preference hook).
+listeners + Settings preference hook), `app/useInterfaceFont.js` (optional
+DejaVu Sans interface font, `lifeOsFont`, applied as `<html data-font>` and
+pre-paint in `index.html`).
+
+Branding: `components/JenkinBrand.jsx` (Editorial wordmark + serif J mark,
+outlined `currentColor` SVG from `design-references/jenkin-branding/logo/`),
+`src/brand.css` (mark ink per theme, DejaVu `@font-face` + `data-font`
+override; imported by `main.jsx` after `styles.css`, outside the layer
+manifest), favicons in `public/assets/`, runtime fonts in
+`assets/fonts/dejavu-sans/`.
 
 ### UI sound effects
 
