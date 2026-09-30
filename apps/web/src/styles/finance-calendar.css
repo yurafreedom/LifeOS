@@ -399,7 +399,7 @@ button.cal-tile:hover:not(:disabled) {
   font-size: var(--text-md); font-weight: 500; color: var(--fg1); overflow-wrap: anywhere; cursor: pointer;
 }
 .cal-task-title:hover { color: var(--primary-l); }
-.cal-task-meta { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; font-size: var(--text-xs); color: var(--fg3); }
+.cal-task-meta { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; font-size: var(--text-sm); color: var(--fg3); }
 .cal-overdue {
   padding: 1px 8px; border-radius: var(--r-pill);
   background: var(--red-tint); color: var(--red-2);   /* the stronger red keeps the tinted pill ≥ 4.5:1 in every theme */
@@ -464,7 +464,7 @@ button.cal-tile:hover:not(:disabled) {
 .cal-history-empty { padding: 18px 4px; color: var(--fg3); font-size: var(--text-sm); }
 .cal-history { width: 100%; border-collapse: collapse; font-size: var(--text-sm); }
 .cal-history th {
-  text-align: left; font-weight: 500; font-size: var(--text-xs); color: var(--fg3);
+  text-align: left; font-weight: 500; font-size: var(--text-sm); color: var(--fg3);
   padding: 6px 8px; border-bottom: 1px solid var(--border);
 }
 .cal-history td { padding: 9px 8px; border-bottom: 1px solid var(--border); color: var(--fg2); vertical-align: middle; }
@@ -472,7 +472,7 @@ button.cal-tile:hover:not(:disabled) {
 .cal-history-num { white-space: nowrap; }
 .cal-state {
   display: inline-block; padding: 2px 8px; border-radius: var(--r-pill);
-  font-size: var(--text-xs); white-space: nowrap;
+  font-size: var(--text-sm); white-space: nowrap;
   background: var(--primary-soft); color: var(--primary-l);
 }
 .cal-state.is-completed { background: var(--success-soft, rgba(29,158,117,0.14)); color: var(--success); }
@@ -491,7 +491,7 @@ button.cal-tile:hover:not(:disabled) {
   .cal-history td { display: block; padding: 0; border: 0; }
   .cal-history .cal-history-title { grid-column: 1 / -1; order: -1; font-size: var(--text-md); }
   .cal-history td[data-label]::before {
-    content: attr(data-label) " · "; color: var(--fg3); font-size: var(--text-xs);
+    content: attr(data-label) " · "; color: var(--fg3); font-size: var(--text-sm);
   }
   .cal-history .cal-history-action { grid-column: 1 / -1; }
 }

@@ -259,6 +259,17 @@ describe('stable stage, responsive columns and motion', () => {
       expect(read(`../pages/calendar/${file}`)).not.toMatch(/animationend|transitionend|onAnimationEnd/);
     }
   });
+
+  it('keeps the stage text at the 12 px floor: day details meta, History headers, labels and states', () => {
+    const rule = selector => css.slice(css.indexOf(`${selector} {`), css.indexOf('}', css.indexOf(`${selector} {`)));
+    for (const selector of ['.cal-task-meta', '.cal-history th', '.cal-state', '.cal-overdue']) {
+      expect(rule(selector)).not.toContain('--text-xs');
+    }
+    expect(rule('.cal-task-meta')).toContain('font-size: var(--text-sm);');
+    expect(rule('.cal-history th')).toContain('font-size: var(--text-sm);');
+    expect(rule('.cal-state')).toContain('font-size: var(--text-sm);');
+    expect(rule('  .cal-history td[data-label]::before')).toContain('font-size: var(--text-sm);');
+  });
 });
 
 describe('C20 / C21 · localisation', () => {
