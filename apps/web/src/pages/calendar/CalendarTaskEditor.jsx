@@ -1,7 +1,7 @@
 import React from 'react';
 import { LIcons } from '../../components/icons.jsx';
 import { useDialog } from '../../components/useDialog.js';
-import { MAX_YEAR, MIN_INPUT_YEAR, isAcceptableTaskDate } from '../../domain/calendarModel.ts';
+import { MAX_YEAR, MIN_INPUT_YEAR, scheduleEdit } from '../../domain/calendarModel.ts';
 import { taskDisplayTitle, taskTime } from '../../domain/tasks.ts';
 
 /* Nested Calendar task editor (owner: «отдельным всплывающим попапом внутри
@@ -12,29 +12,22 @@ import { taskDisplayTitle, taskTime } from '../../domain/tasks.ts';
  * A changed date moves the same task to its new day (no copy). */
 
 const { useRef, useState } = React;
-const TIME = /^\d{2}:\d{2}$/;
 
-/** Pure validation + change detection for the editor form. */
+/** Pure validation + change detection for the editor form. Date/time rules
+    are the shared calendarModel.scheduleEdit (also used by the Tasks detail):
+    a time needs a date, and clearing the date clears its time. */
 export function editorResult(task, form, t) {
   const errors = {};
   const title = form.title.trim();
   if (!title) errors.title = 'cal_err_title';
-  if (form.date && !isAcceptableTaskDate(form.date)) errors.date = 'cal_err_date';
-  if (form.time && !TIME.test(form.time)) errors.time = 'cal_err_time';
+  const schedule = scheduleEdit(task, { date: form.date, time: form.time });
+  if (schedule.errors) Object.assign(errors, schedule.errors);
   if (Object.keys(errors).length > 0) return { errors };
 
-  const initialDate = task.schedule && task.schedule.date ? task.schedule.date : '';
-  const initialTime = taskTime(task);
   const patch = {};
   if (title !== taskDisplayTitle(task, t)) patch.title = title;
   if (form.notes !== (task.notes || '')) patch.notes = form.notes;
-  const scheduleChanged = form.date !== initialDate || form.time !== initialTime;
-  return {
-    errors: null,
-    patch,
-    schedule: scheduleChanged ? { date: form.date, time: form.time } : undefined,
-    clearsDate: Boolean(initialDate) && !form.date,
-  };
+  return { errors: null, patch, schedule: schedule.schedule, clearsDate: schedule.clearsDate };
 }
 
 export function CalendarTaskEditor({ task, t, onCancel, onSave }) {
@@ -53,7 +46,9 @@ export function CalendarTaskEditor({ task, t, onCancel, onSave }) {
   useDialog(dialogRef, { onClose: onCancel, initialFocusRef: titleRef });
 
   const set = key => event => {
-    setForm(prev => ({ ...prev, [key]: event.target.value }));
+    const value = event.target.value;
+    /* The time only refines a date: clearing the date clears its time. */
+    setForm(prev => (key === 'date' && !value ? { ...prev, date: '', time: '' } : { ...prev, [key]: value }));
     if (key === 'date') setConfirmClear(false);
   };
 

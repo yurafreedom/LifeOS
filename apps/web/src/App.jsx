@@ -14,6 +14,7 @@ import {
   SystemReviewPage,
 } from './app/lazyRoutes.jsx';
 import { useParadisePress } from './app/paradisePress.js';
+import { saveTaskDetail } from './app/taskDetailSave.js';
 import { useUiSound } from './app/useUiSound.js';
 import { ANALYTICS_ROUTE_ENABLED, normalizeRoute, readRouteFromHash } from './app/routeRegistry.js';
 import { useSidebarCollapsed } from './app/useSidebarCollapsed.js';
@@ -135,6 +136,7 @@ function AppShell({ user }) {
 
   const clarifyHandlers = createClarifyHandlers({ data, t, showToast });
 
+
   function showToast(toastObj) {
     setToast(toastObj);
     clearTimeout(window.__toastT);
@@ -216,7 +218,7 @@ function AppShell({ user }) {
             waitingItems={emptyMode ? [] : waitingItems}
             onToggle={data.toggleTask}
             onAdd={addTaskFromUI}
-            onOpen={(task) => setDetail(task)}
+            onOpen={(task) => setDetail({ ...task, persisted: true })}
           />
         );
       case 'habits':
@@ -328,17 +330,24 @@ function AppShell({ user }) {
           />
         )}
 
-        {detailTask && (
+        {detailTask && (() => {
+          /* Always the persisted task: list rows carry display-resolved
+             copies (localised title/due) that must never be saved back. A row
+             opened from Tasks whose task has since been removed is shown as
+             missing; Home seed rows are display-only (no schedule editing). */
+          const persistedTask = tasks.find(x => String(x.id) === String(detailTask.id));
+          return (
           <TaskDetailModal
-            /* Always the persisted task: list rows carry display-resolved
-               copies (localised title/due) that must never be saved back. */
-            task={tasks.find(x => String(x.id) === String(detailTask.id)) || detailTask}
+            task={persistedTask || detailTask}
+            canSchedule={!!persistedTask}
+            missing={!persistedTask && !!detailTask.persisted}
             onClose={() => setDetail(null)}
-            onUpdate={(id, patch) => data.updateTaskFields(id, patch)}
+            onUpdate={(id, patch, schedule) => saveTaskDetail({ tasks, data }, id, patch, schedule)}
             onComplete={(id) => data.toggleTask(id)}
             onDelete={(id) => data.deleteTask(id)}
           />
-        )}
+          );
+        })()}
 
         <Toast toast={toast} />
         <MobileBottomNav active={route} onNav={setRoute} />

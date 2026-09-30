@@ -141,6 +141,48 @@ export function tasksForDay(tasks: TaskRecord[], date: string): TaskRecord[] {
     .map(({ task }) => task);
 }
 
+/* ── Tasks page date views (GTD G2) ──────────────────────────────────────── */
+
+/* «сегодня» / «просрочено» are derived from `schedule.date` against the
+   Europe/Kyiv day the caller passes in (see calendarModel.todayDateOnly).
+   Legacy `tag === 'today'`, `stakes` and the `due` display label are never
+   date authority: an undated task is in neither view, only under «все». */
+
+/** Active tasks whose Calendar date is `today`, in stored order. */
+export function tasksDueToday(tasks: TaskRecord[], today: string): TaskRecord[] {
+  return tasks.filter(task => isTaskActive(task) && taskDate(task) === today);
+}
+
+/** Active tasks whose Calendar date is before `today` (isTaskOverdue). */
+export function overdueTasks(tasks: TaskRecord[], today: string): TaskRecord[] {
+  return tasks.filter(task => isTaskOverdue(task, today));
+}
+
+/* Chronological order for the Tasks «по дате» sort:
+     1. dated tasks by `schedule.date`, earliest first;
+     2. within one date, exactly the Calendar day order (tasksForDay): the
+        user's explicit `order`, then timed before untimed by time, then
+        stored position;
+     3. undated tasks (no valid date — a time alone never dates a task) last,
+        in stored position.
+   Stable: equal keys keep their stored order. */
+export function sortTasksByDate(tasks: TaskRecord[]): TaskRecord[] {
+  return tasks
+    .map((task, index) => ({ task, index, date: taskDate(task) }))
+    .sort((a, b) => {
+      if (a.date && b.date) {
+        return a.date.localeCompare(b.date)
+          || (orderKey(a.task) - orderKey(b.task))
+          || timeKey(a.task).localeCompare(timeKey(b.task))
+          || (a.index - b.index);
+      }
+      if (a.date) return -1;
+      if (b.date) return 1;
+      return a.index - b.index;
+    })
+    .map(({ task }) => task);
+}
+
 export function historyStatus(task: TaskRecord): HistoryStatus | null {
   if (task.done === true) return 'completed';
   if (isTaskClosed(task)) return task.closure as TaskClosure;

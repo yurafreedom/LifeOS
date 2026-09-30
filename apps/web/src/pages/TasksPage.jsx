@@ -5,7 +5,11 @@ import { formatInstantDate } from '../analytics/projectAnalytics.ts';
 import { WAITING_RESOLUTION_KEYS, WaitingItemModal, waitingOutcomeMessage } from '../components/WaitingItemModal.jsx';
 import { LifeDataContext } from '../context/LifeDataContext.jsx';
 import { LifeLocaleContext } from '../context/LocaleContext.jsx';
-import { isTaskActive, isTaskClosed } from '../domain/tasks.ts';
+import {
+  isTaskActive, isTaskClosed, isTaskOverdue, overdueTasks, sortTasksByDate, taskDate, taskTime, tasksDueToday,
+} from '../domain/tasks.ts';
+import { formatDay } from '../domain/calendarModel.ts';
+import { useKyivToday } from '../app/useKyivToday.js';
 import { activeWaitingItems, canRestoreWaiting, closedWaitingItems } from '../domain/waiting.ts';
 
 /* global React */
@@ -46,19 +50,24 @@ function TasksPage({ tasks, waitingItems = [], onToggle, onAdd, onOpen }) {
     { id: 'category', label: t('tasks_sort_category') },
   ];
 
+  /* GTD G2: «сегодня» / «просрочено» come from schedule.date against the live
+     Europe/Kyiv day (useKyivToday re-renders at midnight and on tab return).
+     Legacy tag/stakes/due labels never place a task on a day. */
+  const today = useKyivToday();
   const filtered = useMemoTP(() => {
     // Calendar closures stay in History until Restore; ordinary task controls
     // must not present them as unchecked tasks merely because done is false.
     let xs = tasks.filter(task => !isTaskClosed(task));
-    if (filter === 'today')   xs = xs.filter(x => x.tag === 'today' || x.stakes);
-    if (filter === 'overdue') xs = xs.filter(x => !x.done && x.due && x.due.includes(':'));
+    if (filter === 'today')   xs = tasksDueToday(xs, today);
+    if (filter === 'overdue') xs = overdueTasks(xs, today);
     if (filter === 'routine') xs = xs.filter(x => !x.stakes && isTaskActive(x));
     if (filter === 'stakes')  xs = xs.filter(x => x.stakes && isTaskActive(x));
     if (filter === 'done')    xs = xs.filter(x => x.done);
+    if (sort === 'date')      xs = sortTasksByDate(xs);
     if (sort === 'priority')  xs.sort((a, b) => (b.stakes ? 1 : 0) - (a.stakes ? 1 : 0));
     if (sort === 'category')  xs.sort((a, b) => String(a.tag || '').localeCompare(String(b.tag || '')));
     return xs;
-  }, [tasks, filter, sort]);
+  }, [tasks, filter, sort, today]);
 
   const openCount = tasks.filter(isTaskActive).length;
   const waitingView = filter === 'waiting';
@@ -119,7 +128,13 @@ function TasksPage({ tasks, waitingItems = [], onToggle, onAdd, onOpen }) {
                       {task.tagLabel || t('tag_' + task.tag, task.tag)}
                     </span>
                   )}
-                  {task.due && <span className="task-due mono">{task.due}</span>}
+                  {taskDate(task) ? (
+                    <time className={"task-due mono" + (isTaskOverdue(task, today) ? " is-overdue" : "")}
+                          dateTime={taskTime(task) ? `${taskDate(task)}T${taskTime(task)}` : taskDate(task)}>
+                      {formatDay(taskDate(task), t('_intl_locale'), { day: 'numeric', month: 'short' })}
+                      {taskTime(task) ? ` · ${taskTime(task)}` : ''}
+                    </time>
+                  ) : task.due && <span className="task-due mono">{task.due}</span>}
                 </div>
               </div>
             ))}

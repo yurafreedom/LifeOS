@@ -110,7 +110,9 @@ describe('App edit wiring', () => {
   const app = readFileSync(new URL('../App.jsx', import.meta.url), 'utf8');
 
   it('opens the persisted task and saves a patch by id', () => {
-    expect(app).toContain('onUpdate={(id, patch) => data.updateTaskFields(id, patch)}');
+    /* G2: edits go through app/taskDetailSave.js (behaviour covered in
+       tasks-g2.test.jsx); the dialog still receives the persisted task. */
+    expect(app).toContain('saveTaskDetail({ tasks, data }, id, patch, schedule)');
     expect(app).toContain('tasks.find(x => String(x.id) === String(detailTask.id))');
   });
 

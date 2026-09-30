@@ -116,8 +116,12 @@ describe('nested editor', () => {
     expect(editorResult(task, form({ date: '2020-03-01' }), t).errors).toBeNull();
   });
 
-  it('flags clearing the date so the user must confirm leaving the Calendar', () => {
-    expect(editorResult(task, form({ date: '' }), t)).toMatchObject({ clearsDate: true, schedule: { date: '', time: '10:00' } });
+  it('flags clearing the date so the user must confirm leaving the Calendar; the time goes with it (G2)', () => {
+    expect(editorResult(task, form({ date: '', time: '' }), t)).toMatchObject({ clearsDate: true, schedule: { date: '', time: '' } });
+  });
+
+  it('G2 · rejects a time without a date instead of storing a dateless time', () => {
+    expect(editorResult(task, form({ date: '' }), t).errors).toEqual({ time: 'cal_err_time_needs_date' });
   });
 
   it('keeps a seed titleKey unless the title is edited', () => {

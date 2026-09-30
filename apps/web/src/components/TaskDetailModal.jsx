@@ -1,9 +1,11 @@
 import React from 'react';
 import { LifeLocaleContext } from '../context/LocaleContext.jsx';
 import { LifeCatTintClass, LifeExpenseCats } from '../data/categories.js';
-import { taskDisplayTitle } from '../domain/tasks.ts';
+import { MAX_YEAR, MIN_INPUT_YEAR, scheduleEdit } from '../domain/calendarModel.ts';
+import { taskDate, taskDisplayTitle, taskTime } from '../domain/tasks.ts';
 import { ActivityTimeline } from './ActivityTimeline.jsx';
 import { LIcons } from './icons.jsx';
+import { useDialog } from './useDialog.js';
 
 /* global React */
 const { useState: useStateTD, useEffect: useEffectTD, useContext: useCtxTD, useRef: useRefTD } = React;
@@ -25,7 +27,16 @@ function taskDetailPatch(task, draft, t, cats) {
   return patch;
 }
 
-function TaskDetailModal({ task, onClose, onUpdate, onComplete, onDelete }) {
+/* GTD G2 · the Tasks detail can set, change or clear the Calendar date/time,
+   with exactly the Calendar editor's rules (calendarModel.scheduleEdit): a time
+   needs a date, clearing the date clears its time and asks for confirmation,
+   and a changed date moves the SAME task (the caller routes it through
+   moveTask, like the Calendar). `onUpdate(id, patch, schedule)` returns
+   { ok: false, code } when the task no longer exists — the dialog then stays
+   open with that explanation instead of claiming a save. `canSchedule` is off
+   for display-only rows (Home seed rows) that are not persisted tasks;
+   `missing` marks a persisted task that has since been removed. */
+function TaskDetailModal({ task, onClose, onUpdate, onComplete, onDelete, canSchedule = true, missing = false }) {
   const { t, locale } = useCtxTD(LifeLocaleContext);
   const I = LIcons;
   const cats = LifeExpenseCats;
@@ -40,13 +51,22 @@ function TaskDetailModal({ task, onClose, onUpdate, onComplete, onDelete }) {
   const [notes, setNotes]     = useStateTD(task ? (task.notes || '') : '');
   const [confirmDel, setCD]   = useStateTD(false);
   const [menuOpen, setMO]     = useStateTD(false);
+  const [date, setDate]       = useStateTD(task ? (taskDate(task) || '') : '');
+  const [time, setTime]       = useStateTD(task && taskDate(task) ? taskTime(task) : '');
+  const [errors, setErrors]   = useStateTD({});
+  const [confirmClear, setConfirmClear] = useStateTD(false);
+  const [failure, setFailure] = useStateTD(null);
 
   const catBoxRef = useRefTD(null);
+  const dialogRef = useRefTD(null);
+
+  /* Shared dialog behaviour: focus in on open, Tab wraps, Escape closes the
+     top-most dialog only, focus returns to the opener. */
+  useDialog(dialogRef, { onClose });
 
   useEffectTD(() => {
     if (!task) return;
     function handler(e) {
-      if (e.key === 'Escape') { e.preventDefault(); onClose(); }
       if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); commit(); }
     }
     window.addEventListener('keydown', handler);
@@ -65,9 +85,23 @@ function TaskDetailModal({ task, onClose, onUpdate, onComplete, onDelete }) {
   if (!task) return null;
 
   function commit() {
+    if (missing) return;
     const patch = taskDetailPatch(task, { title, stakes, catId, subtasks, notes }, t, cats);
-    if (Object.keys(patch).length > 0) onUpdate(task.id, patch);
+    const edit = canSchedule ? scheduleEdit(task, { date, time }) : { errors: null, schedule: undefined, clearsDate: false };
+    if (edit.errors) { setErrors(edit.errors); return; }
+    setErrors({});
+    if (edit.clearsDate && !confirmClear) { setConfirmClear(true); return; }
+    if (Object.keys(patch).length === 0 && edit.schedule === undefined) { onClose(); return; }
+    const result = onUpdate(task.id, patch, edit.schedule);
+    if (result && result.ok === false) { setFailure(t('td_err_missing')); return; }
     onClose();
+  }
+  function changeDate(value) {
+    /* The time only refines a date: clearing the date clears its time. */
+    setDate(value);
+    if (!value) setTime('');
+    setConfirmClear(false);
+    setErrors({});
   }
   function toggleSub(id) {
     setSubs(s => s.map(x => x.id === id ? { ...x, done: !x.done } : x));
@@ -93,12 +127,13 @@ function TaskDetailModal({ task, onClose, onUpdate, onComplete, onDelete }) {
 
   return (
     <div className="qa-backdrop" onMouseDown={onClose}>
-      <div className="qa-modal td-modal" onMouseDown={e => e.stopPropagation()} role="dialog">
+      <div className="qa-modal td-modal" ref={dialogRef} onMouseDown={e => e.stopPropagation()}
+           role="dialog" aria-modal="true" aria-label={t('td_eyebrow')}>
 
         <div className="qa-head">
           <span className="qa-eyebrow mono">{t('td_eyebrow')} {task.stakes && <span className="td-eyebrow-stakes">· {t('qa_stakes')}</span>}</span>
           <div className="td-head-actions">
-            <button className="td-menu-btn" onClick={() => setMO(o => !o)}>{I.moreHorizontal({ size: 14 })}</button>
+            <button className="td-menu-btn" disabled={missing} aria-label={t('td_menu')} onClick={() => setMO(o => !o)}>{I.moreHorizontal({ size: 14 })}</button>
             {menuOpen && (
               <div className="td-menu">
                 {!confirmDel ? (
@@ -160,6 +195,42 @@ function TaskDetailModal({ task, onClose, onUpdate, onComplete, onDelete }) {
           </div>
         </div>
 
+        {/* DATE · GTD G2 — the Calendar date (schedule.date), not the legacy label */}
+        {canSchedule && !missing ? (
+          <div className="td-section td-schedule">
+            <div className="td-section-head">
+              <span className="mono td-section-lab" id="td-schedule-lab">{t('td_schedule')}</span>
+              {date ? (
+                <button type="button" className="td-schedule-clear" onClick={() => changeDate('')}>{t('td_clear_date')}</button>
+              ) : null}
+            </div>
+            <div className="cal-field-row" role="group" aria-labelledby="td-schedule-lab">
+              <label className="cal-field">
+                <span className="cal-field-lab mono">{t('cal_field_date')}</span>
+                <input type="date" className="cal-input mono"
+                       min={`${MIN_INPUT_YEAR}-01-01`} max={`${MAX_YEAR}-12-31`}
+                       value={date} onChange={e => changeDate(e.target.value)}
+                       aria-invalid={errors.date ? 'true' : undefined}
+                       aria-describedby={errors.date ? 'td-err-date' : undefined} />
+                {errors.date ? <span className="cal-field-err" id="td-err-date" role="alert">{t(errors.date)}</span> : null}
+              </label>
+              <label className="cal-field">
+                <span className="cal-field-lab mono">{t('cal_field_time')}</span>
+                <input type="time" className="cal-input mono"
+                       value={time} onChange={e => { setTime(e.target.value); setErrors({}); }}
+                       aria-invalid={errors.time ? 'true' : undefined}
+                       aria-describedby={errors.time ? 'td-err-time' : undefined} />
+                {errors.time ? <span className="cal-field-err" id="td-err-time" role="alert">{t(errors.time)}</span> : null}
+              </label>
+            </div>
+            {confirmClear ? <div className="cal-confirm" role="alert"><span>{t('cal_clear_date_q')}</span></div> : null}
+          </div>
+        ) : null}
+
+        {missing || failure ? (
+          <p className="cal-field-err td-missing" role="alert">{failure || t('td_err_missing')}</p>
+        ) : null}
+
         {/* SUBTASKS */}
         <div className="td-section">
           <div className="td-section-head">
@@ -206,8 +277,10 @@ function TaskDetailModal({ task, onClose, onUpdate, onComplete, onDelete }) {
             <span className="qa-kbd">ESC</span><span>{t('qa_cancel')}</span>
           </div>
           <div className="qa-foot-actions">
-            <button className="qa-btn-ghost" onClick={() => { commit(); }}>{t('td_save')}</button>
-            <button className={"qa-btn-save" + (stakes ? " is-stakes" : "")} onClick={() => { onComplete(task.id); onClose(); }}>
+            <button className="qa-btn-ghost" disabled={missing} onClick={() => { commit(); }}>
+              {confirmClear ? t('cal_clear_date_ok') : t('td_save')}
+            </button>
+            <button className={"qa-btn-save" + (stakes ? " is-stakes" : "")} disabled={missing} onClick={() => { onComplete(task.id); onClose(); }}>
               {task.done ? t('td_uncomplete') : t('td_complete')}
             </button>
           </div>

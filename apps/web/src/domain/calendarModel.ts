@@ -1,5 +1,5 @@
-import { localDateForInstant, parseDateOnly } from '../analytics/timezone';
-import { taskDate, type TaskRecord } from './tasks';
+import { dateOnlyAtStartOfDay, localDateForInstant, nextDateOnly, parseDateOnly } from '../analytics/timezone';
+import { taskDate, taskTime, type TaskRecord } from './tasks';
 
 /* Calendar date model — pure date-only arithmetic, no browser-local Dates.
  *
@@ -27,6 +27,13 @@ export const dateKey = (year: number, month: number, day: number) => `${monthKey
 
 export function todayDateOnly(now: string | number | Date = new Date()): string {
   return localDateForInstant(now);
+}
+
+/** Milliseconds until the next Europe/Kyiv day starts (DST-aware), ≥ 1. */
+export function msUntilNextDay(now: string | number | Date = new Date()): number {
+  const at = now instanceof Date ? now.getTime() : new Date(now).getTime();
+  const next = Date.parse(dateOnlyAtStartOfDay(nextDateOnly(todayDateOnly(at))));
+  return Math.max(1, next - at);
 }
 
 export function yearOf(dateOnly: string): number {
@@ -125,4 +132,47 @@ export function isAcceptableTaskDate(value: string): boolean {
   } catch {
     return false;
   }
+}
+
+/* ── Schedule input (GTD G2) ─────────────────────────────────────────────── */
+
+export type ScheduleInputError = 'cal_err_date' | 'cal_err_time' | 'cal_err_time_needs_date';
+export type ScheduleInputResult =
+  | { errors: { date?: ScheduleInputError; time?: ScheduleInputError }; schedule?: undefined }
+  | { errors: null; schedule: { date: string; time: string } | null };
+
+const INPUT_TIME = /^([01]\d|2[0-3]):[0-5]\d$/;
+
+/* The single validation for every task date/time editor (Calendar editor,
+   Tasks detail). A time only ever refines a date: a time without a date is
+   rejected rather than stored as a dateless "due" (normalizeSchedule would
+   keep it). Empty date + empty time = no schedule (null). Past dates are
+   allowed — rescheduling into the past is a real, visible "overdue" choice. */
+export function validateScheduleInput(input: { date?: unknown; time?: unknown }): ScheduleInputResult {
+  const date = typeof input.date === 'string' ? input.date.trim() : '';
+  const time = typeof input.time === 'string' ? input.time.trim() : '';
+  const errors: { date?: ScheduleInputError; time?: ScheduleInputError } = {};
+  if (date && !isAcceptableTaskDate(date)) errors.date = 'cal_err_date';
+  if (time && !INPUT_TIME.test(time)) errors.time = 'cal_err_time';
+  else if (time && !date) errors.time = 'cal_err_time_needs_date';
+  if (errors.date || errors.time) return { errors };
+  return { errors: null, schedule: date ? { date, time } : null };
+}
+
+export type ScheduleEditResult =
+  | { errors: { date?: ScheduleInputError; time?: ScheduleInputError }; schedule?: undefined; clearsDate?: undefined }
+  | { errors: null; schedule: { date: string; time: string } | undefined; clearsDate: boolean };
+
+/* A task editor's date/time fields against the persisted task. `schedule` is
+   undefined when neither changed; a cleared date is reported as
+   { date: '', time: '' } (moveTask stores no schedule and drops `order`),
+   with `clearsDate` so the UI can confirm leaving the Calendar first. */
+export function scheduleEdit(task: TaskRecord, input: { date?: unknown; time?: unknown }): ScheduleEditResult {
+  const checked = validateScheduleInput(input);
+  if (checked.errors) return { errors: checked.errors };
+  const next = checked.schedule || { date: '', time: '' };
+  const initialDate = taskDate(task) || '';
+  const initialTime = initialDate ? taskTime(task) : '';
+  const changed = next.date !== initialDate || next.time !== initialTime;
+  return { errors: null, schedule: changed ? next : undefined, clearsDate: Boolean(initialDate) && !next.date };
 }

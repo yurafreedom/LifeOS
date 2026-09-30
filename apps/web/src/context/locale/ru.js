@@ -1305,6 +1305,12 @@ export const ru = {
     cal_err_date:     'укажите настоящую дату не позже 2100 года',
     cal_err_time:     'укажите время в формате ЧЧ:ММ',
     cal_clear_date_q: 'без даты задача уйдёт из календаря и останется в задачах',
+    /* GTD G2 · date/time in the Tasks detail */
+    cal_err_time_needs_date: 'сначала выберите дату — время уточняет день',
+    td_schedule:      'дата и время',
+    td_clear_date:    'убрать дату',
+    td_menu:          'действия с задачей',
+    td_err_missing:   'этой задачи больше нет — изменения не сохранены',
     cal_clear_date_ok:'да, без даты',
     cal_history_title:'история',
     cal_history_empty:'здесь появятся выполненные, закрытые без выполнения и архивные задачи',

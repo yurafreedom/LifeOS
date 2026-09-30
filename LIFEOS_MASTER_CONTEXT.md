@@ -3010,4 +3010,44 @@ title, the person stays on the closed Waiting record, no invented notes.
   passed + 1 skipped with LIFEOS_AA_WRITE_ENABLED=false (the local ignored
   apps/api/.env otherwise opens the AA gate for one gate test); ruff PASS;
   alembic head/current 20260930_0009.
-Next: owner review of the whole working tree; G2 is NOT started.
+Committed 2026-09-30 as c1353e1 (see section 82 for the commit sequence).
+
+====================================================================
+82. GTD G2 — TASK DATES AND RESCHEDULING — IMPLEMENTED 2026-09-30 (LOCAL COMMITS)
+====================================================================
+
+Report: Outputs/Implementations/lifeos-gtd-g2-task-dates_20260930-180255.md
+Local commits on fix/lifeos-completion-audit (not pushed, no PR, verify live):
+1845c5f audit D1–D3 (+ post-review MetricHistory/loadFinance hardening),
+bc5bc64 UI sound effects, c1353e1 GTD discovery/plan + G1, then the G2 commit.
+Owner inputs deliberately untracked: repo-root sfx/ (audio originals),
+LifeOS_Completion_Audit_20260930.md, apps/web/src/Архив.zip (appeared during
+the session; not created by the agent).
+
+Owner-approved semantics (2026-09-30): «сегодня» = active tasks whose
+schedule.date equals the Europe/Kyiv date; «просрочено» = isTaskOverdue;
+undated tasks only under «все» (tag 'today' / stakes / due labels are never date
+authority); completed, archived and closed_unresolved never appear in either;
+Do Now stays undated; legacy records are not backfilled.
+
+- domain/tasks.ts: tasksDueToday, overdueTasks, sortTasksByDate (date, then the
+  Calendar day order — explicit order, timed before untimed, stored position —
+  undated last, stable).
+- domain/calendarModel.ts: validateScheduleInput / scheduleEdit shared by the
+  Calendar editor and the Tasks detail (a time without a date is rejected;
+  clearing the date clears its time and asks for confirmation), msUntilNextDay.
+  The Calendar editor now also rejects a dateless time (previously stored).
+- app/useKyivToday.js: the open Tasks view follows the Kyiv day (timer to the
+  next Kyiv midnight, capped at 1 h, plus focus/visibilitychange/pageshow).
+- TaskDetailModal: date/time fields, «убрать дату», confirmation, shared
+  useDialog (focus trap, Escape, focus return), truthful missing-task state.
+  Save of a schedule change goes through moveTask (same id, new day order,
+  due re-derived); app/taskDetailSave.js returns {ok:false} for a missing task
+  and never recreates it. Home seed rows stay display-only (no date fields).
+- Tasks rows show the Calendar date (<time dateTime>) for dated tasks, red when
+  overdue; undated rows keep the legacy label. RU/UK +5 keys (1811/1810).
+- No backend, migration, snapshot-version or sound-mapping change; scheduling
+  is a local snapshot mutation (no save.success).
+Frontend 682 tests / 50 files, typecheck, lint, build PASS; G2 date tests pass
+under TZ=UTC, Europe/Kyiv, America/Los_Angeles, Pacific/Kiritimati.
+Next: owner review of the local commits; G3 is NOT started.
