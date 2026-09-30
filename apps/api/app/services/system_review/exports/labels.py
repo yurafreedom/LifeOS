@@ -1,9 +1,14 @@
 """Leaf: the only server-side copy — export labels in Russian and Ukrainian.
 
 Everything the live UI shows is localized on the client. Exported files are
-read outside LifeOS, so their headings and vocabulary are rendered here. No
+read outside the app, so their headings and vocabulary are rendered here. No
 label states a cause, judges a purchase or scores anything.
 """
+
+# The visible product name in exported files (labels and document metadata).
+# Technical identifiers — download file names, packages, environment
+# variables — keep the historical "lifeos" names.
+PRODUCT_NAME = "JENKIN"
 
 RU: dict[str, str] = {
     "title": "Обзор системы",
@@ -34,7 +39,7 @@ RU: dict[str, str] = {
     "section.consequences": "Последствия (проекции при допущениях)",
     "section.position": "Финансовый контекст (введён вами)",
     "section.priorities": "Явные приоритеты в напряжении",
-    "section.self_check": "Самопроверка LifeOS (не клинический тест)",
+    "section.self_check": "Самопроверка JENKIN (не клинический тест)",
     "section.relations": "Связи",
     "section.user": "Ваши выводы и решения",
     "section.provenance": "Происхождение данных",
@@ -91,7 +96,7 @@ RU: dict[str, str] = {
     "epistemic.association": "ассоциация",
     "epistemic.hypothesis": "гипотеза",
     "source.user": "вы",
-    "source.rule": "правило LifeOS",
+    "source.rule": "правило JENKIN",
     "source.ai": "модель",
     "rstatus.proposed": "предложено",
     "rstatus.approved": "подтверждено вами",
@@ -135,7 +140,7 @@ UK: dict[str, str] = {
     "section.consequences": "Наслідки (проєкції за припущень)",
     "section.position": "Фінансовий контекст (введений вами)",
     "section.priorities": "Явні пріоритети в напрузі",
-    "section.self_check": "Самоперевірка LifeOS (не клінічний тест)",
+    "section.self_check": "Самоперевірка JENKIN (не клінічний тест)",
     "section.relations": "Зв'язки",
     "section.user": "Ваші висновки й рішення",
     "section.provenance": "Походження даних",
@@ -190,7 +195,7 @@ UK: dict[str, str] = {
     "epistemic.association": "асоціація",
     "epistemic.hypothesis": "гіпотеза",
     "source.user": "ви",
-    "source.rule": "правило LifeOS",
+    "source.rule": "правило JENKIN",
     "source.ai": "модель",
     "rstatus.proposed": "запропоновано",
     "rstatus.approved": "підтверджено вами",

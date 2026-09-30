@@ -39,7 +39,7 @@ def create_app(
         resolved_factory = create_session_factory(engine)
 
     app = FastAPI(
-        title="LifeOS API",
+        title="JENKIN API",
         version="0.1.0",
         docs_url=None if resolved_settings.environment == "production" else "/docs",
         redoc_url=None,

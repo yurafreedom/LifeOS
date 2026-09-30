@@ -274,6 +274,7 @@ function AppShell({ user }) {
           setCollapsed={setCollapsed}
           counts={counts}
           user={user}
+          accountName={profile.identity && typeof profile.identity.name === 'string' ? profile.identity.name : ''}
           syncPhase={data.syncPhase}
           analyticsEnabled={ANALYTICS_ROUTE_ENABLED} />
 

@@ -182,9 +182,16 @@
   display: flex; flex-direction: column; gap: 4px;
 }
 .sb-settings { /* same look as a nav item */ }
+/* JENKIN · account block (approved design): avatar + the profile name
+   when the user entered one; the authenticated email on its own line,
+   never below --text-sm (12px) — it wraps at "@" first and anywhere as a
+   last resort, is never clipped, and keeps the full address in `title`;
+   the provider's real sync phase on a separate full-width line in the
+   restrained warm beige, with a state dot. */
 .sb-foot-row {
-  display: flex; align-items: flex-start; gap: 10px;
-  padding: 8px 10px;
+  display: grid; grid-template-columns: 28px minmax(0, 1fr);
+  gap: 8px 10px; align-items: start;
+  padding: 8px 10px; border-radius: var(--r-md);
 }
 .sb-avatar {
   width: 28px; height: 28px; border-radius: var(--r-pill);
@@ -193,15 +200,34 @@
   font-family: var(--font-mono); font-weight: 600; font-size: var(--text-sm);
   flex: none;
 }
-/* JENKIN · account block: the email never shrinks below --text-sm (12px);
-   it wraps (at "@" first, anywhere as a last resort) inside the sidebar
-   width, and the sync status always sits on its own line below it. */
-.sb-foot-meta { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-.sb-foot-name {
-  font: 500 var(--text-sm)/1.35 'Work Sans', sans-serif; color: var(--fg1);
+.sb-foot-meta {
+  min-width: 0; min-height: 28px;
+  display: flex; flex-direction: column; justify-content: center; gap: 2px;
+}
+.sb-account-name {
+  font: 500 var(--text-md)/1.3 'Work Sans', sans-serif; color: var(--fg1);
   overflow-wrap: anywhere;
 }
-.sb-foot-sub { display: block; font-size: var(--text-sm); line-height: 1.35; color: var(--fg4); }
+.sb-foot-name {
+  font: 500 var(--text-sm)/1.35 'Work Sans', sans-serif; color: var(--fg2);
+  overflow-wrap: anywhere;
+}
+.sb-foot-sub {
+  grid-column: 1 / -1;
+  display: flex; align-items: center; gap: 6px; min-width: 0;
+  font-size: var(--text-sm); line-height: 1.35; color: var(--warm-beige);
+}
+.sb-sync-text { min-width: 0; overflow-wrap: anywhere; }
+.sb-sync-dot {
+  width: 6px; height: 6px; border-radius: var(--r-pill); flex: none;
+  background: var(--success); box-shadow: 0 0 6px rgba(29,158,117,0.5);
+}
+.sb-sync.is-saving .sb-sync-dot { background: var(--primary); box-shadow: none; animation: sync-pulse 1s ease-in-out infinite; }
+.sb-sync.is-offline .sb-sync-dot, .sb-sync.is-error .sb-sync-dot { background: var(--danger); box-shadow: none; }
+.sb-sync.is-conflict .sb-sync-dot { background: var(--warning); box-shadow: none; }
+@media (prefers-reduced-motion: reduce) {
+  .sb-sync.is-saving .sb-sync-dot { animation: none; }
+}
 
 /* ============================================================
    TopBar

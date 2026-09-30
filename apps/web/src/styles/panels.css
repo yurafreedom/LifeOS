@@ -88,7 +88,9 @@
 .task-check {
   position: relative;
   width: 16px; height: 16px; border-radius: 5px;
-  border: 1.5px solid rgba(255,255,255,0.22);
+  /* JENKIN: the theme token, not the dark literal — the old hardcoded
+     white 22 % border was nearly invisible on paradise-day cream cards. */
+  border: 1.5px solid var(--check-border);
   background: transparent; flex: none;
   display: flex; align-items: center; justify-content: center;
   transition: background-color 120ms var(--ease), border-color 120ms var(--ease);

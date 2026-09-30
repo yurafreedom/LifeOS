@@ -17,6 +17,7 @@ from io import BytesIO
 from xml.sax.saxutils import escape
 
 from app.services.system_review.exports.document import Cell, ReportDocument, Table
+from app.services.system_review.exports.labels import PRODUCT_NAME
 
 _ILLEGAL_XML = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f￾￿]")
 _FORMULA_START = ("=", "+", "-", "@", "\t", "\r")
@@ -242,13 +243,13 @@ def render_xlsx(doc: ReportDocument) -> bytes:
         '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n'
         '<cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/'
         'metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/">'
-        f"<dc:title>{_xml_text(doc.title)}</dc:title><dc:creator>LifeOS</dc:creator>"
+        f"<dc:title>{_xml_text(doc.title)}</dc:title><dc:creator>{PRODUCT_NAME}</dc:creator>"
         f"<dc:language>{_xml_text(doc.locale)}</dc:language></cp:coreProperties>"
     )
     app = (
         '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n'
         '<Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/'
-        'extended-properties"><Application>LifeOS</Application></Properties>'
+        f'extended-properties"><Application>{PRODUCT_NAME}</Application></Properties>'
     )
 
     parts: list[tuple[str, str]] = [

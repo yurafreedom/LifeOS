@@ -30,6 +30,7 @@ from app.services.system_review.exports.document import (
     ReportDocument,
     Table,
 )
+from app.services.system_review.exports.labels import PRODUCT_NAME
 from app.services.system_review.exports.ttf import TrueTypeFont, load_font
 
 _PAGE_W, _PAGE_H = 595.28, 841.89
@@ -511,6 +512,7 @@ def render_pdf(doc: ReportDocument) -> bytes:
     writer.put(pages_id, f"<< /Type /Pages /Kids [{' '.join(f'{k} 0 R' for k in kids)}] "
                          f"/Count {len(kids)} >>")
     writer.put(catalog, f"<< /Type /Catalog /Pages {pages_id} 0 R >>")
-    writer.put(info, f"<< /Title <FEFF{_utf16_hex(_clean(doc.title))}> /Producer (LifeOS) >>")
+    writer.put(info, f"<< /Title <FEFF{_utf16_hex(_clean(doc.title))}> "
+                     f"/Producer ({PRODUCT_NAME}) >>")
     return writer.serialize(catalog, info)
 

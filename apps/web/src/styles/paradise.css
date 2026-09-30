@@ -98,7 +98,7 @@
   --hover-tint-2: rgba(15,20,25,0.06);
   --kbd-bg: rgba(15,20,25,0.06);
   --tag-bg: rgba(15,20,25,0.05);
-  --check-border: rgba(15,20,25,0.28);
+  --check-border: rgba(26,31,41,0.5);                /* JENKIN: ≥3:1 on the cream cards */
   --track-bg: rgba(15,20,25,0.08);
 
   --primary-focus-ring: rgba(27,138,196,0.55);
@@ -133,6 +133,17 @@
 
   --border-soft: rgba(10,20,40,0.08);
   --ambient: none; /* @kind color */
+
+  /* JENKIN material — paradise-day follows the light recipe (cream cards). */
+  --mat-sheen: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0) 48%); /* @kind color */
+  --mat-gloss: linear-gradient(180deg, rgba(255,255,255,0.95), rgba(255,255,255,0.3) 55%, rgba(255,255,255,0) 100%); /* @kind color */
+  --mat-shadow: inset 0 1px 0 #fff, 0 1px 2px rgba(10,20,40,0.08), 0 0 0 1px rgba(10,20,40,0.03);
+  --mat-shadow-hover: inset 0 1px 0 #fff, 0 6px 16px -8px rgba(10,20,40,0.28);
+  --mat-shadow-gloss: inset 0 1px 0 #fff, 0 2px 6px rgba(10,20,40,0.12), 0 0 0 1px rgba(10,20,40,0.05);
+  --mat-shadow-today: inset 0 1px 0 #fff, 0 0 0 1px rgba(219,90,12,0.35), 0 4px 12px rgba(219,90,12,0.16);
+  --mat-control-edge: inset 0 1px 0 rgba(255,255,255,0.7);
+  --mat-field: #FFFFFF;
+  --warm-beige: #7A6650;
 }
 
 /* NIGHT — deltas from the dark base (:root) only; everything not
@@ -164,6 +175,10 @@
 }
 
 /* ── Paradise component overrides (scoped — dark/light untouched) ── */
+
+/* JENKIN · unchecked task boxes on the cream day cards: the base hover is
+   a white edge (dark-theme value); on paradise-day hover goes blue instead. */
+[data-theme="paradise"][data-scene="day"] .task-check:hover { border-color: var(--primary); }
 
 /* Glass cards: TRANSLUCENT FILL ONLY — backdrop-filter is explicitly
    disabled under paradise. The 3.5 glass blur composites fine over

@@ -14,7 +14,7 @@ const BRAND_NAME = 'JENKIN';
    Two states: expanded (220px) and collapsed (60px, icons only).
    Active state = orange icon glow (not a ring around the icon).
    Counts come from props.counts so each route can update its own. */
-function Sidebar({ route, onNav, collapsed, setCollapsed, counts = {}, user, syncPhase = 'saved', analyticsEnabled = false }) {
+function Sidebar({ route, onNav, collapsed, setCollapsed, counts = {}, user, accountName = '', syncPhase = 'saved', analyticsEnabled = false }) {
   const { t } = useCtxSB(LifeLocaleContext);
   const I = LIcons;
 
@@ -115,15 +115,27 @@ function Sidebar({ route, onNav, collapsed, setCollapsed, counts = {}, user, syn
           <span className="sb-icon">{I.command && I.command()}</span>
           <span className="sb-label">{t('set_title')}</span>
         </button>
-        {!collapsed && (
-          <div className="sb-foot-row">
-            <div className="sb-avatar">{(user?.email || '?').slice(0, 1).toLowerCase()}</div>
-            <div className="sb-foot-meta">
-              <div className="sb-foot-name" title={user?.email || undefined}>{accountEmailParts(user?.email)}</div>
-              <div className="sb-foot-sub mono">{t(`sync_${syncPhase}`)}</div>
+        {!collapsed && (() => {
+          /* JENKIN account block: the profile name only when the user
+             entered one (never invented), the authenticated email on its
+             own wrapping line, and the provider's actual sync phase on a
+             separate warm-beige line — never a hardcoded "synced". */
+          const name = typeof accountName === 'string' ? accountName.trim() : '';
+          const initial = (name || user?.email || '?').slice(0, 1);
+          return (
+            <div className="sb-foot-row sb-account">
+              <div className="sb-avatar" aria-hidden="true">{name ? initial.toUpperCase() : initial.toLowerCase()}</div>
+              <div className="sb-foot-meta">
+                {name ? <div className="sb-account-name">{name}</div> : null}
+                <div className="sb-foot-name" title={user?.email || undefined}>{accountEmailParts(user?.email)}</div>
+              </div>
+              <div className={`sb-foot-sub sb-sync is-${syncPhase} mono`}>
+                <span className="sb-sync-dot" aria-hidden="true" />
+                <span className="sb-sync-text">{t(`sync_${syncPhase}`)}</span>
+              </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
       </div>
     </aside>
   );

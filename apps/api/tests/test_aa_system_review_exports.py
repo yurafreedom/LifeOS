@@ -12,6 +12,7 @@ import zlib
 
 import pytest
 
+from app.services.system_review.exports.labels import PRODUCT_NAME, RU, UK
 from app.services.system_review.exports.ttf import load_font
 from tests.aa_helpers import authenticate
 from tests.aa_system_review_helpers import (
@@ -99,6 +100,10 @@ def test_s7_42_xlsx_is_typed_redacted_and_formula_safe(client, settings, account
         assert cell is not None, risky
         assert cell.group(1) in quoted, risky
     assert 't="n"' in joined  # numbers stay numbers
+    # Visible product name in the workbook metadata; the download name stays lifeos-*.
+    assert "<dc:creator>JENKIN</dc:creator>" in parts["docProps/core.xml"]
+    assert "<Application>JENKIN</Application>" in parts["docProps/app.xml"]
+    assert "LifeOS" not in joined
 
 
 def test_s7_41_docx(client, settings, account_factory):
@@ -106,7 +111,10 @@ def test_s7_41_docx(client, settings, account_factory):
     content = _export(client, "docx").content
     with zipfile.ZipFile(io.BytesIO(content)) as archive:
         document = archive.read("word/document.xml").decode()
+        core = archive.read("docProps/core.xml").decode()
         assert "word/styles.xml" in archive.namelist()
+    assert "<dc:creator>JENKIN</dc:creator>" in core
+    assert "LifeOS" not in core and "LifeOS" not in document
     assert "<w:tbl>" in document
     assert "Обзор системы" in document and "источник удалён" in document
     assert "987654" not in document
@@ -143,6 +151,7 @@ def test_s7_40_pdf(client, settings, account_factory):
     assert "Обзор" in text and "источник" in text and "удалён" in text
     assert "987654" not in text
     assert len(content) < 400_000
+    assert b"/Producer (JENKIN)" in content and b"LifeOS" not in content
 
 
 def test_export_errors(client, settings, account_factory):
@@ -157,3 +166,13 @@ def test_export_errors(client, settings, account_factory):
     authenticate(client, settings, other)
     assert client.get(f"{BASE}/system-reviews/{SEPTEMBER}/revisions/1/export",
                       params={"format": "md"}).status_code == 404
+
+
+def test_export_labels_name_the_product_jenkin():
+    """Visible export copy says JENKIN in both locales; no label still says LifeOS."""
+    assert PRODUCT_NAME == "JENKIN"
+    assert RU["section.self_check"] == "Самопроверка JENKIN (не клинический тест)"
+    assert UK["section.self_check"] == "Самоперевірка JENKIN (не клінічний тест)"
+    assert RU["source.rule"] == "правило JENKIN" and UK["source.rule"] == "правило JENKIN"
+    for table in (RU, UK):
+        assert not [key for key, value in table.items() if "LifeOS" in value]
