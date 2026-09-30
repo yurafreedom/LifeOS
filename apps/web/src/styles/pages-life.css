@@ -1,5 +1,5 @@
 /* ============================================================
-   Tasks page — toolbar (filter chips + sort)
+   Tasks page — toolbar (filter dropdown + sort)
    ============================================================ */
 .tasks-toolbar {
   display: flex; justify-content: space-between; align-items: center;
@@ -50,6 +50,34 @@
   border-color: transparent;
   color: #fff;
 }
+/* JENKIN · Tasks filter dropdown — a native <select> with the sort
+   trigger's geometry, so filter and sort read as one toolbar. The label
+   stays visible; the chevron is decorative (aria-hidden). */
+.tasks-filter { display: inline-flex; align-items: center; gap: 8px; min-width: 0; }
+.tasks-filter-label { font-size: var(--text-sm); color: var(--fg3); }
+.tasks-filter-field { position: relative; display: inline-flex; align-items: center; min-width: 0; }
+.tasks-filter-select {
+  appearance: none; -webkit-appearance: none;
+  height: var(--input-h); max-width: 100%;
+  padding: 0 calc(var(--ctrl-px) + 18px) 0 var(--ctrl-px);
+  border-radius: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--fg1);
+  font: 500 var(--text-sm) var(--font-body);
+  cursor: pointer;
+}
+.tasks-filter-select:hover { background: var(--surface-h); }
+.tasks-filter-select:focus-visible {
+  outline: none;
+  border-color: var(--primary-focus-ring);
+  box-shadow: var(--primary-focus-shadow);
+}
+.tasks-filter-select option { background: var(--bg-elev-2, #1A1F28); color: var(--fg1); }
+.tasks-filter-chev {
+  position: absolute; right: var(--ctrl-px); top: 50%; transform: translateY(-50%);
+  display: inline-flex; color: var(--fg3); pointer-events: none;
+}
 .tasks-sort { position: relative; }
 .tasks-sort-trigger {
   display: inline-flex; align-items: center; gap: 8px;
@@ -77,6 +105,10 @@
 }
 .tasks-sort-opt:hover { background: var(--hover-tint); color: var(--fg1); }
 .tasks-sort-opt.is-on { color: var(--primary-l); }
+/* JENKIN · on the Tasks page the title is the same size as its date /
+   deadline metadata (.task-due, --text-sm). .task-title-btn resets `font`
+   to inherit (body 16px), so the size is set on the button here. */
+.tasks-page .task-title-btn { font-size: var(--text-sm); line-height: var(--line-body); }
 .tasks-list-card { margin-top: 0; width: 100%; max-width: var(--readable); margin-inline: var(--readable-mi); }
 
 /* ============================================================

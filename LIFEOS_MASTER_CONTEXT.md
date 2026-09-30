@@ -2466,6 +2466,9 @@ live. Do not start an invented Slice 9.
 
 GTD completion status and the proposed GTD slice order (G1 Waiting For
 lifecycle first, owner decisions pending) are recorded in section 79.
+Owner's JENKIN requirements (visible rename, interface pass, planned Calendar /
+Events / Inbox / capture / recovery / Documents work) and the lifeos_dev
+migration gap: section 84.
 
 Latest features can be tested in apps/web + apps/api on a disposable account.
 Destructive retention QA must use lifeos_test, never personal data.
@@ -3098,3 +3101,56 @@ Sections 80–82 are the historical records of those commits.
   Tasks detail, Kyiv midnight (focus) and New Year (visibilitychange)
   rollovers with an explicit route + open editor. No backend change.
 Next: owner review; G3 is NOT started.
+
+====================================================================
+84. JENKIN — OWNER REQUIREMENTS + INTERFACE PASS (LOCAL COMMIT, 2026-09-30)
+====================================================================
+
+Plan:   Outputs/Plans/jenkin-product-design-plan_20260930-201921.md
+Report: Outputs/Implementations/jenkin-interface-pass_20260930-201921.md
+Local commit on fix/lifeos-completion-audit after 6d35179 (not pushed, no PR,
+verify live). Sections 78–83 and the GTD G3–G6 roadmap (section 79 + GTD plan)
+are unchanged and still authoritative for their scope.
+
+Owner requirements (2026-09-30):
+- The visible product name is JENKIN. Storage identifiers, snapshot/export
+  compatibility, authentication behaviour and historical document names are
+  preserved. The technical rename and the GitHub repository rename are planned
+  separately (plan §1.3). No remote rename happens without explicit owner action.
+- Implemented now (frontend only): the Tasks filter chips became one labelled
+  native <select> with every filter (Waiting and Completed included); sort stays
+  a separate control; the Tasks title is the same size as its date metadata
+  (--text-sm; root cause was .task-title-btn `font: inherit` → 16 px); the
+  sidebar email wraps at 12 px (break before «@», full address in title) with
+  sync on its own line; the JENKIN wordmark/login/<title>/application-name are
+  in place; the RU/UK product mentions say JENKIN (+1 key, pin 1819/1818).
+- Planned, not started (each: Discovery → Plan → owner decisions): nested
+  Calendar redesign — WAITS FOR THE OWNER'S VISUAL PROTOTYPE, agents must not
+  redesign Calendar geometry independently; Events (separate from Tasks);
+  dedicated Inbox (over the existing Quick Notes + Clarify); smart capture
+  (suggest-only, confirmed by the user); account recovery (recovery codes first)
+  and passkeys (needs a migration, so an explicit task); Documents (metadata
+  first); phone-number-change workflow (a checklist, not automation).
+  The plan marks OWNER requirements vs agent recommendations (REC) vs UNVERIFIED
+  integrations.
+- Do not implement: HELSI, BankID, Diia integrations (UNVERIFIED), private-key
+  storage, outbound automation.
+
+Still named LifeOS on purpose: localStorage keys lifeOs*, IndexedDB
+lifeos-adaptive-analytics, export filenames, LIFEOS_* env, DB names, package
+@life-os/web, repo yurafreedom/LifeOS, this file. Visible inconsistency left
+for plan §1.3 R1: backend System Review DOCX/PDF export labels, the DOCX creator,
+the PDF producer and the API title still say LifeOS.
+
+Validation: frontend 738 tests / 53 files, typecheck, lint, build PASS; browser
+matrix 320/390/768/1440 × RU/UK × dark/light/paradise day+night on lifeos_test
+(0 overflow, 12 px floor, all filters switch). Backend unchanged, not rerun.
+Observed pre-existing, not fixed: in paradise-day, unchecked .task-check borders
+are nearly invisible on the cream task card.
+
+DATABASE GAP (explicit): lifeos_dev is at alembic 20260721_0001; the repository
+head is 20260930_0009 (read-only check 2026-09-30). lifeos_dev is NOT at the
+current schema; lifeos_test passing does not imply otherwise. Upgrading
+lifeos_dev is the owner's decision; agents migrate only lifeos_test.
+Next: owner review of the local commits; G3 and the JENKIN feature plans are
+NOT started.

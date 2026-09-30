@@ -5,6 +5,10 @@ import { LIcons } from './icons.jsx';
 /* global React */
 const { useContext: useCtxSB, useEffect: useEffectSB } = React;
 
+/* Visible product name. Technical identifiers (storage keys, export file
+   names, package/repo names) keep "LifeOS" until a separate rename plan. */
+const BRAND_NAME = 'JENKIN';
+
 /* v2 sidebar.
    Sections: MAIN / LIFE / MONEY / MEDS · settings pinned bottom.
    Two states: expanded (220px) and collapsed (60px, icons only).
@@ -61,22 +65,15 @@ function Sidebar({ route, onNav, collapsed, setCollapsed, counts = {}, user, syn
       <div className="sb-top">
         <button className="sb-logo"
                 onClick={() => onNav('home')}
-                title={collapsed ? 'Life·OS' : undefined}>
+                aria-label={BRAND_NAME}
+                title={collapsed ? BRAND_NAME : undefined}>
           {collapsed ? (
             <span className="sb-logo-dot" aria-hidden="true" />
           ) : (
-            <svg width="86" height="28" viewBox="0 0 124 40" fill="none">
-              <defs>
-                <linearGradient id="sbDot" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0%"  stopColor="#FFC066"/>
-                  <stop offset="48%" stopColor="#FF8A1E"/>
-                  <stop offset="100%" stopColor="#FF6B0A"/>
-                </linearGradient>
-              </defs>
-              <text x="0" y="29" fontFamily="Onest, system-ui, sans-serif" fontWeight="900" fontSize="28" letterSpacing="-0.03em">
-                <tspan className="logo-word" fill="#F5F5F7">Life</tspan>
-                <tspan fill="url(#sbDot)">·</tspan>
-                <tspan className="logo-word" fill="#F5F5F7">OS</tspan>
+            <svg width="86" height="28" viewBox="0 0 124 40" fill="none" aria-hidden="true">
+              <text x="0" y="29" fontFamily="Onest, system-ui, sans-serif" fontWeight="900" fontSize="28" letterSpacing="-0.03em"
+                    textLength="118" lengthAdjust="spacingAndGlyphs">
+                <tspan className="logo-word" fill="#F5F5F7">{BRAND_NAME}</tspan>
               </text>
             </svg>
           )}
@@ -122,7 +119,7 @@ function Sidebar({ route, onNav, collapsed, setCollapsed, counts = {}, user, syn
           <div className="sb-foot-row">
             <div className="sb-avatar">{(user?.email || '?').slice(0, 1).toLowerCase()}</div>
             <div className="sb-foot-meta">
-              <div className="sb-foot-name">{user?.email || '—'}</div>
+              <div className="sb-foot-name" title={user?.email || undefined}>{accountEmailParts(user?.email)}</div>
               <div className="sb-foot-sub mono">{t(`sync_${syncPhase}`)}</div>
             </div>
           </div>
@@ -132,4 +129,14 @@ function Sidebar({ route, onNav, collapsed, setCollapsed, counts = {}, user, syn
   );
 }
 
-export { Sidebar };
+/* A long email wraps instead of shrinking or clipping: the preferred break
+   is just before "@", and CSS (overflow-wrap:anywhere) breaks further only
+   when one part is still wider than the sidebar. */
+function accountEmailParts(email) {
+  if (!email) return '—';
+  const at = email.indexOf('@');
+  if (at <= 0) return email;
+  return <>{email.slice(0, at)}<wbr />{email.slice(at)}</>;
+}
+
+export { Sidebar, accountEmailParts };

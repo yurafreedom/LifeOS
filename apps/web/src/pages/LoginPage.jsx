@@ -59,7 +59,7 @@ function LoginPage() {
   return (
     <main className="auth-screen">
       <section className="auth-card" aria-labelledby="auth-title">
-        <div className="auth-brand">Life<span>·</span>OS</div>
+        <div className="auth-brand">JENKIN</div>
         <p className="auth-eyebrow mono">{setupMode ? t('auth_setup_eyebrow') : t('auth_login_eyebrow')}</p>
         <h1 id="auth-title">{setupMode ? t('auth_setup_title') : t('auth_login_title')}</h1>
         <p className="auth-copy">{setupMode ? t('auth_setup_copy') : t('auth_login_copy')}</p>

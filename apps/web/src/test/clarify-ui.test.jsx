@@ -195,8 +195,8 @@ describe('Clarify · Waiting retrieval surface', () => {
     const html = withLocale('ru', (
       <TasksPage tasks={[]} waitingItems={WAITING} onToggle={vi.fn()} onAdd={vi.fn()} onOpen={vi.fn()} />
     ));
-    expect(html).toContain('ожидание');
-    expect(html).toContain('class="tasks-chip"');
+    expect(html).toContain('<option value="waiting">ожидание</option>');
+    expect(html).toContain('class="tasks-filter-select"');
   });
 
   it('renders Waiting items as their own records, not as tasks or task tags', () => {

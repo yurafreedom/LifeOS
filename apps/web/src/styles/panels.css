@@ -124,7 +124,7 @@
   border-color: var(--accent-border);
 }
 .task-due {
-  font-size: 12px; color: var(--fg3);
+  font-size: var(--text-sm); color: var(--fg3);
 }
 /* GTD G2 · a dated active task whose Kyiv day has passed (isTaskOverdue). */
 .task-due.is-overdue { color: var(--red); }

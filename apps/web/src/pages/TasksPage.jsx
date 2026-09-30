@@ -18,10 +18,10 @@ const {
 } = React;
 
 /* Tasks tab — master view of every task across routine + stakes.
-   Filter chips on the left, sort dropdown on the right. Reuses the same
+   Filter dropdown on the left, sort dropdown on the right. Reuses the same
    task-row markup as the home composite, opens TaskDetailModal on click.
 
-   The "ожидание" chip is the retrieval surface for Clarify's Delegate outcome.
+   The "ожидание" filter is the retrieval surface for Clarify's Delegate outcome.
    Waiting items are a distinct persisted collection, NOT tasks and NOT a task
    tag — they render as their own list so the difference stays visible.
    GTD G1: active records open WaitingItemModal; resolved ones sit in a
@@ -80,13 +80,20 @@ function TasksPage({ tasks, waitingItems = [], onToggle, onAdd, onOpen }) {
       />
 
       <div className="tasks-toolbar">
-        <div className="tasks-chips">
-          {filters.map(f => (
-            <button key={f.id}
-                    className={"tasks-chip" + (filter === f.id ? " is-on" : "")}
-                    onClick={() => setFilter(f.id)}>{f.label}</button>
-          ))}
-        </div>
+        {/* JENKIN: one native <select> replaces the chip row — every filter
+            (Waiting and Completed included) stays reachable by keyboard,
+            screen reader and the phone's own picker; sorting stays separate. */}
+        <label className="tasks-filter">
+          <span className="tasks-filter-label mono">{t('tasks_filter_label')}</span>
+          <span className="tasks-filter-field">
+            <select className="tasks-filter-select"
+                    value={filter}
+                    onChange={event => setFilter(event.target.value)}>
+              {filters.map(f => <option key={f.id} value={f.id}>{f.label}</option>)}
+            </select>
+            <span className="tasks-filter-chev" aria-hidden="true"><I.chevDown size={12}/></span>
+          </span>
+        </label>
         <div className="tasks-sort">
           <button className="tasks-sort-trigger mono"
                   aria-haspopup="listbox" aria-expanded={sortOpen}

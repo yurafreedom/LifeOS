@@ -159,13 +159,13 @@ describe('System Review view', () => {
     expect(html).toContain('цель или ожидание на месяц');
     expect(html).toContain('₴360');
     expect(html).toContain('Незапланированный расход оплачен кредитом или в долг');
-    expect(html).toContain('Доход в LifeOS не моделируется');
+    expect(html).toContain('Доход в JENKIN не моделируется');
     expect(html).not.toMatch(/плох|хорош|безответствен/);
   });
 
   it('S7-33/34 · the self-check says it is not a clinical test', () => {
     const html = reviewView();
-    expect(html).toContain('Самопроверка LifeOS');
+    expect(html).toContain('Самопроверка JENKIN');
     expect(html).toContain('не клинический тест');
     expect(html).not.toMatch(/диагноз|саботаж|расстройств/);
   });

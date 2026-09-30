@@ -295,6 +295,7 @@ html.scene-switching .app *::before, html.scene-switching .app *::after {
    that are NOT filter capsules keep the HUD pill: sort trigger + calendar
    nav/view buttons. */
 [data-theme="paradise"] .tasks-sort-trigger,
+[data-theme="paradise"] .tasks-filter-select,
 [data-theme="paradise"] .cal-btn,
 [data-theme="paradise"] .cal-view-btn {
   background: rgba(0,0,0,0.32);
@@ -302,7 +303,13 @@ html.scene-switching .app *::before, html.scene-switching .app *::after {
   color: rgba(255,255,255,0.92);
 }
 [data-theme="paradise"] .cal-views { background: transparent; border-color: transparent; }
+/* JENKIN · the filter label and chevron sit on the scene too; the native
+   option list stays opaque and dark so it never inherits the translucent pill. */
+[data-theme="paradise"] .tasks-filter-label,
+[data-theme="paradise"] .tasks-filter-chev { color: rgba(255,255,255,0.92); text-shadow: 0 1px 4px rgba(0,0,0,0.45); }
+[data-theme="paradise"] .tasks-filter-select option { background: #1A1F28; color: #F5F5F7; }
 [data-theme="paradise"] .tasks-sort-trigger:hover,
+[data-theme="paradise"] .tasks-filter-select:hover,
 [data-theme="paradise"] .cal-btn:hover,
 [data-theme="paradise"] .cal-view-btn:hover {
   background: rgba(0,0,0,0.5);
