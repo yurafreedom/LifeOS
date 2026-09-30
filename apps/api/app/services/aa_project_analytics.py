@@ -31,6 +31,7 @@ from app.schemas.aa_comparison import DerivedDeltaOut, SemanticOut
 from app.schemas.aa_measurement import MeasurementOut
 from app.schemas.aa_projects import ProjectAnalyticsOut, ProjectDeltaOut
 from app.services.aa_desirability import desirability
+from app.services.retention.horizon import effective_horizon, pruned_project_ids
 
 PROJECT_METRIC = "project.completion_date"
 MAX_FORECAST_VERSIONS = 200
@@ -203,12 +204,22 @@ def project_analytics(
     actual_rows = _actual_rows(db, user_id, key, as_of)
     actual = actual_rows[0] if actual_rows else None
     delta_first, delta_latest = dual_delta(actual, history.first, history.latest)
+    state = _state(history, actual, at)
+    # Slice 8: a whole completed Project unit erased by the user's retention rule is
+    # "history deleted", never "nothing recorded yet". Distinct from the page cap
+    # ``forecast_versions_truncated``.
+    history_deleted = state == "no_facts" and subject.subject_id in pruned_project_ids(
+        db, user_id=user_id
+    )
+    horizon = effective_horizon(db, user_id=user_id)
     return ProjectAnalyticsOut(
         subject_key=key,
         metric_key=PROJECT_METRIC,
         as_of=as_of,
         evaluated_at=at,
-        state=_state(history, actual, at),
+        state="history_deleted_by_retention" if history_deleted else state,
+        retention_history_deleted=history_deleted,
+        retention_horizon=horizon.date if horizon is not None else None,
         forecast_versions=[SemanticOut.from_row(row, "forecast") for row in history.versions],
         forecast_version_count=history.count,
         forecast_versions_truncated=history.count > len(history.versions),

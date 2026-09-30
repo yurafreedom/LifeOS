@@ -15,6 +15,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 from app.analytics.enums import (
     Desire,
     EpistemicKind,
+    RedactionReason,
     ReviewAvailability,
     ReviewDecisionChoice,
     ReviewRole,
@@ -138,6 +139,8 @@ class ContextItemOut(BaseModel):
     estimate: bool
     provenance: ItemProvenanceOut | None
     redacted: bool = False
+    # Slice 8: why a redacted item was erased (manual hard delete vs retention rule).
+    redaction_reason: RedactionReason | None = None
     # Present on a saved Review only: how the item's sources stand now. The
     # frozen value above is never replaced by ``current_value``; it sits beside it.
     source_state: ReviewSourceState | None = None

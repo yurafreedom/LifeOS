@@ -45,6 +45,7 @@ from app.services.aa_facts import (
     AAServiceError,
     read_history,
 )
+from app.services.retention.horizon import effective_horizon
 
 logger = logging.getLogger(__name__)
 
@@ -174,6 +175,8 @@ def read_metric_history(
             freshest_recorded_at=report.freshest_recorded_at,
             has_legacy_imports=report.has_legacy_imports,
             reason=report.reason,
+            retention_truncated_count=report.retention_truncated_count,
+            retention_horizon=report.retention_horizon,
         )
 
     next_cursor = encode_cursor(rows[-1].occurred_at, rows[-1].id) if len(rows) == limit else None
@@ -225,7 +228,13 @@ def read_metric_history(
             if len(versions) > limit
             else None
         )
+    # Slice 8: a range that starts before an applied horizon is incomplete by the
+    # user's own retention rule. Rows may still exist there (late explicit writes);
+    # completeness does not. No Apply ever ⇒ unchanged response.
+    horizon = effective_horizon(db, user_id=user.id)
     return MetricHistoryOut(
+        retention_horizon=horizon.date if horizon is not None else None,
+        retention_truncated=horizon is not None and horizon.truncates_instant(range_from),
         metric_key=metric_key,
         subject_key=subject_key,
         range_from=range_from,

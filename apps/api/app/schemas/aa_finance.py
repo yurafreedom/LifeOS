@@ -94,9 +94,12 @@ class FinanceMonthOut(BaseModel):
     subject_key: str
     timezone: str
     as_of: datetime
-    availability: Literal["present", "no_data", "insufficient_data"]
+    availability: Literal["present", "no_data", "insufficient_data", "retention_truncated"]
     actual: ValueOut | None
     known_subtotal: ValueOut | None
+    # Slice 8: the month starts before an applied retention horizon.
+    retention_horizon: date | None = None
+    retention_truncated: bool = False
     transaction_count: int
     excluded_count: int
     unknown_membership_count: int

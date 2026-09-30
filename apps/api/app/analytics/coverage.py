@@ -10,6 +10,10 @@ supports it. Absence of a claim is neither ``observed`` nor ``missing`` — it i
 ``unknown_coverage``, which is the honest state. ``missing`` means a source
 affirmatively said nothing happened.
 
+A day before an applied retention horizon (Slice 8) is ``retention_truncated``:
+its evidence was erased by the user's rule, so it is neither observed nor
+"never established" — even when a surviving straddling claim still covers it.
+
 Nothing in this module writes: it turns stored claims into a read-time report.
 """
 
@@ -57,6 +61,8 @@ class CoverageReport:
     freshest_recorded_at: datetime | None
     has_legacy_imports: bool
     reason: str | None
+    retention_truncated_count: int = 0
+    retention_horizon: date | None = None
 
     def __post_init__(self) -> None:
         counted = (
@@ -65,6 +71,7 @@ class CoverageReport:
             + self.missing_count
             + self.unknown_coverage_count
             + self.future_count
+            + self.retention_truncated_count
         )
         if counted != self.expected_denominator:
             raise ValueError(
@@ -95,6 +102,7 @@ def classify_days(
     timezone: str,
     now: datetime,
     claims: Sequence[CoverageClaim],
+    retention_horizon: date | None = None,
 ) -> dict[date, DayCoverage]:
     """Resolve every local day in the window to exactly one classification."""
     today = _local_today(timezone, now)
@@ -103,6 +111,8 @@ def classify_days(
     while day <= window_end:
         if day > today:
             classification[day] = DayCoverage.FUTURE
+        elif retention_horizon is not None and day < retention_horizon:
+            classification[day] = DayCoverage.RETENTION_TRUNCATED
         else:
             best = DayCoverage.UNKNOWN_COVERAGE
             for claim in claims:
@@ -128,6 +138,7 @@ def build_coverage_report(
     freshest_recorded_at: datetime | None = None,
     has_legacy_imports: bool = False,
     reason: str | None = None,
+    retention_horizon: date | None = None,
 ) -> CoverageReport:
     if window_end < window_start:
         raise ValueError("window_end must not precede window_start")
@@ -138,10 +149,15 @@ def build_coverage_report(
         timezone=timezone,
         now=now,
         claims=tuple(claims),
+        retention_horizon=retention_horizon,
     )
     tally = {state: 0 for state in DayCoverage}
     for state in classification.values():
         tally[state] += 1
+    truncated = tally[DayCoverage.RETENTION_TRUNCATED]
+    if truncated and truncated == len(classification) - tally[DayCoverage.FUTURE]:
+        # Every elapsed day was erased by retention: say so, not «не установлена».
+        reason = DayCoverage.RETENTION_TRUNCATED.value
 
     return CoverageReport(
         window_start=window_start,
@@ -159,4 +175,6 @@ def build_coverage_report(
         freshest_recorded_at=freshest_recorded_at,
         has_legacy_imports=has_legacy_imports,
         reason=reason,
+        retention_truncated_count=truncated,
+        retention_horizon=retention_horizon if truncated else None,
     )

@@ -148,6 +148,8 @@ def _stored_item_payload(
             "estimate": False,
             "provenance": None,
             "redacted": True,
+            # Slice 8: an ordinary hard delete and the user's retention rule read apart.
+            "redaction_reason": row.redaction_reason,
             "source_state": ReviewSourceState.REDACTED,
             "source_flags": [ReviewSourceState.REDACTED],
             "current_value": None,

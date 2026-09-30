@@ -1,6 +1,6 @@
 """Measurement request and response contracts."""
 
-from datetime import datetime
+from datetime import date, datetime
 from typing import Annotated, Any
 from uuid import UUID
 
@@ -132,6 +132,10 @@ class CoverageReportOut(BaseModel):
     freshest_recorded_at: datetime | None
     has_legacy_imports: bool
     reason: str | None
+    # Slice 8: days before an applied retention horizon — erased by the user's
+    # rule, never "unknown", never "missing". Zero/None when no Apply ever ran.
+    retention_truncated_count: int = 0
+    retention_horizon: date | None = None
 
 
 class MetricHistoryOut(BaseModel):
@@ -155,6 +159,9 @@ class MetricHistoryOut(BaseModel):
     forecasts: list[SemanticOut] = Field(default_factory=list)
     baselines: list[SemanticOut] = Field(default_factory=list)
     events: list[MeasurementOut] = Field(default_factory=list)
+    # Slice 8: an empty pre-horizon range is not "nothing was ever recorded".
+    retention_horizon: date | None = None
+    retention_truncated: bool = False
     coverage: CoverageReportOut | None
     next_cursor: str | None
     layer_cursors: dict[str, str | None] = Field(default_factory=dict)

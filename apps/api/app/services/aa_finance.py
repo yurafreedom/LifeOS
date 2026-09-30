@@ -22,6 +22,7 @@ from app.schemas.aa_measurement import CoverageReportOut
 from app.services.aa_coverage_claims import coverage_report_for_window
 from app.services.aa_desirability import NormativeGrounding, desirability
 from app.services.aa_metric_policy import membership_as_of
+from app.services.retention.horizon import effective_horizon
 
 TRANSACTION_METRIC = "finance.transaction_amount"
 MONTHLY_METRIC = "finance.monthly_spend"
@@ -214,6 +215,14 @@ def derive_month(db, *, user_id, period: str, timezone: str, as_of=None) -> Fina
     known_value = ValueOut(type="money", unit_code="UAH", num=total)
     actual = known_value if unknown == 0 and rows else None
     availability = "insufficient_data" if unknown else ("present" if rows else "no_data")
+    # F4 (Slice 8): a month that starts before an applied retention horizon lost
+    # its evidence to the user's rule. Whatever survives (a late explicit write)
+    # is never presented as the month: no actual, no subtotal, never zero.
+    horizon = effective_horizon(db, user_id=user_id)
+    truncated = horizon is not None and horizon.truncates_instant(start)
+    if truncated:
+        availability = "retention_truncated"
+        actual = None
     reference = None
     if current_expectation is not None:
         reference = FactValue(
@@ -228,7 +237,9 @@ def derive_month(db, *, user_id, period: str, timezone: str, as_of=None) -> Fina
     )
     result = compute_delta(actual_fact_value, reference)
     delta = (
-        DerivedDeltaOut(state="unknown", reason=result.reason)
+        DerivedDeltaOut(state="unknown", reason="retention_truncated")
+        if truncated
+        else DerivedDeltaOut(state="unknown", reason=result.reason)
         if isinstance(result, DeltaUnknown)
         else DerivedDeltaOut(
             state="known", type=result.value_type, num=result.value_num, unit_code=result.unit_code
@@ -288,7 +299,9 @@ def derive_month(db, *, user_id, period: str, timezone: str, as_of=None) -> Fina
         as_of=at,
         availability=availability,
         actual=actual,
-        known_subtotal=known_value if rows else None,
+        known_subtotal=known_value if rows and not truncated else None,
+        retention_horizon=horizon.date if horizon is not None else None,
+        retention_truncated=truncated,
         transaction_count=included,
         excluded_count=excluded,
         unknown_membership_count=unknown,
@@ -302,7 +315,7 @@ def derive_month(db, *, user_id, period: str, timezone: str, as_of=None) -> Fina
         else None,
         current_target=SemanticOut.from_row(current_target, "target") if current_target else None,
         delta=delta,
-        desire=desirability(actual_fact_value, grounding),
+        desire="unknown" if truncated else desirability(actual_fact_value, grounding),
         coverage=CoverageReportOut(
             **{
                 **asdict(coverage),
