@@ -98,7 +98,7 @@
 .task-check::before {
   content: ''; position: absolute; inset: -5px;
 }
-.task-check:hover { border-color: rgba(255,255,255,0.4); }
+.task-check:hover { border-color: rgba(255,255,255,0.6); }
 .task-check.is-done { background: var(--success); border-color: var(--success); color: #fff; }
 .task-check.is-done svg { width: 10px; height: 10px; }
 

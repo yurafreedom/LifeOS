@@ -159,7 +159,7 @@
   --hover-tint-2: rgba(255,255,255,0.05);
   --kbd-bg: rgba(255,255,255,0.06);
   --tag-bg: rgba(255,255,255,0.05);
-  --check-border: rgba(255,255,255,0.22);
+  --check-border: rgba(255,255,255,0.36);           /* JENKIN: ≥ 3:1 on dark cards (was 0.22) */
   --track-bg: rgba(255,255,255,0.05);
 
   /* ── focus / ring shadows ─────────────────── */
@@ -305,7 +305,7 @@
   --hover-tint-2: rgba(15,20,25,0.06);
   --kbd-bg: rgba(15,20,25,0.06);
   --tag-bg: #F2F2EF;
-  --check-border: #D6D6D0;
+  --check-border: #8F8F89;                          /* JENKIN: ≥ 3:1 on light cards (was #D6D6D0) */
   --track-bg: #ECECE7;
 
   --primary-focus-ring: rgba(27,138,196,0.55);
@@ -352,7 +352,7 @@
   --mat-field: #FFFFFF;
   --warm-beige: #7A6650;
   --today-text: var(--o3);
-  --today-num: var(--o2);
+  --today-num: var(--o3);
 }
 
 html, body, #root { height: 100%; }

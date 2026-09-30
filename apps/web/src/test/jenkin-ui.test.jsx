@@ -233,15 +233,51 @@ describe('Sidebar · account block', () => {
     expect(source('../styles/tokens.css')).toMatch(/--text-sm:\s+12px;/);
   });
 
-  it('defines the approved warm beige for dark, light and paradise-day (night inherits dark)', () => {
+  it('defines a warm beige for dark, light and paradise-day (night inherits dark)', () => {
     const tokens = source('../styles/tokens.css');
     const paradise = source('../styles/paradise.css');
     expect(tokens.slice(0, tokens.indexOf('[data-theme="light"] {'))).toContain('--warm-beige: #CDBBA4;');
     expect(tokens.slice(tokens.indexOf('[data-theme="light"] {'))).toContain('--warm-beige: #7A6650;');
+    /* darker on paradise-day: the sidebar there is translucent cream over the scene */
     const day = paradise.slice(paradise.indexOf('[data-theme="paradise"][data-scene="day"] {'), paradise.indexOf('[data-theme="paradise"][data-scene="night"] {'));
-    expect(day).toContain('--warm-beige: #7A6650;');
+    expect(day).toContain('--warm-beige: #66533E;');
     const night = paradise.slice(paradise.indexOf('[data-theme="paradise"][data-scene="night"] {'));
     expect(night.slice(0, night.indexOf('}'))).not.toContain('--warm-beige');
+  });
+});
+
+/* WCAG 2.x relative luminance / contrast for opaque sRGB colours. */
+function contrast(a, b) {
+  const lum = hex => {
+    const [r, g, b2] = [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16) / 255)
+      .map(v => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4));
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b2;
+  };
+  const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p);
+  return (x + 0.05) / (y + 0.05);
+}
+
+describe('JENKIN · contrast floors on opaque light surfaces', () => {
+  const tokens = source('../styles/tokens.css');
+  const light = tokens.slice(tokens.indexOf('[data-theme="light"] {'));
+  const value = name => light.match(new RegExp(`${name}:\\s*(#[0-9A-Fa-f]{6});`))[1];
+
+  it('keeps the unchecked task box edge at least 3:1 on the white card', () => {
+    expect(contrast(value('--check-border'), '#FFFFFF')).toBeGreaterThanOrEqual(3);
+  });
+
+  it('keeps the sync line and the «today» cues at least 4.5:1 on white', () => {
+    expect(contrast(value('--warm-beige'), '#FFFFFF')).toBeGreaterThanOrEqual(4.5);
+    expect(light).toContain('--today-text: var(--o3);');
+    expect(light).toContain('--today-num: var(--o3);');
+    expect(contrast(value('--o3'), '#FFFFFF')).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it('draws the overdue badge with the stronger red of each theme', () => {
+    const calendar = source('../styles/finance-calendar.css');
+    const rule = calendar.slice(calendar.indexOf('.cal-overdue {'), calendar.indexOf('}', calendar.indexOf('.cal-overdue {')));
+    expect(rule).toContain('color: var(--red-2);');
+    expect(contrast(value('--red-2'), '#FCE4E5')).toBeGreaterThanOrEqual(4.5);
   });
 });
 
@@ -276,6 +312,9 @@ describe('JENKIN · paradise-day task checkbox contrast', () => {
     const day = paradise.slice(paradise.indexOf('[data-theme="paradise"][data-scene="day"] {'), paradise.indexOf('[data-theme="paradise"][data-scene="night"] {'));
     expect(day).toContain('--check-border: rgba(26,31,41,0.5);');
     expect(paradise).toContain('[data-theme="paradise"][data-scene="day"] .task-check:hover { border-color: var(--primary); }');
+    /* dark (and paradise-night, which inherits it) raise the white edge too */
+    const tokens = source('../styles/tokens.css');
+    expect(tokens.slice(0, tokens.indexOf('[data-theme="light"] {'))).toContain('--check-border: rgba(255,255,255,0.36);');
   });
 });
 

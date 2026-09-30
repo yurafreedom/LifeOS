@@ -402,7 +402,7 @@ button.cal-tile:hover:not(:disabled) {
 .cal-task-meta { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; font-size: var(--text-xs); color: var(--fg3); }
 .cal-overdue {
   padding: 1px 8px; border-radius: var(--r-pill);
-  background: var(--red-tint); color: var(--red);
+  background: var(--red-tint); color: var(--red-2);   /* the stronger red keeps the tinted pill ≥ 4.5:1 in every theme */
 }
 .cal-task-actions { grid-column: 2; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 .cal-task .qa-toggle-btn { padding: 4px 8px; }

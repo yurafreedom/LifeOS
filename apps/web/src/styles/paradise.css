@@ -143,9 +143,9 @@
   --mat-shadow-today: inset 0 1px 0 #fff, 0 0 0 1px rgba(219,90,12,0.35), 0 4px 12px rgba(219,90,12,0.16);
   --mat-control-edge: inset 0 1px 0 rgba(255,255,255,0.7);
   --mat-field: #FFFFFF;
-  --warm-beige: #7A6650;
+  --warm-beige: #66533E;                             /* darker than light: the sidebar is 84 % cream over the scene */
   --today-text: var(--o3);
-  --today-num: var(--o2);
+  --today-num: var(--o3);
 }
 
 /* NIGHT — deltas from the dark base (:root) only; everything not
@@ -181,6 +181,12 @@
 /* JENKIN · unchecked task boxes on the cream day cards: the base hover is
    a white edge (dark-theme value); on paradise-day hover goes blue instead. */
 [data-theme="paradise"][data-scene="day"] .task-check:hover { border-color: var(--primary); }
+/* JENKIN · readable secondary text on the translucent day cards of Tasks and
+   the Calendar stage (the global muted #6b7280 falls just under 4.5:1 there),
+   and a lighter red for overdue copy on the night cards. Scoped overrides. */
+[data-theme="paradise"][data-scene="day"] :is(.tasks-list-card, .cal-stage) { --fg3: #5b6270; }
+[data-theme="paradise"][data-scene="night"] :is(.tasks-page .task-due.is-overdue,
+  .cal-stage .cal-act.is-danger, .cal-stage .cal-state.is-closed_unresolved) { color: #FF7479; }
 
 /* Glass cards: TRANSLUCENT FILL ONLY — backdrop-filter is explicitly
    disabled under paradise. The 3.5 glass blur composites fine over
