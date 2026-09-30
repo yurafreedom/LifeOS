@@ -17,8 +17,12 @@ const say = (t: AAText | undefined, key: string): string => (t ? t(key) : RU_FAC
 
 /** Content/availability only — never comparison or desirability. */
 export function formatFact(fact: { status?: string; value?: FactValue | null; is_explicitly_absent?: boolean | null;
-  value_availability?: string | null; statement?: string | null; redacted?: boolean }, t?: AAText): string {
-  if (fact.redacted) return say(t, 'aa_pr_source_deleted');
+  value_availability?: string | null; statement?: string | null; redacted?: boolean;
+  redaction_reason?: string | null }, t?: AAText): string {
+  if (fact.redacted) {
+    return say(t, fact.redaction_reason === 'source_retention_pruned'
+      ? 'aa_pr_source_deleted_retention' : 'aa_pr_source_deleted');
+  }
   if (fact.status === 'tombstoned') return say(t, 'aa_pr_deleted');
   if (fact.is_explicitly_absent) return say(t, 'aa_pr_target_absent_short');
   if (fact.value_availability === 'explicitly_unknown') return say(t, 'aa_pr_explicitly_unknown');

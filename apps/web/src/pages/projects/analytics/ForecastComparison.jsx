@@ -29,6 +29,7 @@ const UNKNOWN_COPY = {
   actual_not_recorded: ['aa_pj_not_recorded', 'aa_pj_sub_not_recorded'],
   no_forecast: ['—', 'aa_pj_sub_no_forecast'],
   compared: ['—', 'aa_pj_sub_no_facts'],
+  history_deleted_by_retention: ['—', 'aa_pj_sub_history_deleted'],
 };
 
 function DeltaCell({ label, projectDelta, reference, state, t, locale }) {
@@ -54,6 +55,10 @@ function DeltaCell({ label, projectDelta, reference, state, t, locale }) {
 export function ForecastComparison({ data, t, locale }) {
   const { first_forecast: first, latest_forecast: latest, actual, state } = data;
   if (state === 'no_facts') return <p className="aa-none">{t('aa_pj_state_no_facts')}</p>;
+  // Slice 8: erased by the user's retention rule — never «not recorded yet».
+  if (state === 'history_deleted_by_retention') {
+    return <p className="aa-none" role="status">{t('aa_pj_state_history_deleted')}</p>;
+  }
 
   const recorded = fact => t('aa_pj_recorded_on', formatInstantDate(fact.provenance.recorded_at, locale));
   const operands = [

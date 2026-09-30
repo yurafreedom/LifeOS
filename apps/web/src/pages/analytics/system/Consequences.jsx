@@ -14,7 +14,15 @@ import {
   ObligationForm,
   ReserveForm,
 } from './ContextForms.jsx';
-import { codeText, contextSummary, dateText, impactLines, refText, valueText } from './format.js';
+import {
+  codeText,
+  contextSummary,
+  dateText,
+  impactLines,
+  refText,
+  srDeletedKey,
+  valueText,
+} from './format.js';
 import { Section } from './Sections.jsx';
 import { SelfCheck } from './SelfCheck.jsx';
 
@@ -31,7 +39,7 @@ function inputValue(value, t) {
 
 export function ImpactCard({ impact }) {
   const t = useAAText();
-  if (impact.redacted) return <div className="aa-sr-impact is-redacted"><span className="aa-flag-erased">{t('aa_sr_source_deleted')}</span></div>;
+  if (impact.redacted) return <div className="aa-sr-impact is-redacted"><span className="aa-flag-erased">{t(srDeletedKey(impact))}</span></div>;
   const lines = impactLines(impact, t);
   return <div className="aa-sr-impact" data-state={impact.state}>
     <div className="aa-sr-impact-head">
@@ -84,7 +92,7 @@ function Attention({ flags }) {
 function ExpenseCard({ analysis, names, obligations, actions, editing, setEditing }) {
   const t = useAAText();
   const [confirming, setConfirming] = React.useState(false);
-  if (analysis.redacted) return <article className="aa-sr-expense is-redacted"><span className="aa-flag-erased">{t('aa_sr_source_deleted')}</span></article>;
+  if (analysis.redacted) return <article className="aa-sr-expense is-redacted"><span className="aa-flag-erased">{t(srDeletedKey(analysis))}</span></article>;
   const entityId = analysis.context_ref.split('|')[1];
   const context = analysis.context;
   const words = ['purpose', 'motive', 'emotional_context'].filter(field => context[field]);

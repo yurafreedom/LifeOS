@@ -21,6 +21,12 @@ function choiceLabel(choice, t) {
   return choice == null ? t('aa_rv_choice_none') : t(CHOICE_KEYS[choice]);
 }
 
+/** Slice 8: the user's retention rule and a manual hard delete read apart. */
+export function sourceDeletedKey(item) {
+  return item?.redaction_reason === 'source_retention_pruned'
+    ? 'aa_pr_source_deleted_retention' : 'aa_pr_source_deleted';
+}
+
 /** A flag shown beside a frozen value — never a substitute for it. */
 export function flagText(item, t) {
   if (!item || item.redacted) return null;
@@ -34,7 +40,7 @@ export function flagText(item, t) {
 
 function cellNote(item, t) {
   if (!item) return {};
-  if (item.redacted) return { value: t('aa_pr_source_deleted'), empty: true, sub: null, estimate: false };
+  if (item.redacted) return { value: t(sourceDeletedKey(item)), empty: true, sub: null, estimate: false };
   const extra = flagText(item, t);
   return { ...(item.estimate ? { estimate: true } : {}), ...(extra ? { extra } : {}) };
 }

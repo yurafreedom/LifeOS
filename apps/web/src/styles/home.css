@@ -573,3 +573,41 @@
 .set-danger-msg { color: var(--fg2); font-size: var(--text-md); margin-bottom: 14px; line-height: 1.5; }
 
 .set-clear-confirm { display: inline-flex; gap: 8px; }
+
+/* Slice 8 · «Хранение аналитической истории» (RetentionSection). Scoped to .set-ret. */
+.set-ret { display: flex; flex-direction: column; gap: 12px; max-width: 720px; min-width: 0; }
+.set-ret-h { font-size: var(--text-md); font-weight: 600; color: var(--fg1); margin: 0; }
+.set-ret-sub { font-size: var(--text-sm); font-weight: 600; color: var(--fg1); margin: 8px 0 4px; }
+.set-ret-sub:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.set-ret-choices { display: flex; flex-wrap: wrap; gap: 8px; border: 0; margin: 0; padding: 0; min-width: 0; }
+.set-ret-choices legend { margin-bottom: 6px; padding: 0; }
+.set-ret-choice {
+  display: inline-flex; align-items: center; gap: 8px; min-height: var(--btn-h-md);
+  padding: 0 12px; border: 1px solid var(--border); border-radius: 8px;
+  color: var(--fg2); font-size: var(--text-sm); cursor: pointer;
+}
+.set-ret-choice.is-on { border-color: var(--primary); color: var(--fg1); }
+.set-ret-choice input { accent-color: var(--primary); margin: 0; }
+.set-ret-choice:focus-within { outline: 2px solid var(--primary); outline-offset: 2px; }
+.set-ret-tag { font-size: 10px; color: var(--fg4); text-transform: uppercase; letter-spacing: 0.04em; }
+.set-ret-card {
+  border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px;
+  color: var(--fg2); font-size: var(--text-sm); line-height: 1.5; overflow-wrap: anywhere;
+}
+.set-ret-card.is-danger { border-color: var(--red); }
+.set-ret-card p { margin: 0 0 6px; }
+.set-ret-list { margin: 0 0 6px; padding-left: 18px; color: var(--fg2); font-size: var(--text-sm); line-height: 1.5; }
+.set-ret-confirm { display: flex; align-items: center; gap: 8px; margin-top: 8px; color: var(--fg1); cursor: pointer; }
+.set-ret-confirm input { accent-color: var(--primary); }
+.set-ret-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.set-ret-note { margin: 0; color: var(--fg2); font-size: var(--text-sm); line-height: 1.5; overflow-wrap: anywhere; }
+.set-ret-error { margin: 0; color: var(--red); font-size: var(--text-sm); line-height: 1.5; }
+.set-ret-status { display: flex; flex-direction: column; gap: 6px; border-top: 1px solid var(--border); padding-top: 12px; }
+.set-ret-run, .set-ret-preview { color: var(--fg2); font-size: var(--text-sm); }
+.set-ret-run-title { margin: 0 0 4px; color: var(--fg1); font-weight: 600; overflow-wrap: anywhere; }
+.set-ret-run.is-failed { color: var(--fg2); }
+.set-ret-details summary { cursor: pointer; color: var(--fg3); font-size: var(--text-xs); }
+.set-ret-details dl { margin: 6px 0 0; display: grid; gap: 2px; }
+.set-ret-count { display: flex; justify-content: space-between; gap: 12px; }
+.set-ret-count dt, .set-ret-count dd { margin: 0; }
+.aa-retention-note { margin: 8px 0; color: var(--fg2); font-size: var(--text-sm); line-height: 1.5; overflow-wrap: anywhere; }

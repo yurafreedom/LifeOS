@@ -7,6 +7,8 @@ export default function AAQualityStrip({ coverage }) {
   if (!coverage) return <div className="aa-quality">{t('aa_pr_q_unknown')}</div>;
   const buckets = [['aa_pr_q_observed', coverage.observed_count], ['aa_pr_q_partial_b', coverage.partial_count],
     ['aa_pr_q_missing', coverage.missing_count], ['aa_pr_q_unknown', coverage.unknown_coverage_count], ['aa_pr_q_future', coverage.future_count]];
+  // Slice 8: days erased by the user's retention rule are their own bucket.
+  if (coverage.retention_truncated_count) buckets.push(['aa_ret_q_truncated', coverage.retention_truncated_count]);
   return <details className="aa-quality">
     <summary className="aa-quality-item">{t('aa_pr_q_coverage')}: <b>{t('aa_pr_q_of', coverage.observed_count, coverage.expected_denominator)}</b>
       {coverage.partial_count ? t('aa_pr_q_partial') : ''}

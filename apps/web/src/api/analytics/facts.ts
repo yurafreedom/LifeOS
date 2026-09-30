@@ -98,6 +98,9 @@ export type AACoverageReport = {
   freshest_recorded_at: string | null;
   has_legacy_imports: boolean;
   reason: string | null;
+  /** Slice 8: days erased by the user's retention rule — never unknown, never missing. */
+  retention_truncated_count?: number;
+  retention_horizon?: string | null;
 };
 
 /** Layers stay in separate arrays so an Actual can never be counted as a forecast. */
@@ -115,6 +118,9 @@ export type AAMetricHistory = {
   coverage: AACoverageReport | null;
   next_cursor: string | null;
   layer_cursors: Record<string, string | null>;
+  /** Slice 8: an empty pre-horizon range is not «nothing was ever recorded». */
+  retention_horizon?: string | null;
+  retention_truncated?: boolean;
 };
 
 export type AAFactProvenance = {

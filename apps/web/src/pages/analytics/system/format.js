@@ -7,6 +7,12 @@ import { isHypothesis } from '../../../analytics/systemReviewFacts';
 
 const MINUTES_PER_DAY = 1440;
 
+/** Slice 8: a frozen item erased by the user's retention rule vs a manual hard delete. */
+export function srDeletedKey(item) {
+  return item?.redaction_reason === 'source_retention_pruned'
+    ? 'aa_sr_source_deleted_retention' : 'aa_sr_source_deleted';
+}
+
 export function valueText(value, t) {
   if (!value) return t('aa_sr_no_value');
   try {

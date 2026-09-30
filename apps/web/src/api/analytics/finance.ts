@@ -10,9 +10,12 @@ export type AAFinanceMonth = {
   subject_key: string;
   timezone: string;
   as_of: string;
-  availability: 'present' | 'no_data' | 'insufficient_data';
+  availability: 'present' | 'no_data' | 'insufficient_data' | 'retention_truncated';
   actual: AAValue | null;
   known_subtotal: AAValue | null;
+  /** Slice 8: the month starts before an applied retention horizon. */
+  retention_horizon?: string | null;
+  retention_truncated?: boolean;
   transaction_count: number;
   excluded_count: number;
   unknown_membership_count: number;
@@ -50,6 +53,9 @@ export type LegacyImportResult = {
   overrides_replayed: number;
   coverage_imported: number;
   coverage_replayed: number;
+  /** Slice 8 (F6): erased by retention, never reconstructed. */
+  transactions_retention_skipped?: number;
+  coverage_retention_skipped?: number;
   activity_log_imported: 0;
   expectations_backfilled: 0;
   forecasts_backfilled: 0;

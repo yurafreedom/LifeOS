@@ -6,7 +6,8 @@ import type { DerivedDelta } from '../../analytics/delta';
 import type { AAMeasurement, AASemanticFact } from './facts';
 
 export type AAProjectAnalyticsState =
-  | 'no_facts' | 'too_early' | 'actual_not_recorded' | 'no_forecast' | 'compared';
+  | 'no_facts' | 'too_early' | 'actual_not_recorded' | 'no_forecast' | 'compared'
+  | 'history_deleted_by_retention';
 
 /** Actual minus one Forecast version. No normative source is read: neutral. */
 export type AAProjectDelta = {

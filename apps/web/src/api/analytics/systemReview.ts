@@ -111,6 +111,8 @@ export type AASystemReview = {
   period_state: 'in_progress' | 'ended';
   status: 'IN_PROGRESS' | 'AVAILABLE' | 'FINALIZED';
   not_a_verdict: true;
+  /** Slice 8: months erased by the user's retention rule are disclosed, never shown as quiet. */
+  retention?: { horizon: string | null; truncated: boolean; truncated_months: string[] };
   saved: {
     count: number;
     latest_revision: { revision: number; status: string; created_at: string } | null;
