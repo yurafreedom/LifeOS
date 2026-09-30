@@ -333,6 +333,18 @@ describe('stable stage, responsive columns and motion', () => {
     expect(rule('  .cal-history td[data-label]::before')).toContain('font-size: var(--text-sm);');
   });
 
+  it('keeps every year, month name and day number inside its (clipping) tile on phone panels', () => {
+    /* measured in the browser at 320–412 px in both interface fonts: without this
+       rule «2026», «сентябрь» / «листопад» and two-digit A days were cut off */
+    const rule = css.slice(css.indexOf('@container cal (max-width: 379px) {'), css.indexOf('\n}\n', css.indexOf('@container cal (max-width: 379px) {')));
+    expect(rule).toContain('.cal-grid12 { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(6, minmax(64px, auto)); }');
+    expect(rule).toContain('.cal-tile-day { padding: 6px 4px; }');
+    expect(rule).toContain('.cal-num-day { font-size: 15px; }');
+    /* it comes after the phone media block, so it wins the cascade tie */
+    expect(css.indexOf('@container cal (max-width: 379px) {')).toBeGreaterThan(css.indexOf('.cal-tile-day { padding: 6px; }'));
+    expect(css).toMatch(/\.cal-tile \{[^}]*overflow: hidden;/);
+  });
+
   it('layers the History button tints over the opaque surface (no scene bleeding through in Paradise)', () => {
     expect(nav).toContain('.cal-tool-btn:hover { background: linear-gradient(var(--hover-tint-2), var(--hover-tint-2)), var(--surface); }');
     expect(nav).toMatch(/\.cal-tool-btn\[aria-pressed="true"\] \{\s*background: linear-gradient\(var\(--primary-soft\), var\(--primary-soft\)\), var\(--surface\);/);

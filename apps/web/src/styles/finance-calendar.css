@@ -307,6 +307,15 @@ button.cal-tile:hover:not(:disabled) {
   .cal-wdh { padding-left: 4px; letter-spacing: 0.04em; }
   .cal-tile-day { padding: 6px; }
 }
+/* Phone panels (< 380 px): the tiles clip their content (overflow: hidden), so
+   years and months move to two columns and layout A's day tiles get a narrower
+   inset and numeral — no year, month name or day number is cut off, in the
+   current fonts or in the wider DejaVu Sans (measured at 320–412 px). */
+@container cal (max-width: 379px) {
+  .cal-grid12 { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(6, minmax(64px, auto)); }
+  .cal-tile-day { padding: 6px 4px; }
+  .cal-num-day { font-size: 15px; }
+}
 
 /* Layout B — four week panels per row, seven day rows each; weeks five and
    six continue on the next row. Two / one panel columns in narrow panels. */
