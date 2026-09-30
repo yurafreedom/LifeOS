@@ -256,8 +256,8 @@
      opaque --surface (cream under paradise) so typed text stays readable.
      (This is a VISUAL fix only — the field is still a dead control.) */
   background: var(--surface);
-  border-color: rgba(34,158,217,0.45);
-  box-shadow: 0 0 0 3px rgba(34,158,217,0.1);
+  border-color: var(--primary);                 /* visible keyboard focus: ≥ 3:1 in every theme */
+  box-shadow: var(--primary-focus-shadow);
 }
 .tb-cmd-icon { display: inline-flex; color: var(--fg3); flex: none; }
 .tb-cmd-input {

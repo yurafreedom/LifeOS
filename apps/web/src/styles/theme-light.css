@@ -28,11 +28,7 @@
    override needed. */
 [data-theme="light"] .sb-avatar { background: var(--blue-tint); color: var(--blue-3); }
 
-/* TopBar */
-[data-theme="light"] .tb-cmd:focus-within {
-  border-color: var(--primary-focus-ring);
-  box-shadow: var(--primary-focus-shadow);
-}
+/* TopBar — the search focus uses the theme tokens in shell.css */
 [data-theme="light"] .tb-kbd { background: var(--surface-h); }
 [data-theme="light"] .tb-add { color: #fff; }
 

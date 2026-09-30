@@ -262,6 +262,44 @@ function contrast(a, b) {
   return (x + 0.05) / (y + 0.05);
 }
 
+describe('JENKIN · visible keyboard focus on the recorded gaps', () => {
+  const tokens = source('../styles/tokens.css');
+  const darkPrimary = tokens.slice(0, tokens.indexOf('[data-theme="light"] {')).match(/--primary:\s*(#[0-9A-Fa-f]{6});/)[1];
+  const lightPrimary = tokens.slice(tokens.indexOf('[data-theme="light"] {')).match(/--primary:\s*(#[0-9A-Fa-f]{6});/)[1];
+  const rule = (css, selector) => css.slice(css.indexOf(`${selector} {`), css.indexOf('}', css.indexOf(`${selector} {`)));
+
+  it('marks the task dialog title with a primary underline, without outline or layout shift', () => {
+    const modals = source('../styles/modals.css');
+    expect(rule(modals, '.qa-title')).toContain('outline: none;');
+    const focus = rule(modals, '.qa-title:focus-visible');
+    expect(focus).toContain('border-bottom-color: var(--primary);');
+    expect(focus).toContain('box-shadow: 0 1px 0 var(--primary);');
+    expect(focus).not.toMatch(/padding|margin|border-width|border-bottom:/);
+  });
+
+  it('gives the login inputs a real colour outline (the gradient --accent made it invalid)', () => {
+    const auth = rule(source('../styles/paradise.css'), '.auth-form input:focus-visible');
+    expect(auth).toContain('outline: 2px solid var(--primary);');
+    for (const file of ['../styles/paradise.css', '../styles/shell.css', '../styles/modals.css', '../brand.css']) {
+      expect(source(file).replace(/\/\*[\s\S]*?\*\//g, ''), file).not.toMatch(/outline[^;]*var\(--accent\)/);
+    }
+  });
+
+  it('outlines the TopBar search field in the solid primary colour in every theme', () => {
+    const shell = rule(source('../styles/shell.css'), '.tb-cmd:focus-within');
+    expect(shell).toContain('border-color: var(--primary);');
+    expect(shell).toContain('box-shadow: var(--primary-focus-shadow);');
+    /* no theme re-points it to the translucent ring */
+    expect(source('../styles/theme-light.css')).not.toContain('.tb-cmd:focus-within');
+    expect(source('../styles/paradise.css')).not.toContain('.tb-cmd:focus-within');
+  });
+
+  it('keeps each indicator at least 3:1 against the light and dark dialog surfaces', () => {
+    expect(contrast(lightPrimary, '#FFFFFF')).toBeGreaterThanOrEqual(3);
+    expect(contrast(darkPrimary, '#14181F')).toBeGreaterThanOrEqual(3);
+  });
+});
+
 describe('JENKIN · contrast floors on opaque light surfaces', () => {
   const tokens = source('../styles/tokens.css');
   const light = tokens.slice(tokens.indexOf('[data-theme="light"] {'));

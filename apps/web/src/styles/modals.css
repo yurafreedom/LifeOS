@@ -49,6 +49,9 @@
   border-bottom: 1px solid var(--border);
 }
 .qa-title::placeholder { color: var(--fg4); }
+/* Keyboard focus: the underline turns primary and doubles (1 px border + 1 px
+   shadow) — no outline to clip, no layout shift; ≥ 3:1 on every theme's dialog. */
+.qa-title:focus-visible { border-bottom-color: var(--primary); box-shadow: 0 1px 0 var(--primary); }
 
 .qa-row { display: flex; gap: 10px; align-items: center; padding: 8px 0; }
 .qa-toggle {

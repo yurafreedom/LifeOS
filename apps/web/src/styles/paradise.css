@@ -585,7 +585,7 @@ html.scene-switching .app *::before, html.scene-switching .app *::after {
   background: var(--surface-2);
   font: inherit;
 }
-.auth-form input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.auth-form input:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }   /* a colour token: --accent is a gradient, invalid in outline */
 .auth-submit {
   border: 0;
   border-radius: 11px;
