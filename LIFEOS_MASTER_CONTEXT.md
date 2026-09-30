@@ -1,6 +1,10 @@
 # LifeOS — MASTER PROJECT CONTEXT / SYSTEM PROMPT
 ## Universal operating context for new ChatGPT / Claude / engineering sessions
 
+Reconciled: 2026-09-30. Remote main verified at 5e858bb0322be0cc729d3d7e73ce359597aada84.
+The completion-audit fixes are separated from merged state in section 78; their
+publication state must be verified live (branch fix/lifeos-completion-audit).
+
 You are working on a real software project called LifeOS.
 
 Treat this document as the high-level project operating context, but DO NOT
@@ -121,37 +125,36 @@ Do not substitute general web search for repository inspection.
 3. CURRENT VERIFIED GITHUB STATE
 ====================================================================
 
-Last verified current main:
+Verified directly on 2026-09-30 (Europe/Kyiv).
 
-3570426a80988f2715f48bb9a12261d3ee122056
+Repository: yurafreedom/LifeOS, public, default branch main.
+Current remote main:
+5e858bb0322be0cc729d3d7e73ce359597aada84
 
-Commit message:
+Merge pull request #20: Add Adaptive Analytics retention controls.
+Parents: b8d129e87f48217eac6eda39d1b208a1b047cdfc and
+9fe3a495abc4857f04fee0ac93e9f32b04c0827a.
+Merged at 2026-09-30T01:03:13Z (04:03:13 Kyiv).
+PRs #1–#20 are closed and merged; no open PRs were returned.
+Calendar PR #17 merge:
+fffcd4b3d7edaefa87a1b117634c8bfad7caf6d9.
 
-Merge pull request #7 from yurafreedom/feat/adaptive-analytics-slice-p
-Add minimal Project domain for Adaptive Analytics
+Remote branches remaining at verification:
+main; feat/calendar-cube-redesign; feat/adaptive-analytics-slice-4-reviews;
+fix/project-forecast-revision-signal-history;
+refactor/development-architecture-modularization.
+These feature branches refer to already merged work. Cleanup is optional,
+requires ancestry checks, and is not a product completion blocker.
 
-PR #7:
+IMPORTANT: this verification is distinct from the completion-audit fixes in
+section 78. When this revision was written they were committed only on the local
+branch fix/lifeos-completion-audit (not pushed, no PR). Refresh remote main and
+PR state at session start; never infer that the fixes are merged from this text.
 
-MERGED
-
-PR #7 head:
-
-c36e4f67e6b0cf8288bd149cd89f0347e3c10e95
-
-Primary Slice P implementation commit:
-
-690b39a8dd24537d49b3148767bc3b3fcdb92cbb
-
-Current state MUST be refreshed before a new implementation session because
-main may have moved since this prompt was written.
-
-Repository consolidation started from this exact main on:
-
-chore/lifeos-consolidation
-
-This branch consolidates the canonical context, repository instructions and
-previously untracked authored LifeOS artifacts. Verify its current PR state
-live; do not infer that it has already been merged from this document.
+The repository's GitHub Pages run 36653260464 completed successfully for this
+SHA. Root index.html redirects to ui_kits/life-os, the legacy prototype.
+Pages success is neither application CI nor deployment of apps/web + apps/api.
+Use apps/web and the real API to test Slice 8 and the new Calendar.
 
 ====================================================================
 4. IMPORTANT LOCAL PATHS
@@ -597,6 +600,20 @@ F3 AA history cursor correctness:
 Outputs/Implementations/
 lifeos-aa-history-cursor-correctness_20260930-020750.md
 
+Slice 8 report:
+Outputs/Implementations/lifeos-adaptive-analytics-slice-8-retention_20260930-041500.md
+Slice 8 Final Plan:
+Outputs/Plans/lifeos-adaptive-analytics-slice-8-retention-final-plan_20260930-030431.md
+Slice 8 reconciliation:
+Outputs/Discoveries/lifeos-adaptive-analytics-slice-8-final-reconciliation_20260930-030431.md
+Calendar accepted Plan:
+Outputs/Plans/lifeos-calendar-cube-redesign-plan_20260929-214917.md
+Module boundaries:
+Outputs/architecture/module-boundaries.md
+Completion audit (canonical checkout, 2026-09-30):
+Outputs/Implementations/lifeos-completion-audit_20260930-125002.md
+Transfer-audit input (owner-supplied, not committed): LifeOS_Completion_Audit_20260930.md.
+
 Before implementing a relevant slice:
 
 READ the current plan/report/code directly.
@@ -670,8 +687,8 @@ AA semantic comparison
 
 Current single Alembic head:
 
-20260930_0008
-(M7 · System Review · Slice 7; down_revision 20260929_0007)
+20260930_0009
+(M8 · Retention · Slice 8; down_revision 20260930_0008)
 
 M3 added concept tables including:
 
@@ -700,7 +717,10 @@ implemented in Slice 6. AA table count: 22.
 
 M7 (20260930_0008 · aa_importance_ratings, aa_cross_references,
 aa_relation_feedback, aa_finance_contexts, aa_system_review_revisions)
-implemented in Slice 7. AA table count: 27.
+implemented in Slice 7. Historical AA table count: 27.
+
+M8 (20260930_0009 · aa_retention_policies, aa_retention_runs) implemented
+in Slice 8. Current AA table count: 29; snapshot/server schema remain 2.
 
 ====================================================================
 16. METRIC CATALOGUE CURRENTLY RELEVANT
@@ -1036,7 +1056,7 @@ PR #7:
 
 MERGED
 
-Current merge commit / current verified main:
+Historical Slice P merge commit:
 
 3570426a80988f2715f48bb9a12261d3ee122056
 
@@ -1196,68 +1216,43 @@ No English locale was introduced.
 
 Hero/PageHeader integration is preserved.
 
-No Project Analytics exists yet.
-
-No forecast-history chart exists yet.
-
-No dual-delta Project analysis exists yet.
+Project Analytics, forecast history and dual-delta comparison are now implemented
+in Slice 5 (section 39). Their absence was historical Slice P scope only.
 
 ====================================================================
-29. CURRENT GREEN BASELINE AFTER SLICE P
+29. VALIDATION BASELINES — HISTORICAL VS CURRENT
 ====================================================================
 
-Last accepted Slice P validation:
+At Slice P completion: 253 backend / 123 frontend tests (historical only).
+At Calendar completion: 602 backend / 495 frontend tests (historical only).
+At Slice 7 completion: 674 backend / 522 frontend tests (historical only).
+At F3 completion: 676 backend / 522 frontend tests (historical only).
+At Slice 8 completion: 748 backend passed, 1 opt-in performance skip;
+535 frontend passed / 42 files. The report says the perf harness passed
+separately. These are committed report results, not a rerun in this session.
 
-Backend:
+Fresh 2026-09-30 audit of exact remote main:
+535 frontend tests / 42 files PASS; typecheck, lint, build --manifest PASS.
+Default build: entry 321.11 kB / 97.34 kB gzip; CSS 165.56 kB.
+Calendar lazy chunk at current main: 20.19 kB / 6.11 kB gzip.
+Historical Calendar report chunk 21.75 kB is not a current budget pin.
 
-253 passed
-7 warnings
+Local audit fixes add five regression cases (section 78): 540 frontend tests
+in 43 files PASS, typecheck/lint/analytics-enabled build PASS. These results
+belong to the candidate audit fixes, not to remote main.
+The transfer audit could not run backend runtime gates or browser/API flows
+(no PostgreSQL / Python 3.11 there); it did static checks only.
 
-Ruff:
-
-PASS
-
-Alembic:
-
-20260910_0004
-one head/current
-
-Frontend:
-
-123 passed
-18 files
-
-Typecheck:
-
-PASS
-
-Lint:
-
-PASS
-
-Build:
-
-PASS
-107 modules
-
-git diff --check:
-
-PASS
-
-Approximate accepted bundle after Slice P:
-
-CSS:
-130.95 kB
-23.21 kB gzip
-
-JS:
-437.48 kB
-125.11 kB gzip
-
-Source map:
-1,092.48 kB
-
-Actual future baseline is always whatever the repository produces now.
+Canonical-checkout validation, 2026-09-30 (branch fix/lifeos-completion-audit,
+backend unchanged from main): python -m pytest on lifeos_test with DB tests
+enabled = 748 passed, 1 skipped (the opt-in retention perf harness only); ruff
+PASS; alembic heads = 20260930_0009; alembic current on lifeos_test =
+20260930_0009 (alembic_version row confirmed); live DB has 29 aa_* tables =
+29 mapped models = 29 EXPORT_TABLES entries; all 28 aa_* tables with user_id
+cascade from users (aa_metric_definitions is the global catalogue).
+Frontend candidate: TZ=UTC 540 / 43 files; typecheck, lint PASS;
+analytics-enabled build entry 335.54 kB (main with the same flag 335.54 kB).
+Focused browser/API QA results are in the audit report (section 13 list).
 
 ====================================================================
 30. RECOVERY STASH — DO NOT DROP
@@ -1287,52 +1282,15 @@ Only remove it after explicit owner authorization.
 31. CLARIFY DESIGN HANDOFF — COMPLETED (PR #9)
 ====================================================================
 
-Clarify was implemented, validated and merged. It introduced waitingItems[] and
-references[] inside snapshot v2 with no backend/schema change. Those decisions
-are settled; the section below is retained as the accepted design context.
-
-Implementation report:
-
-Outputs/Implementations/
-lifeos-design-handoff-clarify-panel_20260928-120853.md
-====================================================================
-
-Raw design source:
-
-/Users/yurasachenko/LifeOS/design_handoff_clarify_panel
-
-Original mapping analysis identified target:
-
-#/notes
-Quick Note row
-→ Clarify modal/popover
-
-The prototype primarily demonstrated visual/interaction behavior and deletion
-confirmation.
-
-The handoff README expects SIX real outcomes.
-
-The first integration attempt correctly stopped because four/five domain
-semantics were not yet canonical.
-
-Those semantics are now largely owner-approved.
-
-Hero has already been separated and completed.
-
-Clarify must now be implemented as its OWN production integration.
-
-Before implementation:
-
-verify the canonical checkout is clean and current;
-
-fetch `origin` and fast-forward local `main`;
-
-create or inspect the ordinary feature branch:
-
-feat/design-handoff-clarify-panel
-
-Use the canonical checkout. Do not create a dedicated worktree unless the owner
-explicitly requests one.
+Clarify is implemented and merged through PR #9.
+Merge: 573456af2cc37e917beafc4cf7f798be7d0c74b6.
+Report: Outputs/Implementations/lifeos-design-handoff-clarify-panel_20260928-120853.md.
+Snapshot v2 includes waitingItems[] and references[]; no backend migration.
+Raw design source: /Users/yurasachenko/LifeOS/design_handoff_clarify_panel.
+Six outcomes are real: Do Now, Delegate, Defer, Project, Reference, Delete.
+Project uses the real Project domain; cancellation/failure preserves the note.
+Sections describing old preimplementation uncertainty are historical only.
+Do not create another Clarify branch or reimplement the accepted integration.
 
 ====================================================================
 32. OWNER-APPROVED CLARIFY OUTCOMES
@@ -1369,8 +1327,8 @@ Rules:
 - must be user-visible through Tasks/Waiting or an equivalent clearly approved
   surface.
 
-The exact persisted representation should be inspected/designed minimally during
-Clarify implementation.
+The exact persisted representation is settled in the accepted Clarify code;
+inspect that code before future changes.
 
 Do not invent a large delegation system.
 
@@ -1428,29 +1386,15 @@ deleteQuickNote
 Use the handoff confirmation interaction.
 
 ====================================================================
-33. CLARIFY — IMPORTANT DOMAIN GAP STILL TO DESIGN
+33. CLARIFY WAITING / REFERENCE — SETTLED
 ====================================================================
 
-The semantic intent for Waiting and Reference is approved.
-
-Their exact persisted model is NOT yet frozen at the same level as Project.
-
-Before writing those collections:
-
-inspect current snapshot architecture and existing UI.
-
-Choose the SMALLEST truthful representation.
-
-Do not silently infer tags/status values.
-
-Do not create unrelated infrastructure.
-
-If multiple materially different representations remain possible and affect
-product semantics:
-
-STOP and ask the owner.
-
-Do not hide uncertainty inside code.
+The accepted implementation stores waitingItems[] and references[] in the
+operational snapshot. Waiting is retrieved from the Tasks waiting filter;
+Reference is retrieved from the Notes reference surface.
+Inspect domain/clarify.ts and lifeData/migrate.js for exact current shapes.
+There is no open Waiting/Reference storage decision from the old handoff.
+Future Reference lifecycle changes remain a separate product scope.
 
 ====================================================================
 34. QUICK NOTES / TASK FOUNDATIONS
@@ -1551,7 +1495,8 @@ equal-timestamp pagination regression pinned)
 
 NEXT:
 
-final LifeOS completion audit
+owner review of the completion-audit branch (§78), then separately planned
+product scope — not an automatic Slice 9
 
 Do not implement a later slice merely because its prerequisites exist.
 
@@ -1825,7 +1770,7 @@ Settled semantics:
 - exports of a saved revision: PDF/DOCX/XLSX/MD (stdlib writers, embedded DejaVu subset, XLSX
   formula-safe); account JSON export includes all five tables; D1 redaction adapters for
   revisions / relation endpoints / importance;
-- retention: unlimited by default; full retention mechanics remain Slice 8.
+- retention: unlimited by default; full retention mechanics are implemented in Slice 8 (§42).
 
 Frontend: route system-review (#/system-review[/YYYY-MM|YYYY][/tradeoff|/revisions/<n>] |
 /waiting), analytics-gated, lazy, Sidebar «обзор системы»; LIFE_ROUTES 22.
@@ -2143,27 +2088,16 @@ as unrelated cleanup.
 50. MIGRATION POLICY
 ====================================================================
 
-Only create a migration when the planned slice explicitly requires one.
-
-Current Alembic head:
-
-20260930_0009
-
-M4 (aa_signal_episodes) was created by Slice 3 and is merged.
-M5 (Review / Debrief) was created by Slice 4.
-M6 (Experiments) was created by Slice 6.
-M7 (System Review, relations, importance, finance context) was created by Slice 7.
-M8 (retention policies and run audits) was created by Slice 8.
-
-Clarify currently should not need an Alembic migration if its operational state
-is added to the snapshot.
-
-If an implementation unexpectedly appears to require backend relational schema
-outside the planned slice:
-
-STOP and explain why.
-
-Do not silently invent a future migration early.
+Create a migration only when the approved change requires it.
+Current single migration head: 20260930_0009 (M8 retention).
+Chain: 20260721_0001 → 20260909_0002 → 20260909_0003 → 20260910_0004
+→ 20260928_0005 → 20260928_0006 → 20260929_0007
+→ 20260930_0008 → 20260930_0009.
+M4=Signals, M5=Review, M6=Experiment, M7=System Review, M8=Retention.
+Clarify, Calendar and the current audit fixes use snapshot v2 without a migration.
+Never downgrade production personal history. Roundtrip tests use lifeos_test.
+alembic current is a database fact and must be verified against a real safe DB;
+do not infer it from the migration source DAG.
 
 ====================================================================
 51. GIT SAFETY RULES
@@ -2518,90 +2452,42 @@ A BLOCKED result is better than silently corrupting product semantics.
 65. CURRENT NEXT STEP
 ====================================================================
 
-Slice P, Clarify, Slice 3, Slice 4 (Review / Debrief), Slice 5 (Project
-Analytics), Slice 6 (Experiments), the Calendar cube redesign (§40b) and
-Slice 7 (System Review, §41), the F3 AA history cursor fix and Slice 8
-(retention / legacy / hardening, §42) are complete. Verify the exact current main
-SHA live; do not trust a SHA written here.
+All accepted Adaptive Analytics slices through Slice 8 and Calendar PR #17
+are merged. Remote main is the SHA in section 3.
 
-The next major task is:
+The 2026-09-30 completion audit found two frontend integration defects:
+Calendar closures still shown/counted as open in Tasks/Sidebar, and the
+retention consequences date calculated in the browser timezone instead of Kyiv.
+Fixes and regressions are committed on the local branch
+fix/lifeos-completion-audit (section 78) and validated in the canonical checkout
+(backend on lifeos_test, frontend gates, focused browser/API QA). They are not
+merged until a PR is reviewed and merged by the owner's normal policy; verify
+live. Do not start an invented Slice 9.
 
-the final LifeOS completion audit (all Adaptive Analytics product slices are
-complete; LifeOS as a whole is NOT yet declared complete)
-
-Follow the Discovery → Plan → Implementation gates on an ordinary feature
-branch in the canonical checkout after fast-forwarding local `main`.
-
-====================================================================
-66. CLARIFY IMPLEMENTATION EXPECTATIONS
-====================================================================
-
-Clarify must integrate:
-
-raw design intent
-
-+
-
-real LifeOS operational semantics.
-
-It must NOT merely reproduce the prototype.
-
-Before code changes:
-
-inventory handoff
-inspect QuickNotesPage
-inspect Task/QuickAdd
-inspect Projects
-inspect state migration
-inspect routing
-inspect localization
-inspect current CSS
-inspect accessibility patterns
-
-Determine the smallest truthful persisted representations for:
-
-Waiting
-Reference
-
-before implementing those outcomes.
-
-No hidden tag hacks.
-
-No Goal fallback.
-
-No indefinite someday bucket.
-
-No fake confirmation of success.
-
-Quick Note should disappear only after the selected outcome has been
-successfully persisted.
+Latest features can be tested in apps/web + apps/api on a disposable account.
+Destructive retention QA must use lifeos_test, never personal data.
+LifeOS as a whole is NOT complete: confirmed remaining product gaps are in §78.
+Follow the single canonical checkout policy on the owner's Mac.
 
 ====================================================================
-67. LIKELY CLARIFY SNAPSHOT CHANGES
+66. CLARIFY CONTRACT FOR FUTURE CHANGES
 ====================================================================
 
-These are NOT automatically final schemas.
+Clarify is complete; this is a regression contract, not a future task.
+Reuse the existing domain builders, snapshot collections and retrieval surfaces.
+Preserve all six outcomes, keyboard/focus behaviour, RU/UK, and failure/cancel
+semantics. Remove the source note only after outcome persistence succeeds.
+Never map Project to Goal, or Waiting/Reference to hidden tags.
 
-They are areas to design explicitly.
+====================================================================
+67. CLARIFY SNAPSHOT COLLECTIONS
+====================================================================
 
-Possible new operational collections may include:
-
-waitingItems[]
-references[]
-
-If used, they must:
-
-- be additive;
-- be seeded safely for old snapshots;
-- not bump state version without a real reason;
-- validate existing records;
-- preserve input immutability in migration;
-- have user-visible retrieval surfaces;
-- remain minimal.
-
-Do not implement them merely because these names appear here.
-
-First confirm against current architecture and the handoff.
+waitingItems[] and references[] are accepted operational collections.
+They are additive within version 2 / schema_version 2.
+Exact validation/migration and field names live in current domain/clarify.ts,
+context/lifeData/migrate.js and the accepted implementation report.
+Do not reinterpret old provisional shape suggestions as new implementation work.
 
 ====================================================================
 68. CLARIFY SUCCESS CRITERION
@@ -2628,18 +2514,13 @@ and the UI:
 - does not route Project into Goal.
 
 ====================================================================
-69. AFTER CLARIFY
+69. AFTER CLARIFY — HISTORICAL SEQUENCE
 ====================================================================
 
-After Clarify implementation:
-
-owner review full report
-→ PR diff review
-→ merge
-→ verify main
-→ proceed to Adaptive Analytics Slice 3 unless priorities change.
-
-Do not jump directly to Slice 5 merely because Project now exists.
+Clarify review and merge completed. Subsequent work includes Slice 3, Slice 4,
+architecture modularization, forecast correctness, Slice 5, Slice 6, Calendar,
+Slice 7, F3 and Slice 8. Current work is final completion audit and narrow fixes.
+Do not restart the old Clarify → Slice 3 sequence.
 
 ====================================================================
 70. CURRENT IMPORTANT COMMITS / LANDMARKS
@@ -2701,9 +2582,19 @@ Slice P semantic cleanup:
 
 c36e4f67e6b0cf8288bd149cd89f0347e3c10e95
 
-Slice P merge / latest verified main:
+Historical Slice P merge:
 
 3570426a80988f2715f48bb9a12261d3ee122056
+
+Later merge landmarks:
+Architecture #13: 48e38c2287f525d50c9d31a40a5934e406234f4b
+Forecast fix #14: 63e41adebf22400dca3e30330bb347f4feef6027
+Slice 5 #15: 414df142700653d616016ff644bff3d9c0007540
+Slice 6 #16: 55ac0408d5cffebbc514a591e15e56f18edaaf39
+Calendar #17: fffcd4b3d7edaefa87a1b117634c8bfad7caf6d9
+Slice 7 #18: 4f19c5ef9e74f42513099ca1ad3fa4938c86364c
+F3 #19: b8d129e87f48217eac6eda39d1b208a1b047cdfc
+Slice 8 #20 / verified remote main: 5e858bb0322be0cc729d3d7e73ce359597aada84
 
 Never assume latest verified main is still current without checking GitHub.
 
@@ -2711,22 +2602,33 @@ Never assume latest verified main is still current without checking GitHub.
 71. IMPORTANT PR HISTORY
 ====================================================================
 
-PR #5:
-Hero Vignette
-MERGED
+All PRs #1–#20 verified merged on 2026-09-30.
 
-PR #6:
-Adaptive Analytics Slice 2
-Finance Pilot + durable queue
-MERGED
+| PR | Work |
+|---|---|
+| 1 | Foundation / design import / PRE-0 |
+| 2 | Slice 0 semantic history |
+| 3 | Slice 0b export/delete |
+| 4 | Slice 1 semantics |
+| 5 | Hero Vignette |
+| 6 | Slice 2 Finance + durable queue |
+| 7 | Slice P Project domain |
+| 8 | Single canonical checkout consolidation |
+| 9 | Clarify |
+| 10 | Slice 3 Signals |
+| 11 | M4 context correction |
+| 12 | Slice 4 Review |
+| 13 | Architecture modularization |
+| 14 | Forecast revision signal correctness |
+| 15 | Slice 5 Project Analytics |
+| 16 | Slice 6 Experiments |
+| 17 | Calendar Cube Redesign |
+| 18 | Slice 7 System Review / relationship intelligence |
+| 19 | F3 AA history SQL tuple cursor |
+| 20 | Slice 8 Retention |
 
-PR #7:
-Minimal Project Domain
-MERGED
-
-For any later PR:
-
-inspect current live status rather than relying on this document.
+For exact head and merge SHAs see the 2026-09-30 audit report and live GitHub.
+Never infer a future PR's state from this historical table.
 
 ====================================================================
 72. GITHUB VS LOCAL FILESYSTEM
@@ -2887,3 +2789,74 @@ Expectation is not Target.
 Missing is not zero.
 
 And no global Life Score exists.
+
+
+====================================================================
+78. COMPLETION AUDIT — 2026-09-30 / FIXES ON fix/lifeos-completion-audit
+====================================================================
+
+Evidence sources: supplied earlier MASTER_CONTEXT, supplied escaped Markdown
+discussion fragment, available prior-chat retrieval, current repository context,
+committed Calendar/Slice 8 reports, live PR/main metadata and current source.
+Prior-chat retrieval provided selected fragments, not a full chat transcript.
+Current repository context already contained Slices 3–8 but retained stale
+top-level SHA, migration facts and Clarify preimplementation instructions.
+This revision reconciles those contradictions; frozen reports remain untouched.
+
+Remote implementation status: PASS for merged slices through 8 and Calendar.
+Fresh frontend validation: PASS on remote main (535 tests).
+Transfer audit: backend runtime and browser/API validation NOT RUN there.
+Canonical-checkout audit (Outputs/Implementations/lifeos-completion-audit_20260930-125002.md):
+backend 748 passed + 1 opt-in perf skip on lifeos_test, ruff PASS, Alembic
+head/current 20260930_0009, 29/29 registry parity; frontend 540/43; focused
+browser/API QA on a disposable lifeos_test account (Calendar/Tasks 22 checks,
+retention 27 checks, 240 visual loads).
+Full LifeOS product completion: NOT COMPLETE.
+
+Audit fixes (on branch fix/lifeos-completion-audit; not in remote main when written):
+1. TasksPage excludes archived/closed_unresolved tasks from ordinary task
+   controls; Tasks/Sidebar open counts use isTaskActive. Completed tasks retain
+   their old list behaviour; closed rows remain in Calendar History; Restore
+   returns the same task id. Three regressions were red before the fix.
+2. Retention consequences horizon uses Europe/Kyiv via localDateForInstant,
+   returning a date-only boundary. Browser-local getMonth/getFullYear could show
+   the previous month at Kyiv midnight; two RU/UK month/year-edge regressions
+   were red before the fix. Server preview/apply semantics were already correct.
+No backend, schema, dependency, queue or stored data mutation is part of these fixes.
+
+Confirmed wider product gaps (scope must be planned separately):
+- HealthPage is a static skeleton, not health record management.
+- monthly / annual / investments routes still render PlaceholderPage. They
+  are distinct from the implemented System Review monthly/annual views.
+- Goals supports add/read; complete edit/delete/progress workflow is absent.
+- Home cards still derive task/streak/goal values and historical finance trend
+  from LifeDashSeed. Do not advertise them as complete observed history.
+- Mobile 'more' goes to Settings; no full LIFE route drawer exists.
+- Dog has editable operational fields, but meal-history link is a no-op and
+  restock uses fixed 7000g; complete consumption/history mechanics are absent.
+- Root README/ARCHITECTURE still describe the legacy design/prototype layer.
+- Tasks page filters «сегодня» / «просрочено» still use legacy predicates
+  (tag === 'today' || stakes; a ':' in the display due label), not
+  schedule.date semantics. Needs an explicit owner decision before changing.
+- Project history_deleted_by_retention is now browser-verified with the SAME
+  project in the operational snapshot and genuinely pruned AA evidence.
+- Paradise overflow at 768px REPRODUCED on 2026-09-30 (+16 px RU / +25 px UK on
+  every screen, ParadiseScene ps-layer/ps-cloud; CSS asset identical on main).
+  The Slice 8 harness likely missed it because its goto() applied the theme via
+  a same-document hash navigation, so the app kept the previous theme.
+- Project Analytics history_deleted_by_retention: the comparison card is
+  truthful, but ForecastHistory still renders «Версий прогноза нет» and «Факт
+  завершения не записан» below it (it does not branch on that state). Minor
+  truthfulness defect; the same-project browser fixture now exists.
+- MetricHistoryPage: on a cold deep link it shows hardcoded Russian «История
+  метрики пока недоступна.» (also hardcoded title / «Назад»; no UK copy); via
+  in-app navigation it discloses the horizon, as a raw ISO date.
+- Sidebar habits/goals counts are hardcoded (7 / 3) in App.jsx.
+- components/Today.jsx and TaskList.jsx still count !done but are not imported.
+
+Do not reinterpret these findings as authorization to invent new domain semantics.
+Next action: owner review of branch fix/lifeos-completion-audit (the two narrow
+fixes, this context and the report), then — only if authorized — the normal PR
+and merge-commit flow. Afterwards choose and plan the next product scope from the
+gap list above (Discovery → Plan → Implementation). Publishing/deploying is not
+implied by the audit.

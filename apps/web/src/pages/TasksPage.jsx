@@ -2,6 +2,7 @@ import React from 'react';
 import { PageHeader } from '../components/HeroVignette.jsx';
 import { LIcons } from '../components/icons.jsx';
 import { LifeLocaleContext } from '../context/LocaleContext.jsx';
+import { isTaskActive, isTaskClosed } from '../domain/tasks.ts';
 
 /* global React */
 const { useState: useStateTP, useMemo: useMemoTP, useContext: useCtxTP } = React;
@@ -36,18 +37,20 @@ function TasksPage({ tasks, waitingItems = [], onToggle, onAdd, onOpen }) {
   ];
 
   const filtered = useMemoTP(() => {
-    let xs = tasks.slice();
+    // Calendar closures stay in History until Restore; ordinary task controls
+    // must not present them as unchecked tasks merely because done is false.
+    let xs = tasks.filter(task => !isTaskClosed(task));
     if (filter === 'today')   xs = xs.filter(x => x.tag === 'today' || x.stakes);
     if (filter === 'overdue') xs = xs.filter(x => !x.done && x.due && x.due.includes(':'));
-    if (filter === 'routine') xs = xs.filter(x => !x.stakes && !x.done);
-    if (filter === 'stakes')  xs = xs.filter(x => x.stakes && !x.done);
+    if (filter === 'routine') xs = xs.filter(x => !x.stakes && isTaskActive(x));
+    if (filter === 'stakes')  xs = xs.filter(x => x.stakes && isTaskActive(x));
     if (filter === 'done')    xs = xs.filter(x => x.done);
     if (sort === 'priority')  xs.sort((a, b) => (b.stakes ? 1 : 0) - (a.stakes ? 1 : 0));
     if (sort === 'category')  xs.sort((a, b) => String(a.tag || '').localeCompare(String(b.tag || '')));
     return xs;
   }, [tasks, filter, sort]);
 
-  const openCount = tasks.filter(x => !x.done).length;
+  const openCount = tasks.filter(isTaskActive).length;
   const waitingView = filter === 'waiting';
 
   return (

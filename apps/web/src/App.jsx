@@ -30,7 +30,7 @@ import { LifeDataContext, LifeDataProvider } from './context/LifeDataContext.jsx
 import { AuthProvider, useAuth } from './context/AuthContext.jsx';
 import { AnalyticsProvider } from './context/AnalyticsContext.jsx';
 import { LifeLocaleContext, LifeLocales, LifeMakeT } from './context/LocaleContext.jsx';
-import { createQuickAddTaskRecord } from './domain/tasks.ts';
+import { createQuickAddTaskRecord, isTaskActive } from './domain/tasks.ts';
 import { FinancesPage } from './pages/FinancesPage.jsx';
 import { HealthPage } from './pages/HealthPage.jsx';
 import { HomePage } from './pages/HomePage.jsx';
@@ -174,7 +174,7 @@ function AppShell({ user }) {
 
   const counts = {
     notes:  quickNotes.length,
-    tasks:  resolvedTasks.filter(x => !x.done).length,
+    tasks:  resolvedTasks.filter(isTaskActive).length,
     habits: 7,
     goals:  3,
     projects: projects.filter(project => project.status === 'active').length,

@@ -6,6 +6,7 @@ import {
   putRetentionPolicy,
 } from '../../api/analytics';
 import { ApiError } from '../../api/client';
+import { localDateForInstant } from '../../analytics/timezone';
 
 const { useCallback, useEffect, useRef, useState } = React;
 
@@ -40,8 +41,9 @@ export function stateChoice(state) {
 }
 
 function horizonFor(months, now = new Date()) {
-  const index = now.getFullYear() * 12 + now.getMonth() - months;
-  return new Date(Math.floor(index / 12), index % 12, 1);
+  const [year, month] = localDateForInstant(now, TIMEZONE).split('-').map(Number);
+  const index = year * 12 + month - 1 - months;
+  return `${Math.floor(index / 12)}-${String(index % 12 + 1).padStart(2, '0')}-01`;
 }
 
 function formatDate(value, t) {

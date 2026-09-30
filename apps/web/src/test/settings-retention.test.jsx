@@ -51,6 +51,20 @@ function view(props, locale = 'ru') {
 }
 
 describe('Settings · AA history retention (Slice 8)', () => {
+  it.each([
+    ['ru', '2026-09-30T21:30:00Z', 'октября 2024'],
+    ['uk', '2026-12-31T22:30:00Z', 'січня 2025'],
+  ])('discloses the Kyiv horizon at a UTC month boundary (%s)', (locale, now, expected) => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(now));
+    try {
+      const { html } = view({ state: DEFAULT_STATE, ui: { choice: 24 } }, locale);
+      expect(html).toContain(expected);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   for (const locale of ['ru', 'uk']) {
     it(`defaults to Unlimited and offers only 5 / 3 / 2 years (${locale})`, () => {
       const { t, html } = view({ state: DEFAULT_STATE }, locale);
