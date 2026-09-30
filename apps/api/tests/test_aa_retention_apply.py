@@ -189,12 +189,13 @@ def _seed_world(session_factory, user_id: UUID, *, full: bool = True) -> World:
                 timezone="Europe/Kyiv", revision=1, status="draft",
                 context_as_of=utc(2024, 4, 2), reflection="Мой вывод за март",
                 decisions=["меньше кафе"], adjustments=["бюджет"],
-                frozen_context={"manifest_version": 1, "sections": {"changed": {"items": [
+                # The real freeze shape: each frozen section is a list of items.
+                frozen_context={"manifest_version": 1, "sections": {"changed": [
                     {"ordinal": 1, "section": "changed", "kind": "finance",
                      "value": "98765.00", "sources": [["aa_measurements", str(old_fix.id)]]},
                     {"ordinal": 2, "section": "changed", "kind": "finance",
                      "value": "700.00", "sources": [["aa_measurements", str(new.id)]]},
-                ]}}},
+                ], "consequences": {"expenses": [], "position": [], "priorities": []}}},
                 source_ids=[old_fix.id, new.id], idempotency_key=f"sr-{uuid4()}",
             )
             db.add(revision)
@@ -398,7 +399,7 @@ def test_apply_erases_whole_units_redacts_first_and_writes_one_run(
             AAReviewContextSource.user_id == owner.user_id)).all() == []
         # R8-45 / R8-46: saved System Review.
         revision = db.get(AASystemReviewRevision, ids["sr_revision"])
-        changed_items = revision.frozen_context["sections"]["changed"]["items"]
+        changed_items = revision.frozen_context["sections"]["changed"]
         assert changed_items[0] == {"ordinal": 1, "section": "changed", "kind": "finance",
                                     "redacted": True,
                                     "redaction_reason": "source_retention_pruned"}

@@ -1547,11 +1547,11 @@ Clarify Panel ✅
 7 ✅
 F3 cursor correctness ✅ (actual history keyset uses SQL `tuple_(occurred_at, id)`;
 equal-timestamp pagination regression pinned)
+8 ✅ (retention / legacy / hardening — §42)
 
 NEXT:
 
-Slice 8 retention
-→ final LifeOS completion audit
+final LifeOS completion audit
 
 Do not implement a later slice merely because its prerequisites exist.
 
@@ -1833,20 +1833,72 @@ Frontend: route system-review (#/system-review[/YYYY-MM|YYYY][/tradeoff|/revisio
 Validation at completion: 674 pytest, 522 Vitest (41 files).
 
 ====================================================================
-42. SLICE 8 — FUTURE RETENTION
+42. SLICE 8 — RETENTION / LEGACY / HARDENING — COMPLETED
 ====================================================================
 
-AA history has its own retention semantics.
+Implementation report:
 
-Owner decision:
+Outputs/Implementations/
+lifeos-adaptive-analytics-slice-8-retention_20260930-041500.md
 
-separate AA retention
+Plan / reconciliation: Outputs/Plans/…-slice-8-retention-final-plan_20260930-030431.md,
+Outputs/Discoveries/…-slice-8-final-reconciliation_20260930-030431.md.
 
-unlimited by default
+Owner decisions (resolved 2026-09-30): O1 finite retention prunes only
+observational / windowed / versioned evidence by whole chain / window / completed
+Project unit; user-authored entities never age-pruned; open or Actual-less
+Projects never pruned. O2 retention is user-chosen hard erasure: source-derived
+frozen Review / Saved System Review values are redacted first with reason
+source_retention_pruned; user content survives; never tombstone. O3 Unlimited
+(default, no row) · 5 · 3 · 2 years (60/36/24 months) only; nothing shorter,
+nothing preselected. O4 one aa_retention_runs row per Apply; no per-fact
+retention receipts (aa_deletion_receipts stays for ordinary hard delete).
 
-Legacy activityLog retention is separate.
+Migration M8: 20260930_0009_aa_retention (down_revision 20260930_0008).
+AA tables 27 → 29: aa_retention_policies (append-only intent), aa_retention_runs
+(one audit per Apply; counts, horizon, fingerprint; never a deleted value).
+Review redaction-reason CHECK widened. Two evidence-backed indexes
+(aa_measurements.superseded_by_id partial, overrides.source_fact_id): without them
+a 90k-row set delete ran > 590 s; with them 1.3 s.
 
-Do not silently prune durable AA history.
+Settled semantics:
+
+- AA retention is separate from payload.activityLog in both directions; no
+  activityLog → AA path exists;
+- policy save never deletes; flow = choose → consequences → confirm policy →
+  preview (READ ONLY, opaque sha256 token over the exact candidate + redaction
+  set) → explicit Apply (confirm: true, idempotent, per-user advisory lock,
+  FOR UPDATE + re-derivation; stale ⇒ 409 retention_preview_stale, zero deletion);
+- Apply is ATOMIC: redact Review / Saved System Review / relation endpoints /
+  fact-importance / provenance first, remove episodes of erased windows, then one
+  DELETE per table of whole chains (NO ACTION checked at statement end); a failed
+  attempt rolls back and is recorded as a failed run with nothing deleted;
+- semantic axes, never created_at: occurred_at (measurements, observations),
+  window_end (coverage, expectation, baseline, target), strict in-force rule
+  (preferences, metric policies), whole completed Project unit (forecasts, Actual,
+  project observations); experiment subjects never pruned;
+- effective historical-completeness horizon = latest horizon among COMPLETED runs
+  (IANA local month start); Unlimited or a longer policy never restores it; a later
+  stricter Apply advances it;
+- truthful reads: history retention_horizon / retention_truncated; finance month
+  availability retention_truncated with actual null; coverage day bucket
+  retention_truncated; Project Analytics history_deleted_by_retention (≠ no_facts,
+  ≠ the page-cap forecast_versions_truncated); signal discovery clipped (still 4
+  rules); System Review truncated months / windows, no proposals or consequences
+  for a truncated month; late explicit old writes accepted and still disclosed;
+- F6: legacy transaction / coverage import never resurrects pruned history
+  (transactions_retention_skipped / coverage_retention_skipped);
+- policy and Apply are gate-independent privacy controls (JSON 415 → same origin →
+  session); never via AnalyticsWriteQueue; offline Apply fails visibly;
+- no scheduler in v1; deletion only after preview + explicit Apply.
+
+Frontend: Settings section «Хранение аналитической истории» / «Зберігання
+аналітичної історії» (components/settings/RetentionSection.jsx), separate from the
+activityLog cleanup; retention-specific copy on Review / System Review / Project
+Analytics / finance / history / quality surfaces.
+
+Validation at completion: see the implementation report (backend with lifeos_test
+DB tests, Vitest, browser matrix 288 loads, perf evidence).
 
 ====================================================================
 43. OWNER DECISIONS D1–D5
@@ -2095,12 +2147,13 @@ Only create a migration when the planned slice explicitly requires one.
 
 Current Alembic head:
 
-20260930_0008
+20260930_0009
 
 M4 (aa_signal_episodes) was created by Slice 3 and is merged.
 M5 (Review / Debrief) was created by Slice 4.
 M6 (Experiments) was created by Slice 6.
 M7 (System Review, relations, importance, finance context) was created by Slice 7.
+M8 (retention policies and run audits) was created by Slice 8.
 
 Clarify currently should not need an Alembic migration if its operational state
 is added to the snapshot.
@@ -2467,13 +2520,14 @@ A BLOCKED result is better than silently corrupting product semantics.
 
 Slice P, Clarify, Slice 3, Slice 4 (Review / Debrief), Slice 5 (Project
 Analytics), Slice 6 (Experiments), the Calendar cube redesign (§40b) and
-Slice 7 (System Review, §41) and the F3 AA history cursor fix are complete. Verify the exact current main SHA live; do not trust a SHA written here.
+Slice 7 (System Review, §41), the F3 AA history cursor fix and Slice 8
+(retention / legacy / hardening, §42) are complete. Verify the exact current main
+SHA live; do not trust a SHA written here.
 
-The next major product task is:
+The next major task is:
 
-Slice 8 retention; then the final LifeOS completion audit (Slice 7 and F3
-cursor correctness are complete; the Actual-history cursor continues on the
-SQL row value `(occurred_at, id)`, pinned by an equal-timestamp regression)
+the final LifeOS completion audit (all Adaptive Analytics product slices are
+complete; LifeOS as a whole is NOT yet declared complete)
 
 Follow the Discovery → Plan → Implementation gates on an ordinary feature
 branch in the canonical checkout after fast-forwarding local `main`.
