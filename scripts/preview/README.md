@@ -77,6 +77,7 @@ An in-repository location is refused unless it is Git-ignored.
 | `mail/<db>/` | Development `.eml` files (S1 file mail backend). Nothing is ever sent |
 | `logs/<run>/`, `logs/latest` | `pip`, `npm`, `migrate`, `build`, `api`, `web` logs (latest 20 runs) |
 | `run/` | Lock and runtime state of the running instance |
+| `backups/<db>-<from>-to-<head>-<time>/` | Automatic pre-migration backup: `database.dump` (`pg_dump -Fc`), a copy of that database's keyring, `manifest.json` with a restore command. Never pruned |
 
 Persistent application data (accounts, snapshots, tasks and S2 encrypted
 documents) lives in the PostgreSQL database `lifeos_preview`.
@@ -91,7 +92,10 @@ documents) lives in the PostgreSQL database `lifeos_preview`.
 - **Migrations.** Upgrades are forward-only. If the database is newer than (or
   has diverged from) the previewed revision, the launcher refuses and suggests
   `--db-suffix r<sha>`, which gives that revision a separate database. It never
-  downgrades, truncates, resets or reseeds anything.
+  downgrades, truncates, resets or reseeds anything. Before migrating a
+  database that already has a schema, it writes a `pg_dump` backup and a copy
+  of the database's keyring to `backups/` (0700/0600); if the backup fails,
+  nothing is migrated.
 - **Environment.** Inherited `LIFEOS_*`, `VITE_*` and libpq targeting variables
   are dropped. The API runs from an empty directory, so no checkout's `.env` is
   read. Mail is the development file backend (or disabled). The app has no bank

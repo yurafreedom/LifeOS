@@ -152,6 +152,8 @@ class Layout:
     def logs(self) -> Path: return self.home / "logs"
     @property
     def mail(self) -> Path: return self.home / "mail"
+    @property
+    def backups(self) -> Path: return self.home / "backups"
 
     def keyring(self, db: str) -> Path:
         return self.secrets / f"keyring-{db}.json"
@@ -175,9 +177,9 @@ def ensure_home() -> None:
                 f"JENKIN_PREVIEW_HOME {HOME} is inside a Git checkout and not ignored; "
                 "choose a private location outside the repository"
             )
-    for directory in (L.home, L.secrets, L.venvs, L.builds, L.worktrees, L.run, L.cwd, L.logs, L.mail):
+    for directory in (L.home, L.secrets, L.venvs, L.builds, L.worktrees, L.run, L.cwd, L.logs, L.mail, L.backups):
         directory.mkdir(mode=0o700, parents=True, exist_ok=True)
-    for directory in (L.home, L.secrets, L.run):
+    for directory in (L.home, L.secrets, L.run, L.backups):
         os.chmod(directory, 0o700)
     stray = [p.name for p in L.cwd.iterdir()]
     if stray:
@@ -630,6 +632,40 @@ def approved_database(config: dict[str, str], suffix: str | None) -> Database:
     return Database(host=host, port=int(config["PREVIEW_PG_PORT"]), user=config["PREVIEW_PG_USER"], name=name)
 
 
+def backup_before_migration(db: Database, current: list[str], head: str, log: Path) -> Path:
+    """Dump a database that already has a schema, plus a copy of its keyring, before migrating it.
+
+    Fails closed: without a complete backup the migration does not run. Backups are never pruned.
+    """
+    pg_dump = shutil.which("pg_dump")
+    if pg_dump is None:
+        raise LauncherError(
+            f"pg_dump was not found, so {db.name} cannot be backed up before migrating it to {head}. "
+            "Nothing was migrated.\n  → Install the PostgreSQL client tools (brew install postgresql@18), then rerun."
+        )
+    stamp = datetime.now().strftime("%Y%m%dT%H%M%S")
+    target = L.backups / f"{db.name}-{'+'.join(current)}-to-{head}-{stamp}"
+    target.mkdir(mode=0o700)
+    dump = target / "database.dump"
+    run_logged([pg_dump, "--format=custom", "--no-password", "-h", db.host, "-p", str(db.port), "-U", db.user,
+                "-d", db.name, "-f", str(dump)],
+               cwd=L.cwd, env=clean_env(), log=log, title="pre-migration backup (pg_dump)")
+    if not dump.exists() or dump.stat().st_size == 0:
+        raise LauncherError(f"pg_dump did not produce {dump}; nothing was migrated. See {log}")
+    os.chmod(dump, 0o600)
+    keyring = L.keyring(db.name)
+    if keyring.exists():
+        shutil.copy2(keyring, target / keyring.name)
+        os.chmod(target / keyring.name, 0o600)
+    manifest = {"database": db.name, "from": current, "to": head, "created": stamp,
+                "dump": dump.name, "keyring": keyring.name if keyring.exists() else None,
+                "restore": f"createdb {db.name}_restored && pg_restore -d {db.name}_restored {dump}"}
+    fd = os.open(target / "manifest.json", os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+    with os.fdopen(fd, "w") as handle:
+        json.dump(manifest, handle, indent=2)
+    return target
+
+
 def dbtool(venv: Path, command: str, params: dict) -> dict:
     result = subprocess.run(
         [str(venv / "bin" / "python"), str(DBTOOL), command, json.dumps(params)],
@@ -989,6 +1025,9 @@ def cmd_start(args: argparse.Namespace) -> int:
                 f"--db-suffix r{source.commit[:7]}   (separate, empty; your {db.name} data is untouched)"
             )
         if plan["action"] == "upgrade":
+            if plan["versions"]:
+                backup = backup_before_migration(db, plan["versions"], head, logs / "backup.log")
+                step(f"Backed up {db.name} ({current}) before migrating (dump + keyring copy if any): {backup}")
             step(f"Migrating {db.name}: {current} → {head} (forward only)")
             run_logged([str(venv / "bin" / "python"), "-m", "alembic", "-c", str(source.api / "alembic.ini"),
                         "upgrade", "head"], cwd=L.cwd, env=env, log=logs / "migrate.log", title="alembic upgrade")
