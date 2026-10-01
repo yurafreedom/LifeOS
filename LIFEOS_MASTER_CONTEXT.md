@@ -3437,3 +3437,41 @@ Browser storage (unsaved copies, analytics queue, legacy copies) is plaintext
 — logical per-account isolation only; added to the S2 data-protection plan.
 Verified: backend 822 passed + 1 skipped under UTC and Kyiv, frontend 882,
 live 4-worker checks on lifeos_test. Head: 20261001_0011. S2 NOT started.
+
+====================================================================
+89. JENKIN LOCAL PREVIEW LAUNCHER — ./scripts/preview.sh (PUSHED BRANCH, 2026-10-01)
+====================================================================
+
+Report: Outputs/Implementations/jenkin-preview-launcher_20261001-164500.md
+Usage:  scripts/preview/README.md
+Branch feat/jenkin-preview-launcher-20261001, based on the S1 tip f7a43eb.
+Not merged. Tooling only: no app code, dependency or migration change.
+
+- `./scripts/preview.sh` runs a foreground launcher (Python 3.11 standard
+  library). It prepares dependencies, migrates the preview database forward,
+  runs `vite build`, then starts the real API (uvicorn --factory) and
+  `vite preview` with the repo proxy on 127.0.0.1:4710/8710. It waits for
+  /api/healthz directly and through the proxy, opens the browser, and Ctrl+C
+  stops both services. Other commands: status, stop, token (bootstrap token to
+  the clipboard) and logs.
+- Source: by default, the checkout containing the script, working tree as-is
+  (it is never modified). `--ref <branch|sha>` fetches from origin into a
+  managed worktree under ~/.jenkin-preview/worktrees (reused only when clean,
+  never erased). `--source <path>` previews another local checkout. The
+  launcher never falls back to main.
+- DATABASE BOUNDARY: preview uses ONLY lifeos_preview (or
+  lifeos_preview_<suffix> via --db-suffix) on a loopback server. The owner
+  authorized the launcher to create and migrate it, an explicit exception to
+  "agents migrate only lifeos_test". The launcher marks the database with a
+  comment, upgrades forward only, and refuses a newer, diverged or foreign
+  database. lifeos_dev and lifeos_test are refused in two layers. Destructive
+  tests stay on lifeos_test.
+- Private state lives in ~/.jenkin-preview (0700): config.env (no secrets),
+  secrets/bootstrap-token, secrets/keyring-<db>.json (S2, generated once,
+  never replaced; fail-closed if document records exist without it), venvs
+  keyed by the requirements.lock hash, content-hashed builds, logs, and
+  file-mail .eml.
+- S2 support is detected from the revision's code (documents_enabled,
+  keyring_file, keyring-generate). It was verified on the S2 commit 13c9f1f.
+- A PID is signalled only if its ps start time and command still match the
+  recorded process; flock is the liveness authority.
