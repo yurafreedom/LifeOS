@@ -330,7 +330,7 @@ describe('locale', () => {
 
 describe('experiment route', () => {
   it('is one analytics-gated, lazily loaded route with a hash family', async () => {
-    expect(LIFE_ROUTES.size).toBe(22);
+    expect(LIFE_ROUTES.size).toBe(23);
     expect(readRouteFromHash('#/experiment')).toBe('experiment');
     expect(readRouteFromHash('#/experiment/new')).toBe('experiment');
     expect(readRouteFromHash(`#/experiment/${ID}`)).toBe('experiment');

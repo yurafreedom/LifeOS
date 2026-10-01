@@ -1,4 +1,5 @@
 import React from 'react';
+import { APP_BUILD_VERSION, formatReleaseDate, releaseStatus } from '../app/releaseInfo.js';
 import { useInterfaceFont } from '../app/useInterfaceFont.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { LifeDataContext } from '../context/LifeDataContext.jsx';
@@ -32,9 +33,22 @@ function SettingsPage() {
     { id: 'sound',         label: t('set_sound') },
     { id: 'export',        label: t('set_export') },
     { id: 'retention',     label: t('set_retention') },
+    { id: 'about',         label: t('set_about') },
     { id: 'danger',        label: t('set_danger') },
   ];
-  const [sel, setSel] = useStateSet('account');
+  /* #/settings/about opens About directly (the Updates page links back to
+     it); the hash follows the About selection without a hashchange. */
+  const [sel, setSelRaw] = useStateSet(() => (
+    typeof window !== 'undefined' && window.location.hash === '#/settings/about' ? 'about' : 'account'
+  ));
+  function setSel(id) {
+    setSelRaw(id);
+    if (typeof window === 'undefined') return;
+    const target = id === 'about' ? '#/settings/about' : '#/settings';
+    if (window.location.hash !== target && /^#\/settings(\/about)?$/.test(window.location.hash)) {
+      window.history.replaceState(window.history.state, '', target);
+    }
+  }
 
   return (
     <div className="set-wrap">
@@ -58,6 +72,7 @@ function SettingsPage() {
           {sel === 'sound'         && <SoundSection t={t}/>}
           {sel === 'export'        && <ExportSection t={t}/>}
           {sel === 'retention'     && <RetentionSection t={t}/>}
+          {sel === 'about'         && <AboutSection t={t}/>}
           {sel === 'danger'        && <DangerSection t={t}/>}
         </div>
       </div>
@@ -80,6 +95,28 @@ function AccountSection({ t }) {
       <Row label={t('set_account_email')} hint="read-only"><input className="set-input is-readonly" readOnly value={auth.user?.email || ''}/></Row>
       <Row label={t('sync_status')}><SyncStatus /></Row>
       <Row label="" hint={error}><button className="set-btn-ghost" onClick={logout}>{t('auth_logout')}</button></Row>
+    </React.Fragment>
+  );
+}
+
+/* About JENKIN: the build version (apps/web/package.json) is not a release;
+   the release line comes from the validated release notes. */
+function AboutSection({ t }) {
+  const { hasUnreleased, latestReleased } = releaseStatus();
+  return (
+    <React.Fragment>
+      <Row label={t('set_about_build')}><span className="set-about-value mono">{APP_BUILD_VERSION}</span></Row>
+      <Row label={t('set_about_release')}>
+        <span className="set-about-value">
+          {latestReleased
+            ? t('set_about_released', latestReleased.version, formatReleaseDate(latestReleased.releasedOn, t('_intl_locale')))
+            : t('set_about_none_released')}
+          {hasUnreleased ? <span className="set-about-sub">{t('set_about_unreleased')}</span> : null}
+        </span>
+      </Row>
+      <Row label={t('upd_title')}>
+        <a className="set-btn-ghost set-about-link" href="#/updates">{t('set_about_open_updates')}</a>
+      </Row>
     </React.Fragment>
   );
 }

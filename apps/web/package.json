@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "lint": "eslint src vite.config.js",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "release-notes": "node scripts/release-notes.mjs"
   },
   "dependencies": {
     "react": "18.3.1",

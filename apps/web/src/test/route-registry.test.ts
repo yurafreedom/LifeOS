@@ -15,6 +15,10 @@ describe('readRouteFromHash', () => {
     ['#home', 'home'],
     ['#/tasks', 'tasks'],
     ['#/settings', 'settings'],
+    ['#/settings/about', 'settings'],
+    ['#/settings/other', 'home'],
+    ['#/updates', 'updates'],
+    ['#/updates/x', 'home'],
     ['#/analytics', 'analytics'],
     ['#/analytics-history', 'analytics-history'],
     ['#/unknown', 'home'],
@@ -46,7 +50,7 @@ describe('readRouteFromHash', () => {
 
   it('re-exports the same registry as app/routes.js', () => {
     expect(LIFE_ROUTES).toBe(ROUTES_SOURCE);
-    expect(LIFE_ROUTES.size).toBe(22);
+    expect(LIFE_ROUTES.size).toBe(23);
   });
 });
 
@@ -56,6 +60,8 @@ describe('normalizeRoute', () => {
     ['review', 'review', '#/review'],
     ['medications', 'medications', '#/medications'],
     ['medications/42', 'medications', '#/medications/42'],
+    ['updates', 'updates', '#/updates'],
+    ['settings/about', 'settings', '#/settings/about'],
     ['nope', 'home', '#/home'],
     ['review/abc', 'home', '#/home'],
   ])('%s → route %s, hash %s', (next, route, hash) => {

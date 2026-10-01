@@ -15,6 +15,7 @@ const routes = [
   'investments',
   'medications',
   'settings',
+  'updates',
 ];
 
 export const ANALYTICS_ROUTE_ENABLED = import.meta.env.MODE === 'test'

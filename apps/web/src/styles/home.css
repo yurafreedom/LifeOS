@@ -565,6 +565,11 @@
   font-size: var(--text-sm);
 }
 .set-btn-ghost:hover { background: rgba(255,255,255,0.05); color: var(--fg1); }
+/* Settings → About (JENKIN): build version, release line, link to #/updates. */
+.set-about-value { display: flex; flex-direction: column; gap: 2px; font-size: var(--text-md); color: var(--fg1); }
+.set-about-sub { font-size: var(--text-sm); color: var(--fg3); }
+.set-about-link { display: inline-flex; align-items: center; width: fit-content; text-decoration: none; }
+.set-about-link:focus-visible { outline: 2px solid var(--jenkin-focus); outline-offset: 2px; }
 .set-btn-danger {
   /* Batch 1: harmonized to --btn-h-md to match adjacent primary/ghost in the
      same row; red treatment (not height) carries "destructive". */

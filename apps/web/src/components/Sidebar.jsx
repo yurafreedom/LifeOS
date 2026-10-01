@@ -100,7 +100,7 @@ function Sidebar({ route, onNav, collapsed, setCollapsed, counts = {}, user, acc
       </nav>
 
       <div className="sb-foot">
-        <button className={"sb-item sb-settings" + (route === 'settings' ? " is-active" : "")}
+        <button className={"sb-item sb-settings" + (route === 'settings' || route === 'updates' ? " is-active" : "")}
                 onClick={() => onNav('settings')}
                 data-tooltip={t('set_title')}
                 aria-label={t('set_title')}>

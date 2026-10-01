@@ -13,6 +13,7 @@ import {
   RouteFallback,
   SettingsPage,
   SystemReviewPage,
+  UpdatesPage,
 } from './app/lazyRoutes.jsx';
 import { useParadisePress } from './app/paradisePress.js';
 import { saveTaskDetail } from './app/taskDetailSave.js';
@@ -260,6 +261,8 @@ function AppShell({ user }) {
         return <MedicationsPage />;
       case 'settings':
         return <SettingsPage />;
+      case 'updates':
+        return <UpdatesPage />;
       default:
         return <PlaceholderPage title={t('ph_home_title')} body={t('ph_home_body')} />;
     }
