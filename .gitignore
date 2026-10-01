@@ -17,3 +17,6 @@ venv/
 .ruff_cache/
 .coverage
 htmlcov/
+
+# JENKIN preview launcher state (normally ~/.jenkin-preview, outside the repo)
+.jenkin-preview/
