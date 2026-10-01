@@ -40,7 +40,7 @@ describe('StateSyncCoordinator', () => {
     coordinator.enqueue(state(2));
     await vi.advanceTimersByTimeAsync(20);
     expect(replace).toHaveBeenCalledTimes(1);
-    expect(replace).toHaveBeenCalledWith(state(2), 1);
+    expect(replace).toHaveBeenCalledWith(state(2), 1, expect.any(AbortSignal));
     coordinator.dispose();
   });
 
@@ -57,7 +57,7 @@ describe('StateSyncCoordinator', () => {
     first.resolve(env(2, state(2)));
     await flushing;
     await vi.waitFor(() => expect(replace).toHaveBeenCalledTimes(2));
-    expect(replace).toHaveBeenLastCalledWith(state(3), 2);
+    expect(replace).toHaveBeenLastCalledWith(state(3), 2, expect.any(AbortSignal));
     coordinator.dispose();
   });
 
@@ -132,7 +132,7 @@ describe('StateSyncCoordinator', () => {
     await flushing;
     await resetting;
     expect(replace).toHaveBeenCalledTimes(2);
-    expect(replace).toHaveBeenLastCalledWith(state(0), 2);
+    expect(replace).toHaveBeenLastCalledWith(state(0), 2, expect.any(AbortSignal));
     coordinator.dispose();
   });
 });

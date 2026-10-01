@@ -18,10 +18,23 @@ import {
 import { commitWaitingCommand } from '../domain/waiting.ts';
 import { ApiError } from '../api/client.ts';
 import { sfx } from '../sound/index.ts';
+import { LogoutPendingDialog } from '../components/LogoutPendingDialog.jsx';
+import { PendingRecoveryPrompt } from '../components/PendingRecoveryPrompt.jsx';
 import { StateImportPrompt } from '../components/StateImportPrompt.jsx';
-import { readLegacyLocalState, recordLegacyDecision } from '../repositories/legacyLocalImport.ts';
+import {
+  readLegacyDecision,
+  readLegacyLocalState,
+  recordLegacyDecision,
+  retireLegacyState,
+} from '../repositories/legacyLocalImport.ts';
+import {
+  clearPendingSnapshot,
+  readPendingSnapshot,
+  savePendingSnapshot,
+} from '../repositories/pendingSnapshotStore.ts';
 import { ServerStateRepository } from '../repositories/serverStateRepository.ts';
 import { StateSyncCoordinator } from '../repositories/stateSyncCoordinator.ts';
+import { AuthContext } from './AuthContext.jsx';
 import { LifeLocaleContext } from './LocaleContext.jsx';
 import { AnalyticsContext } from './AnalyticsContext.jsx';
 import { buildInitialState } from './lifeData/initialState.js';
@@ -71,32 +84,54 @@ export function completesTask(tasks, id) {
 const initialStateRequests = new Map();
 
 /* ── Provider ─────────────────────────────────────────── */
+/* One provider instance serves exactly one account for one auth generation
+   (App.jsx keys it). When it unmounts — the session expired, another tab signed
+   in as someone else, or the user signed out keeping a copy — edits the server
+   never acknowledged are kept on this device for THIS account only
+   (pendingSnapshotStore) and offered back after signing in to it again. */
 function LifeDataProvider({ user, onSessionExpired, onLogout, children }) {
   const { t } = React.useContext(LifeLocaleContext);
   const analytics = React.useContext(AnalyticsContext);
+  const auth = React.useContext(AuthContext);
   const [state, setStateRaw] = useStateDP(null);
-  const [boot, setBoot] = useStateDP({ phase: 'loading', error: null, legacy: null, preview: null, raw: null });
+  const [boot, setBoot] = useStateDP({ phase: 'loading', error: null, legacy: null, raw: null, recovery: null, serverRevision: null, busy: false });
   const [sync, setSync] = useStateDP({ phase: 'saved', error: null, currentRevision: null, hasPending: false });
   const [loadGeneration, setLoadGeneration] = useStateDP(0);
+  const [logoutDialog, setLogoutDialog] = useStateDP({ open: false, busy: false, error: '' });
   const repositoryRef = useRefDP(null);
   const coordinatorRef = useRefDP(null);
   const acknowledgedStateRef = useRefDP(null);
+  /* Set only when the user explicitly chose to sign out discarding edits. */
+  const discardOnExitRef = useRefDP(false);
 
   if (!repositoryRef.current) repositoryRef.current = new ServerStateRepository();
+
+  function newCoordinator(revision) {
+    coordinatorRef.current?.dispose();
+    coordinatorRef.current = new StateSyncCoordinator({
+      repository: repositoryRef.current,
+      initialRevision: revision,
+      onStatus: setSync,
+      onSessionExpired,
+      onAccountMismatch: onSessionExpired,
+    });
+  }
 
   function attachAcknowledged(envelope, active) {
     const migrated = migrateStateCopy(envelope.payload);
     if (!active()) return;
     acknowledgedStateRef.current = migrated;
     setStateRaw(migrated);
-    coordinatorRef.current?.dispose();
-    coordinatorRef.current = new StateSyncCoordinator({
-      repository: repositoryRef.current,
-      initialRevision: envelope.revision,
-      onStatus: setSync,
-      onSessionExpired,
-    });
-    setBoot({ phase: 'ready', error: null, legacy: null, preview: null, raw: null });
+    newCoordinator(envelope.revision);
+    setBoot({ phase: 'ready', error: null, legacy: null, raw: null, recovery: null, serverRevision: null, busy: false });
+  }
+
+  /* Keep what the server never acknowledged, for this account only. */
+  function keepUnsavedForThisAccount(reason) {
+    const coordinator = coordinatorRef.current;
+    if (!coordinator || discardOnExitRef.current) return;
+    const unsaved = coordinator.getUnsavedPayload();
+    if (unsaved) savePendingSnapshot(user.id, unsaved, coordinator.getRevision(), reason);
   }
 
   useEffectDP(() => {
@@ -104,7 +139,7 @@ function LifeDataProvider({ user, onSessionExpired, onLogout, children }) {
     const controller = new window.AbortController();
     const isActive = () => alive;
     setStateRaw(null);
-    setBoot({ phase: 'loading', error: null, legacy: null, preview: null, raw: null });
+    setBoot({ phase: 'loading', error: null, legacy: null, raw: null, recovery: null, serverRevision: null, busy: false });
     setSync({ phase: 'saved', error: null, currentRevision: null, hasPending: false });
     coordinatorRef.current?.dispose();
     coordinatorRef.current = null;
@@ -113,15 +148,23 @@ function LifeDataProvider({ user, onSessionExpired, onLogout, children }) {
       .then(async envelope => {
         if (!alive) return;
         if (envelope) {
+          const recovery = readPendingSnapshot(user.id);
+          if (recovery) {
+            setBoot({ phase: 'recovery', error: null, legacy: null, raw: null, recovery, serverRevision: envelope.revision, busy: false, envelope });
+            return;
+          }
           try {
             attachAcknowledged(envelope, isActive);
           } catch (error) {
-            setBoot({ phase: 'error', error, legacy: null, preview: null, raw: envelope.payload });
+            setBoot({ phase: 'error', error, legacy: null, raw: envelope.payload, recovery: null, serverRevision: null, busy: false });
           }
           return;
         }
+        /* A new account. The old local-only snapshot is offered only when this
+           account has not decided yet, and never imported without an explicit
+           ownership confirmation (StateImportPrompt). */
         const legacy = readLegacyLocalState();
-        if (legacy.kind === 'absent') {
+        if (legacy.kind === 'absent' || readLegacyDecision(user.id)) {
           let request = initialStateRequests.get(user.id);
           if (!request) {
             const fresh = migrateStateCopy(buildInitialState());
@@ -134,26 +177,25 @@ function LifeDataProvider({ user, onSessionExpired, onLogout, children }) {
           return;
         }
         let nextLegacy = legacy;
-        let preview = null;
         if (legacy.kind === 'valid') {
           try {
-            const migrated = migrateStateCopy(legacy.payload);
-            preview = buildLegacyPreview(migrated, legacy.raw);
+            migrateStateCopy(legacy.payload);
           } catch (error) {
             nextLegacy = { kind: 'invalid', raw: legacy.raw, reason: error.message };
           }
         }
-        if (alive) setBoot({ phase: 'import', error: null, legacy: nextLegacy, preview, raw: null });
+        if (alive) setBoot({ phase: 'import', error: null, legacy: nextLegacy, raw: null, recovery: null, serverRevision: null, busy: false });
       })
       .catch(error => {
         if (!alive || error?.name === 'AbortError') return;
-        if (error instanceof ApiError && error.status === 401) onSessionExpired();
-        else setBoot({ phase: 'error', error, legacy: null, preview: null, raw: null });
+        if (error instanceof ApiError && (error.status === 401 || error.code === 'session_user_mismatch')) onSessionExpired();
+        else setBoot({ phase: 'error', error, legacy: null, raw: null, recovery: null, serverRevision: null, busy: false });
       });
 
     return () => {
       alive = false;
       controller.abort();
+      keepUnsavedForThisAccount('account_changed');
       coordinatorRef.current?.dispose();
       coordinatorRef.current = null;
     };
@@ -175,19 +217,93 @@ function LifeDataProvider({ user, onSessionExpired, onLogout, children }) {
     return () => window.removeEventListener('beforeunload', beforeUnload);
   }, [sync.phase]);
 
+  /* Voluntary logout: save first. If the save cannot complete, ask — never
+     drop edits silently and never trap the user (LogoutPendingDialog). */
+  useEffectDP(() => {
+    if (!auth || typeof auth.setLogoutGuard !== 'function') return undefined;
+    return auth.setLogoutGuard(async () => {
+      const coordinator = coordinatorRef.current;
+      if (!coordinator || !coordinator.getUnsavedPayload()) return true;
+      await coordinator.retry();
+      if (coordinatorRef.current === coordinator && !coordinator.getUnsavedPayload()) return true;
+      setLogoutDialog({ open: true, busy: false, error: '' });
+      return false;
+    });
+  }, [auth && auth.setLogoutGuard]);
+
+  async function logoutAfterChoice(discard) {
+    setLogoutDialog(prev => ({ ...prev, busy: true, error: '' }));
+    discardOnExitRef.current = discard;
+    try {
+      await auth.logout({ force: true });
+    } catch {
+      discardOnExitRef.current = false;
+      setLogoutDialog({ open: true, busy: false, error: t('auth_logout_error') });
+    }
+  }
+  async function retryLogoutSave() {
+    setLogoutDialog(prev => ({ ...prev, busy: true, error: '' }));
+    await coordinatorRef.current?.retry();
+    if (coordinatorRef.current && !coordinatorRef.current.getUnsavedPayload()) {
+      setLogoutDialog({ open: false, busy: false, error: '' });
+      try {
+        await auth.logout({ force: true });
+      } catch {
+        setLogoutDialog({ open: true, busy: false, error: t('auth_logout_error') });
+      }
+      return;
+    }
+    setLogoutDialog({ open: true, busy: false, error: t('logout_pending_still') });
+  }
+
   async function initializeFromChoice(decision) {
     if (!boot.legacy || boot.phase !== 'import') return;
-    setBoot(prev => ({ ...prev, phase: 'initializing', error: null }));
+    setBoot(prev => ({ ...prev, busy: true, error: null }));
     try {
       const payload = decision === 'imported'
         ? migrateStateCopy(boot.legacy.payload)
         : migrateStateCopy(buildInitialState());
       const envelope = await repositoryRef.current.replace(payload, 0);
       recordLegacyDecision(user.id, decision, envelope.revision);
+      /* Imported: retire the device copy (recoverable from Settings) so no other
+         account is offered the same data. Declined: leave it untouched. */
+      if (decision === 'imported') retireLegacyState('imported');
       attachAcknowledged(envelope, () => true);
     } catch (error) {
-      if (error instanceof ApiError && error.status === 401) onSessionExpired();
-      else setBoot(prev => ({ ...prev, phase: 'import', error }));
+      if (error?.name === 'AbortError') return;
+      if (error instanceof ApiError && (error.status === 401 || error.code === 'session_user_mismatch')) onSessionExpired();
+      else setBoot(prev => ({ ...prev, busy: false, error }));
+    }
+  }
+
+  async function restoreRecovery() {
+    const record = boot.recovery;
+    if (!record) return;
+    setBoot(prev => ({ ...prev, busy: true, error: null }));
+    try {
+      const envelope = await repositoryRef.current.replace(migrateStateCopy(record.payload), record.base_revision);
+      clearPendingSnapshot(user.id);
+      attachAcknowledged(envelope, () => true);
+    } catch (error) {
+      if (error?.name === 'AbortError') return;
+      if (error instanceof ApiError && (error.status === 401 || error.code === 'session_user_mismatch')) {
+        onSessionExpired();
+        return;
+      }
+      const stale = error instanceof ApiError && error.status === 409;
+      setBoot(prev => ({
+        ...prev, busy: false,
+        serverRevision: stale && Number.isInteger(error.details?.current_revision) ? error.details.current_revision : prev.serverRevision,
+        error: t(stale ? 'recovery_stale' : 'recovery_failed'),
+      }));
+    }
+  }
+  function continueWithoutRecovery(discard) {
+    if (discard) clearPendingSnapshot(user.id);
+    try {
+      attachAcknowledged(boot.envelope, () => true);
+    } catch (error) {
+      setBoot(prev => ({ ...prev, phase: 'error', error, raw: prev.envelope ? prev.envelope.payload : null }));
     }
   }
 
@@ -698,7 +814,7 @@ function LifeDataProvider({ user, onSessionExpired, onLogout, children }) {
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
   function exportUnsaved() {
-    const payload = coordinatorRef.current?.getPendingPayload() || state;
+    const payload = coordinatorRef.current?.getUnsavedPayload() || state;
     if (payload) downloadState(payload, 'lifeOsState-unsaved.json');
   }
   async function retrySync() {
@@ -753,17 +869,31 @@ function LifeDataProvider({ user, onSessionExpired, onLogout, children }) {
     /* sync */ syncPhase: sync.phase, syncError: sync.error, retrySync, reloadServerState,
   }), [state, sync]);
 
-  if (boot.phase === 'loading' || boot.phase === 'initializing') {
+  if (boot.phase === 'loading') {
     return <main className="auth-screen"><div className="boot-status mono">{t('boot_loading')}</div></main>;
   }
   if (boot.phase === 'import') {
     return <StateImportPrompt
       legacy={boot.legacy}
-      preview={boot.preview}
+      buildPreview={boot.legacy.kind === 'valid'
+        ? () => buildLegacyPreview(migrateStateCopy(boot.legacy.payload), boot.legacy.raw)
+        : null}
+      accountEmail={user.email}
       error={boot.error}
-      busy={false}
+      busy={boot.busy}
       onImport={() => initializeFromChoice('imported')}
       onFresh={() => initializeFromChoice('fresh')} />;
+  }
+  if (boot.phase === 'recovery') {
+    return <PendingRecoveryPrompt
+      record={boot.recovery}
+      serverRevision={boot.serverRevision}
+      busy={boot.busy}
+      error={boot.error}
+      onRestore={restoreRecovery}
+      onDownload={() => downloadState(boot.recovery.payload, 'lifeOsState-unsaved.json')}
+      onDiscard={() => continueWithoutRecovery(true)}
+      onSkip={() => continueWithoutRecovery(false)} />;
   }
   if (boot.phase === 'error' || !state) {
     return (
@@ -774,14 +904,27 @@ function LifeDataProvider({ user, onSessionExpired, onLogout, children }) {
           <div className="import-actions">
             <button className="auth-submit" onClick={() => setLoadGeneration(value => value + 1)}>{t('boot_retry')}</button>
             {boot.raw && <button className="set-btn-ghost" onClick={() => downloadState(boot.raw, 'lifeOsState-server-raw.json')}>{t('boot_export_raw')}</button>}
-            <button className="set-btn-ghost" onClick={onLogout}>{t('auth_logout')}</button>
+            <button className="set-btn-ghost" onClick={() => { Promise.resolve(onLogout?.()).catch(() => {}); }}>{t('auth_logout')}</button>
           </div>
         </section>
       </main>
     );
   }
 
-  return React.createElement(LifeDataContext.Provider, { value }, children);
+  return (
+    <LifeDataContext.Provider value={value}>
+      {children}
+      <LogoutPendingDialog
+        open={logoutDialog.open}
+        busy={logoutDialog.busy}
+        error={logoutDialog.error}
+        onRetry={retryLogoutSave}
+        onDownload={exportUnsaved}
+        onKeepAndLogout={() => logoutAfterChoice(false)}
+        onDiscardAndLogout={() => logoutAfterChoice(true)}
+        onCancel={() => setLogoutDialog({ open: false, busy: false, error: '' })} />
+    </LifeDataContext.Provider>
+  );
 }
 
 export { LifeDataContext, LifeDataProvider, buildInitialState, migrateStateCopy };

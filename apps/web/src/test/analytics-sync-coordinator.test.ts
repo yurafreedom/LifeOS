@@ -221,7 +221,8 @@ describe('AnalyticsSyncCoordinator', () => {
     const repo = repository(async () => undefined);
     const denied = { request: vi.fn(async (_name, _options, callback) => callback(null)) };
     await new AnalyticsSyncCoordinator('account-a', queue, repo, { locks: denied }).flush();
-    expect(denied.request).toHaveBeenCalledWith('aa-write-queue', { ifAvailable: true }, expect.any(Function));
+    // One lock per account: two accounts' queues never block each other.
+    expect(denied.request).toHaveBeenCalledWith('aa-write-queue:account-a', { ifAvailable: true }, expect.any(Function));
     expect(repo.replayQueuedWrite).not.toHaveBeenCalled();
     expect(await queue.list()).toHaveLength(1);
     const elected = { request: vi.fn(async (_name, _options, callback) => callback({ name: 'aa-write-queue' })) };

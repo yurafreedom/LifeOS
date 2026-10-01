@@ -2,7 +2,8 @@
    (analytics/systemReviewFacts.ts builds them). Every read is pure on the
    server: nothing is written because a page was opened. */
 
-import { ApiError, NetworkError, requestJson } from '../client';
+import { assertCurrent } from '../accountBinding';
+import { apiFetch, failureFrom, requestJson } from '../client';
 
 export type AATypedValue = {
   type: string;
@@ -272,24 +273,12 @@ export async function downloadRevisionExport(
   period: string, revision: number, format: ExportFormat, locale: 'ru' | 'uk',
 ): Promise<{ blob: Blob; filename: string }> {
   const path = revisionExportPath(period, revision, format, locale);
-  let response: Response;
-  try {
-    response = await fetch(path, { credentials: 'same-origin' });
-  } catch (error) {
-    throw new NetworkError(error);
-  }
-  if (!response.ok) {
-    let code = `http_${response.status}`;
-    let message = `Request failed with status ${response.status}.`;
-    try {
-      const body = await response.json() as { code?: string; message?: string };
-      code = body.code ?? code;
-      message = body.message ?? message;
-    } catch { /* not JSON */ }
-    throw new ApiError(response.status, code, message);
-  }
+  const { response, ticket } = await apiFetch(path);
+  if (!response.ok) throw await failureFrom(response, ticket);
   const disposition = response.headers.get('Content-Disposition') ?? '';
   const filename = /filename="([^"]+)"/.exec(disposition)?.[1]
     ?? `lifeos-system-review-${period}-r${revision}.${format}`;
-  return { blob: await response.blob(), filename };
+  const blob = await response.blob();
+  assertCurrent(ticket);
+  return { blob, filename };
 }

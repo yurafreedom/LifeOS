@@ -357,10 +357,31 @@ function AppShell({ user }) {
   );
 }
 
+/* The cookie now belongs to another account (another tab signed in). Nothing
+   of the previous account is mounted any more; its unsaved edits were kept on
+   this device for that account only. The new account is shown only on an
+   explicit choice, in a fresh provider tree. */
+function AccountSwitchedScreen({ auth, t }) {
+  return (
+    <main className="auth-screen">
+      <section className="auth-card" role="alertdialog" aria-labelledby="switched-title">
+        <h1 id="switched-title">{t('auth_switched_title')}</h1>
+        <p className="auth-copy">{t('auth_switched_copy', auth.user?.email || '', auth.next?.email || '')}</p>
+        <p className="auth-copy">{t('auth_switched_kept', auth.user?.email || '')}</p>
+        <div className="import-actions">
+          <button className="auth-submit" onClick={auth.continueAsNext}>{t('auth_switched_continue', auth.next?.email || '')}</button>
+          <button className="set-btn-ghost" onClick={() => { auth.logout().catch(() => {}); }}>{t('auth_switched_other')}</button>
+        </div>
+        {auth.logoutError ? <p className="auth-error" role="alert">{t('auth_logout_error')}</p> : null}
+      </section>
+    </main>
+  );
+}
+
 function AuthGate() {
   const auth = useAuth();
   const { t } = useCtxApp(LifeLocaleContext);
-  if (auth.phase === 'booting' || auth.phase === 'logging_out') {
+  if (auth.phase === 'booting') {
     return <main className="auth-screen"><div className="boot-status mono">{t('boot_loading')}</div></main>;
   }
   if (auth.phase === 'error') {
@@ -374,10 +395,15 @@ function AuthGate() {
       </main>
     );
   }
+  if (auth.phase === 'switched') return <AccountSwitchedScreen auth={auth} t={t} />;
   if (auth.phase !== 'authenticated' || !auth.user) return <LoginPage />;
+  /* Keyed by account and generation: a different account — or the same account
+     after any identity transition — always mounts a fresh tree, so state loaded
+     for one account can never be relabelled as another. */
+  const accountKey = `${auth.user.id}:${auth.generation}`;
   return (
-    <AnalyticsProvider user={auth.user}>
-      <LifeDataProvider user={auth.user} onSessionExpired={auth.expireSession} onLogout={auth.logout}>
+    <AnalyticsProvider key={'aa:' + accountKey} user={auth.user}>
+      <LifeDataProvider key={'data:' + accountKey} user={auth.user} onSessionExpired={auth.expireSession} onLogout={auth.logout}>
         <AppShell user={auth.user} />
       </LifeDataProvider>
     </AnalyticsProvider>

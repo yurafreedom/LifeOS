@@ -1,26 +1,19 @@
-import { ApiError, NetworkError } from './client';
+import { ApiError, apiFetch, failureFrom } from './client';
+import { assertCurrent } from './accountBinding';
 
-/** Binary export is separate from snapshot JSON and never enters localStorage. */
+/** Binary export is separate from snapshot JSON and never enters localStorage.
+ *  Account-bound like every request: an export that settles after the tab's
+ *  account changed is discarded (AccountChangedError), never offered as a file. */
 export async function exportAccount(signal?: AbortSignal): Promise<Blob> {
-  let response: Response;
-  try {
-    response = await fetch('/api/v1/export', {
-      credentials: 'same-origin', cache: 'no-store', signal,
-      headers: { Accept: 'application/zip' },
-    });
-  } catch (error) {
-    if (error instanceof DOMException && error.name === 'AbortError') throw error;
-    throw new NetworkError(error);
-  }
-  if (!response.ok) {
-    const body: unknown = await response.json().catch(() => null);
-    const record = body !== null && typeof body === 'object' ? body as Record<string, unknown> : null;
-    throw new ApiError(response.status,
-      typeof record?.code === 'string' ? record.code : `http_${response.status}`,
-      typeof record?.message === 'string' ? record.message : 'Account export failed.', body);
-  }
+  const { response, ticket } = await apiFetch('/api/v1/export', {
+    signal,
+    headers: { Accept: 'application/zip' },
+  });
+  if (!response.ok) throw await failureFrom(response, ticket, 'Account export failed.');
   if (!response.headers.get('Content-Type')?.startsWith('application/zip')) {
     throw new ApiError(response.status, 'invalid_export', 'Expected a ZIP account export.');
   }
-  return response.blob();
+  const blob = await response.blob();
+  assertCurrent(ticket);
+  return blob;
 }

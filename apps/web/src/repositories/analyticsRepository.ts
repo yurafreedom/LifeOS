@@ -171,7 +171,8 @@ export class AnalyticsRepository {
     });
   }
 
-  replayQueuedWrite(record: AnalyticsWriteRecord): Promise<unknown> {
+  /** Replays as the record's own owner: the server refuses it if another account is signed in. */
+  replayQueuedWrite(record: AnalyticsWriteRecord, signal?: AbortSignal): Promise<unknown> {
     if (record.payload_schema_version !== 1) {
       throw new TypeError(`Unsupported analytics payload schema ${record.payload_schema_version}.`);
     }
@@ -181,7 +182,11 @@ export class AnalyticsRepository {
     if (record.payload.idempotency_key !== record.idempotency_key) {
       throw new TypeError('Queued analytics idempotency identity changed.');
     }
-    return requestJson(record.route, { method: 'POST', body: JSON.stringify(record.payload) });
+    return requestJson(
+      record.route,
+      { method: 'POST', body: JSON.stringify(record.payload), signal },
+      { account: record.user_id },
+    );
   }
 
   readFinanceMonth(period: string, timezone: string, signal?: AbortSignal): Promise<AAFinanceMonth> {

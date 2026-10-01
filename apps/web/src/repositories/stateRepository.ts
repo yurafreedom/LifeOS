@@ -10,6 +10,6 @@ export type StateEnvelope = {
 
 export interface StateRepository {
   load(signal?: AbortSignal): Promise<StateEnvelope | null>;
-  replace(payload: LifeOsState, expectedRevision: number): Promise<StateEnvelope>;
-  reset(payload: LifeOsState, expectedRevision: number): Promise<StateEnvelope>;
+  replace(payload: LifeOsState, expectedRevision: number, signal?: AbortSignal): Promise<StateEnvelope>;
+  reset(payload: LifeOsState, expectedRevision: number, signal?: AbortSignal): Promise<StateEnvelope>;
 }

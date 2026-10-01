@@ -607,6 +607,15 @@ html.scene-switching .app *::before, html.scene-switching .app *::after {
 .import-preview dt { color: var(--muted); }
 .import-preview dd { margin: 0; color: var(--text); }
 .import-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.auth-notice { margin: 0 0 14px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; color: var(--text); background: var(--surface-2); font-size: 13px; line-height: 1.45; }
+.auth-success { padding: 10px 12px; border: 1px solid color-mix(in srgb, var(--success) 45%, transparent); border-radius: 10px; color: var(--text); font-size: 13px; line-height: 1.45; }
+.import-own { display: flex; align-items: flex-start; gap: 10px; margin: 14px 0; color: var(--text); font-size: 14px; line-height: 1.45; cursor: pointer; }
+.import-own input { flex: none; width: 18px; height: 18px; margin-top: 1px; accent-color: var(--primary); }
+.import-own input:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.import-note { margin-top: 14px; font-size: 12px; }
+.auth-link-button:disabled { opacity: .5; cursor: not-allowed; }
+.logout-pending-title { margin: 0 0 8px; font-size: var(--text-lg, 18px); }
+.logout-pending .import-actions { margin-top: 12px; }
 .global-sync { position: fixed; top: 10px; right: 14px; z-index: 30; }
 .sync-status { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; color: var(--muted); font-size: 12px; }
 .sync-status.is-compact { padding: 6px 9px; border: 1px solid var(--border); border-radius: 999px; background: color-mix(in srgb, var(--surface) 90%, transparent); backdrop-filter: blur(10px); }

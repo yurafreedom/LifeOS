@@ -1,3 +1,4 @@
+import { isAccountChanged } from '../api/accountBinding';
 import { ApiError, NetworkError } from '../api/client';
 import type { AnalyticsRepository } from './analyticsRepository';
 import { AnalyticsWriteQueue } from './analyticsWriteQueue';
@@ -45,12 +46,28 @@ type CoordinatorOptions = {
 
 const MAX_BACKOFF_MS = 300_000;
 
+function isAbort(error: unknown): boolean {
+  return isAccountChanged(error) || (error instanceof Error && error.name === 'AbortError')
+    || (typeof DOMException !== 'undefined' && error instanceof DOMException && error.name === 'AbortError');
+}
+
+/** The server refused the binding: another account owns the session, or the
+ *  request carried no owner. Neither is a property of the record — hold it. */
+function isBindingRefusal(error: unknown): boolean {
+  return error instanceof ApiError && (
+    (error.status === 409 && error.code === 'session_user_mismatch')
+    || (error.status === 428 && error.code === 'account_binding_required')
+  );
+}
+
 export class AnalyticsSyncCoordinator {
   private inFlight: Promise<void> | null = null;
   private phase: AnalyticsSyncPhase = 'idle';
   private lastError: string | null = null;
   private retryTimer: unknown = null;
   private disposed = false;
+  /** Aborts the replay in flight when the coordinator is disposed (account change, unmount). */
+  private readonly controller = new AbortController();
 
   constructor(
     private readonly userId: string,
@@ -58,6 +75,10 @@ export class AnalyticsSyncCoordinator {
     private readonly repository: Pick<AnalyticsRepository, 'replayQueuedWrite'>,
     private readonly options: CoordinatorOptions = {},
   ) {}
+
+  get isDisposed(): boolean {
+    return this.disposed;
+  }
 
   flush(): Promise<void> {
     if (this.disposed) return Promise.resolve();
@@ -70,25 +91,33 @@ export class AnalyticsSyncCoordinator {
   }
 
   async resumeAfterAuthentication(): Promise<void> {
+    if (this.disposed) return;
     await this.queue.resumeBlocked(this.userId);
+    if (this.disposed) return;
     this.phase = 'idle';
     await this.flush();
   }
 
+  /** Stop for good: no further replay, the request in flight is aborted, no status. */
   dispose(): void {
     this.disposed = true;
+    this.controller.abort();
     this.clearRetryTimer();
   }
 
   private async flushWithLeaderElection(): Promise<void> {
     if (this.options.locks == null) return this.flushAsLeader();
-    await this.options.locks.request('aa-write-queue', { ifAvailable: true }, async lock => {
+    // One leader per account across tabs. The lock only avoids duplicate
+    // replays; authorization is the server's session + account binding.
+    await this.options.locks.request(`aa-write-queue:${this.userId}`, { ifAvailable: true }, async lock => {
       if (lock != null) await this.flushAsLeader();
     });
   }
 
   private async report(): Promise<void> {
+    if (this.disposed) return;
     const rows = await this.queue.list(this.userId);
+    if (this.disposed) return;
     const failures = rows
       .filter(row => row.state === 'failed_permanent' || row.state === 'terminal_conflict')
       .map(row => ({
@@ -109,13 +138,15 @@ export class AnalyticsSyncCoordinator {
   }
 
   private async flushAsLeader(): Promise<void> {
+    if (this.disposed) return;
     this.clearRetryTimer();
     this.phase = 'syncing';
     await this.report();
-    for (;;) {
+    while (!this.disposed) {
       const now = this.options.now?.() ?? Date.now();
       const record = await this.queue.first(this.userId);
-      if (record == null) break;
+      if (this.disposed || record == null) break;
+      if (record.user_id !== this.userId) break;
       if (record.state === 'blocked_auth') {
         this.phase = 'blocked_auth';
         break;
@@ -129,18 +160,42 @@ export class AnalyticsSyncCoordinator {
         this.scheduleRetry(record.next_attempt_at - now);
         break;
       }
-      await this.queue.update(record.queue_id, { state: 'inflight' });
+      await this.queue.update(record.queue_id, { state: 'inflight' }, this.userId);
+      if (this.disposed) {
+        await this.release(record);
+        break;
+      }
       try {
-        await this.repository.replayQueuedWrite(record);
+        await this.repository.replayQueuedWrite(record, this.controller.signal);
         await this.queue.remove(record.queue_id);
         this.lastError = null;
       } catch (error) {
+        if (this.disposed || isAbort(error)) {
+          // Not a failure of the record: it was never answered for this account.
+          await this.release(record);
+          break;
+        }
+        if (isBindingRefusal(error)) {
+          await this.release(record);
+          this.phase = 'blocked_auth';
+          break;
+        }
         await this.handleFailure(record, error, now);
         break;
       }
     }
+    if (this.disposed) return;
     if (this.phase === 'syncing') this.phase = 'idle';
     await this.report();
+  }
+
+  /** Put an interrupted record back exactly as it was, attempts unchanged. */
+  private async release(record: AnalyticsWriteRecord): Promise<void> {
+    try {
+      await this.queue.update(record.queue_id, { state: 'pending' }, this.userId);
+    } catch {
+      // The queue may already be closed; `inflight` is replayed as pending anyway.
+    }
   }
 
   private async handleFailure(
@@ -160,17 +215,17 @@ export class AnalyticsSyncCoordinator {
     };
     if (status === 401) {
       this.phase = 'blocked_auth';
-      await this.queue.update(record.queue_id, { ...common, state: 'blocked_auth' });
+      await this.queue.update(record.queue_id, { ...common, state: 'blocked_auth' }, this.userId);
       return;
     }
     if (status === 400 || status === 422) {
       this.phase = 'failed';
-      await this.queue.update(record.queue_id, { ...common, state: 'failed_permanent' });
+      await this.queue.update(record.queue_id, { ...common, state: 'failed_permanent' }, this.userId);
       return;
     }
     if (status === 409) {
       this.phase = 'failed';
-      await this.queue.update(record.queue_id, { ...common, state: 'terminal_conflict' });
+      await this.queue.update(record.queue_id, { ...common, state: 'terminal_conflict' }, this.userId);
       return;
     }
     if (
@@ -186,12 +241,12 @@ export class AnalyticsSyncCoordinator {
         ...common,
         state: 'pending',
         next_attempt_at: now + delay,
-      });
+      }, this.userId);
       this.scheduleRetry(delay);
       return;
     }
     this.phase = 'failed';
-    await this.queue.update(record.queue_id, { ...common, state: 'failed_permanent' });
+    await this.queue.update(record.queue_id, { ...common, state: 'failed_permanent' }, this.userId);
   }
 
   private clearRetryTimer(): void {
@@ -207,6 +262,7 @@ export class AnalyticsSyncCoordinator {
   private scheduleRetry(delay: number): void {
     this.clearRetryTimer();
     const schedule = this.options.schedule ?? ((callback, wait) => setTimeout(callback, wait));
+    if (this.disposed) return;
     this.retryTimer = schedule(() => {
       this.retryTimer = null;
       void this.flush();

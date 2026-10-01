@@ -1,3 +1,4 @@
+import { isAccountChanged } from '../api/accountBinding';
 import { ApiError, NetworkError } from '../api/client';
 import type { LifeOsState, StateEnvelope, StateRepository } from './stateRepository';
 
@@ -14,13 +15,30 @@ export type SyncCoordinatorOptions = {
   initialRevision: number;
   onStatus: (snapshot: SyncSnapshot) => void;
   onSessionExpired: () => void;
+  /** The server refused because another account now owns the session cookie. */
+  onAccountMismatch?: () => void;
   debounceMs?: number;
 };
+
+/** The signed-in account changed under this coordinator (see api/accountBinding.ts). */
+export function isAccountMismatch(error: unknown): boolean {
+  return error instanceof ApiError && error.status === 409 && error.code === 'session_user_mismatch';
+}
+
+function isAborted(error: unknown): boolean {
+  return isAccountChanged(error)
+    || (error instanceof DOMException && error.name === 'AbortError')
+    || (error instanceof Error && error.name === 'AbortError');
+}
 
 export class StateSyncCoordinator {
   private readonly repository: StateRepository;
   private readonly onStatus: SyncCoordinatorOptions['onStatus'];
   private readonly onSessionExpired: SyncCoordinatorOptions['onSessionExpired'];
+  private readonly onAccountMismatch: () => void;
+  private readonly controller = new AbortController();
+  /** The payload of the request in flight: unsaved until the server acknowledges it. */
+  private inFlightPayload: LifeOsState | null = null;
   private readonly debounceMs: number;
   private revision: number;
   private pending: LifeOsState | null = null;
@@ -39,6 +57,7 @@ export class StateSyncCoordinator {
     this.revision = options.initialRevision;
     this.onStatus = options.onStatus;
     this.onSessionExpired = options.onSessionExpired;
+    this.onAccountMismatch = options.onAccountMismatch ?? (() => {});
     this.debounceMs = options.debounceMs ?? 500;
     this.onlineHandler = () => {
       if (this.lastPhase === 'offline' && this.pending && !this.disposed) void this.retry();
@@ -78,20 +97,28 @@ export class StateSyncCoordinator {
     const payload = this.pending;
     const expectedRevision = this.revision;
     this.pending = null;
+    this.inFlightPayload = payload;
     this.emit('saving', null);
-    const request = this.repository.replace(payload, expectedRevision)
+    const request = this.repository.replace(payload, expectedRevision, this.controller.signal)
       .then((envelope) => {
         if (this.disposed) return null;
+        this.inFlightPayload = null;
         this.revision = envelope.revision;
         this.emit(this.pending ? 'saving' : 'saved', null);
         return envelope;
       })
       .catch((error: unknown) => {
-        if (this.disposed) return null;
+        // Never acknowledged: the edit stays unsaved even after disposal, so the
+        // provider can keep it for its original account (pendingSnapshotStore).
+        this.inFlightPayload = null;
         if (!this.pending) this.pending = payload;
+        if (this.disposed || isAborted(error)) return null;
         if (error instanceof ApiError && error.status === 401) {
           this.dispose();
           this.onSessionExpired();
+        } else if (isAccountMismatch(error)) {
+          this.dispose();
+          this.onAccountMismatch();
         } else if (error instanceof ApiError && error.status === 409) {
           this.frozen = true;
           const body = error.details as { current_revision?: unknown } | null;
@@ -141,16 +168,20 @@ export class StateSyncCoordinator {
       }
       this.emit('saving', null);
       try {
-        const envelope = await this.repository.reset(payload, this.revision);
+        const envelope = await this.repository.reset(payload, this.revision, this.controller.signal);
         if (this.disposed) throw new Error('Sync coordinator is disposed.');
         this.pending = null;
         this.revision = envelope.revision;
         this.emit('saved', null);
         return envelope;
       } catch (error) {
+        if (this.disposed || isAborted(error)) throw error;
         if (error instanceof ApiError && error.status === 401) {
           this.dispose();
           this.onSessionExpired();
+        } else if (isAccountMismatch(error)) {
+          this.dispose();
+          this.onAccountMismatch();
         } else if (error instanceof ApiError && error.status === 409) {
           this.frozen = true;
           const body = error.details as { current_revision?: unknown } | null;
@@ -182,9 +213,29 @@ export class StateSyncCoordinator {
     return this.pending;
   }
 
+  /** Everything the server has not acknowledged: the newest pending or in-flight payload. */
+  getUnsavedPayload(): LifeOsState | null {
+    return this.pending ?? this.inFlightPayload;
+  }
+
+  /** The acknowledged revision the unsaved edits are based on. */
+  getRevision(): number {
+    return this.revision;
+  }
+
+  /** Drop unsaved edits after the user explicitly chose to discard them. */
+  discardUnsaved(): void {
+    if (this.timer) clearTimeout(this.timer);
+    this.timer = null;
+    this.pending = null;
+    this.inFlightPayload = null;
+  }
+
   dispose(): void {
     if (this.disposed) return;
     this.disposed = true;
+    // Stop the request in flight; nothing it returns can enter state any more.
+    this.controller.abort();
     if (this.timer) clearTimeout(this.timer);
     this.timer = null;
     if (typeof window !== 'undefined') window.removeEventListener('online', this.onlineHandler);

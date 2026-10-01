@@ -36,11 +36,11 @@ export class ServerStateRepository implements StateRepository {
     }
   }
 
-  replace(payload: LifeOsState, expectedRevision: number): Promise<StateEnvelope> {
-    return replaceState(payload, expectedRevision).then(validateEnvelope);
+  replace(payload: LifeOsState, expectedRevision: number, signal?: AbortSignal): Promise<StateEnvelope> {
+    return replaceState(payload, expectedRevision, signal).then(validateEnvelope);
   }
 
-  reset(payload: LifeOsState, expectedRevision: number): Promise<StateEnvelope> {
-    return replaceState(payload, expectedRevision).then(validateEnvelope);
+  reset(payload: LifeOsState, expectedRevision: number, signal?: AbortSignal): Promise<StateEnvelope> {
+    return replaceState(payload, expectedRevision, signal).then(validateEnvelope);
   }
 }

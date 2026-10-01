@@ -4,6 +4,16 @@ import { JenkinWordmark } from '../components/JenkinBrand.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { LifeLocaleContext } from '../context/LocaleContext.jsx';
 
+/* Why this tab is signed out (AuthContext notices). Never claims more than
+   the client knows: whether unsaved edits existed is the provider's business. */
+function noticeText(notice, t) {
+  if (!notice) return '';
+  if (notice.kind === 'expired') return t('auth_notice_expired', notice.email || '');
+  if (notice.kind === 'signed_out') return t('auth_notice_signed_out');
+  if (notice.kind === 'signed_out_elsewhere') return t('auth_notice_signed_out_elsewhere');
+  return '';
+}
+
 function LoginPage() {
   const { t } = React.useContext(LifeLocaleContext);
   const auth = useAuth();
@@ -64,6 +74,7 @@ function LoginPage() {
         <p className="auth-eyebrow mono">{setupMode ? t('auth_setup_eyebrow') : t('auth_login_eyebrow')}</p>
         <h1 id="auth-title">{setupMode ? t('auth_setup_title') : t('auth_login_title')}</h1>
         <p className="auth-copy">{setupMode ? t('auth_setup_copy') : t('auth_login_copy')}</p>
+        {noticeText(auth.notice, t) && <p className="auth-notice" role="status">{noticeText(auth.notice, t)}</p>}
         <form onSubmit={submit} className="auth-form">
           <label>
             <span>{t('auth_email')}</span>
