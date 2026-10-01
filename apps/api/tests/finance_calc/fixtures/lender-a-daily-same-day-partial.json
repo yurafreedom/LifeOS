@@ -1,0 +1,97 @@
+{
+  "id": "lender-a-daily-same-day-partial",
+  "description": "Synthetic lender A: 0.01 %/day contractual rate, accrual from the day after disbursement, a payment reduces principal before that day accrues, interest rounded half-up per day.",
+  "derivation": [
+    "daily interest on 1 234 567 = 1 234 567 x 0.0001 = 123.4567 -> 123 (half_up, per day)",
+    "Jan 2..Jan 4 = 3 days -> 369; payment Jan 5 = 500 000: interest 369, principal 499 631 -> principal 734 936",
+    "Jan 5..Jan 10 = 6 days at 734 936 x 0.0001 = 73.4936 -> 73 -> 438",
+    "interest charged 369 + 438 = 807"
+  ],
+  "input": {
+    "schema_version": 1,
+    "model": "daily_accrual",
+    "currency": "UAH",
+    "balance_basis": "outstanding_principal",
+    "allocation": [
+      "fees",
+      "interest",
+      "principal"
+    ],
+    "payments": [
+      {
+        "date": "2026-01-05",
+        "amount_minor": 500000,
+        "kind": "regular",
+        "basis": "actual"
+      }
+    ],
+    "opening": {
+      "date": "2026-01-01",
+      "basis": "contractual_disbursement",
+      "principal_minor": 1234567
+    },
+    "horizon": {
+      "end_date": "2026-01-10"
+    },
+    "interest": {
+      "source_metric": "contractual_rate",
+      "kind": "fixed",
+      "value": "0.01",
+      "unit": "percent",
+      "per": "day"
+    },
+    "accrual": {
+      "first_day": "day_after_opening",
+      "payment_effect": "same_day"
+    },
+    "rounding": {
+      "mode": "half_up",
+      "step_minor": 1,
+      "interest_stage": "daily"
+    }
+  },
+  "expected": {
+    "status": "complete",
+    "closing": {
+      "principal_minor": 734936,
+      "interest_due_minor": 438,
+      "fees_due_minor": 0,
+      "total_minor": 735374
+    },
+    "totals": {
+      "interest_charged_minor": 807,
+      "payments_minor": 500000,
+      "allocated_minor": {
+        "fees": 0,
+        "interest": 369,
+        "principal": 499631
+      }
+    },
+    "rows_of_kind": {
+      "payment": [
+        {
+          "label": "actual_payment",
+          "allocated_minor": {
+            "fees": 0,
+            "interest": 369,
+            "principal": 499631
+          }
+        }
+      ],
+      "accrual": [
+        {
+          "from": "2026-01-02",
+          "to": "2026-01-04",
+          "days": 3,
+          "interest_minor": 369
+        },
+        {
+          "from": "2026-01-05",
+          "to": "2026-01-10",
+          "days": 6,
+          "interest_minor": 438
+        }
+      ]
+    }
+  }
+}

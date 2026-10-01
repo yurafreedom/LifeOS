@@ -1,0 +1,77 @@
+{
+  "id": "lender-c-daily-rounding-at-posting",
+  "description": "Synthetic lender C: exact daily accrual, rounded only when posted (payment day and horizon end).",
+  "derivation": [
+    "Jan 2..Jan 4 exact = 3 x 123.4567 = 370.3701 -> posted 370 before the Jan 5 payment",
+    "payment 500 000: interest 370, principal 499 630 -> principal 734 937",
+    "Jan 5..Jan 10 exact = 6 x 73.4937 = 440.9622 -> posted 441 at horizon end; charged 811",
+    "(per-day rounding of the same loan gives 807: the rounding stage is a contractual input)"
+  ],
+  "input": {
+    "schema_version": 1,
+    "model": "daily_accrual",
+    "currency": "UAH",
+    "balance_basis": "outstanding_principal",
+    "allocation": [
+      "fees",
+      "interest",
+      "principal"
+    ],
+    "payments": [
+      {
+        "date": "2026-01-05",
+        "amount_minor": 500000,
+        "kind": "regular",
+        "basis": "actual"
+      }
+    ],
+    "opening": {
+      "date": "2026-01-01",
+      "basis": "contractual_disbursement",
+      "principal_minor": 1234567
+    },
+    "horizon": {
+      "end_date": "2026-01-10"
+    },
+    "interest": {
+      "source_metric": "contractual_rate",
+      "kind": "fixed",
+      "value": "0.01",
+      "unit": "percent",
+      "per": "day"
+    },
+    "accrual": {
+      "first_day": "day_after_opening",
+      "payment_effect": "same_day"
+    },
+    "rounding": {
+      "mode": "half_up",
+      "step_minor": 1,
+      "interest_stage": "at_posting"
+    }
+  },
+  "expected": {
+    "status": "complete",
+    "closing": {
+      "principal_minor": 734937,
+      "interest_due_minor": 441
+    },
+    "totals": {
+      "interest_charged_minor": 811
+    },
+    "rows_of_kind": {
+      "interest_posted": [
+        {
+          "amount_minor": 370,
+          "interest_exact": "370.3701",
+          "reason": "payment"
+        },
+        {
+          "amount_minor": 441,
+          "interest_exact": "440.9622",
+          "reason": "horizon_end"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "id": "lender-h-annual-act-act-year-end",
+  "description": "Synthetic lender H: 36.6 %/year, ACT/ACT (ISDA) across a year end into a leap year, interest rounded down per day.",
+  "derivation": [
+    "31 Dec 2027: 1 000 000 x 0.366 / 365 = 1 002.7397 -> 1 002 (down)",
+    "1-2 Jan 2028: 1 000 000 x 0.366 / 366 = 1 000 each -> 2 000; total 3 002"
+  ],
+  "input": {
+    "schema_version": 1,
+    "model": "daily_accrual",
+    "currency": "UAH",
+    "balance_basis": "outstanding_principal",
+    "allocation": [
+      "fees",
+      "interest",
+      "principal"
+    ],
+    "payments": [],
+    "opening": {
+      "date": "2027-12-30",
+      "basis": "contractual_disbursement",
+      "principal_minor": 1000000
+    },
+    "horizon": {
+      "end_date": "2028-01-02"
+    },
+    "interest": {
+      "source_metric": "contractual_rate",
+      "kind": "fixed",
+      "value": "36.6",
+      "unit": "percent",
+      "per": "year",
+      "day_count": "ACT_ACT_ISDA"
+    },
+    "accrual": {
+      "first_day": "day_after_opening",
+      "payment_effect": "same_day"
+    },
+    "rounding": {
+      "mode": "down",
+      "step_minor": 1,
+      "interest_stage": "daily"
+    }
+  },
+  "expected": {
+    "status": "complete",
+    "closing": {
+      "interest_due_minor": 3002
+    },
+    "rows_of_kind": {
+      "accrual": [
+        {
+          "from": "2027-12-31",
+          "to": "2027-12-31",
+          "interest_minor": 1002
+        },
+        {
+          "from": "2028-01-01",
+          "to": "2028-01-02",
+          "interest_minor": 2000
+        }
+      ]
+    }
+  }
+}

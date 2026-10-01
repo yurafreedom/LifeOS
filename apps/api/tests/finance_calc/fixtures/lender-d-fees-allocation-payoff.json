@@ -1,0 +1,147 @@
+{
+  "id": "lender-d-fees-allocation-payoff",
+  "description": "Synthetic lender D: zero-interest instalment loan with an issuance fee, a monthly fixed fee anchored on the 31st until closure, fees paid first, and full early payoff with a fixed fee.",
+  "derivation": [
+    "Jan 1: issuance fee 2 000. Jan 31: monthly fee 1 000 -> fees due 3 000; payment 30 000 -> fees 3 000, principal 27 000 -> 73 000",
+    "Feb 28 (anchor 31 clamped): fee 1 000; payment 30 000 -> fees 1 000, principal 29 000 -> 44 000",
+    "Mar 31: fee 1 000; early payoff: early fee 500 -> fees due 1 500; payoff amount 1 500 + 44 000 = 45 500",
+    "Apr 30: no fee (until loan_closure). Fees 2 000 + 3 x 1 000 + 500 = 5 500; payments 105 500 = 100 000 + 5 500"
+  ],
+  "input": {
+    "schema_version": 1,
+    "model": "daily_accrual",
+    "currency": "UAH",
+    "balance_basis": "outstanding_principal",
+    "allocation": [
+      "fees",
+      "interest",
+      "principal"
+    ],
+    "payments": [
+      {
+        "date": "2026-01-31",
+        "amount_minor": 30000,
+        "kind": "regular",
+        "basis": "actual"
+      },
+      {
+        "date": "2026-02-28",
+        "amount_minor": 30000,
+        "kind": "regular",
+        "basis": "actual"
+      },
+      {
+        "date": "2026-03-31",
+        "kind": "early_full",
+        "basis": "planned"
+      }
+    ],
+    "opening": {
+      "date": "2026-01-01",
+      "basis": "contractual_disbursement",
+      "principal_minor": 100000
+    },
+    "horizon": {
+      "end_date": "2026-04-30"
+    },
+    "interest": {
+      "source_metric": "contractual_rate",
+      "kind": "fixed",
+      "value": "0",
+      "unit": "percent",
+      "per": "day"
+    },
+    "accrual": {
+      "first_day": "day_after_opening",
+      "payment_effect": "same_day"
+    },
+    "rounding": {
+      "mode": "half_up",
+      "step_minor": 1,
+      "interest_stage": "daily"
+    },
+    "fees": [
+      {
+        "id": "issuance",
+        "kind": "one_off",
+        "date": "2026-01-01",
+        "amount_minor": 2000
+      },
+      {
+        "id": "monthly_service",
+        "kind": "periodic_fixed",
+        "amount_minor": 1000,
+        "schedule": {
+          "first_date": "2026-01-31",
+          "every_months": 1,
+          "anchor_day": 31,
+          "until": "loan_closure"
+        }
+      }
+    ],
+    "early_repayment": {
+      "allowed": true,
+      "fee": {
+        "kind": "fixed",
+        "amount_minor": 500
+      }
+    }
+  },
+  "expected": {
+    "status": "complete",
+    "closing": {
+      "principal_minor": 0,
+      "interest_due_minor": 0,
+      "fees_due_minor": 0,
+      "total_minor": 0,
+      "loan_closed": true
+    },
+    "totals": {
+      "fees_assessed_minor": 5500,
+      "payments_minor": 105500,
+      "allocated_minor": {
+        "fees": 5500,
+        "interest": 0,
+        "principal": 100000
+      },
+      "overpayment_minor": 0
+    },
+    "rows_of_kind": {
+      "fee": [
+        {
+          "date": "2026-01-01",
+          "amount_minor": 2000
+        },
+        {
+          "date": "2026-01-31",
+          "amount_minor": 1000
+        },
+        {
+          "date": "2026-02-28",
+          "amount_minor": 1000
+        },
+        {
+          "date": "2026-03-31",
+          "amount_minor": 1000
+        },
+        {
+          "date": "2026-03-31",
+          "fee_id": "early_repayment",
+          "amount_minor": 500
+        }
+      ],
+      "payment": [
+        {
+          "amount_minor": 30000
+        },
+        {
+          "amount_minor": 30000
+        },
+        {
+          "amount_minor": 45500,
+          "payment_kind": "early_full"
+        }
+      ]
+    }
+  }
+}

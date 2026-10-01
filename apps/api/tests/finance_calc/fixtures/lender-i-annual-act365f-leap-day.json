@@ -1,0 +1,60 @@
+{
+  "id": "lender-i-annual-act365f-leap-day",
+  "description": "Synthetic lender I: 36.5 %/year, ACT/365 Fixed; 29 Feb is an ordinary accrual day.",
+  "derivation": [
+    "daily = 1 000 000 x 0.365 / 365 = 1 000; 28 Feb, 29 Feb, 1 Mar 2028 = 3 days = 3 000"
+  ],
+  "input": {
+    "schema_version": 1,
+    "model": "daily_accrual",
+    "currency": "UAH",
+    "balance_basis": "outstanding_principal",
+    "allocation": [
+      "fees",
+      "interest",
+      "principal"
+    ],
+    "payments": [],
+    "opening": {
+      "date": "2028-02-27",
+      "basis": "contractual_disbursement",
+      "principal_minor": 1000000
+    },
+    "horizon": {
+      "end_date": "2028-03-01"
+    },
+    "interest": {
+      "source_metric": "contractual_rate",
+      "kind": "fixed",
+      "value": "36.5",
+      "unit": "percent",
+      "per": "year",
+      "day_count": "ACT_365_FIXED"
+    },
+    "accrual": {
+      "first_day": "day_after_opening",
+      "payment_effect": "same_day"
+    },
+    "rounding": {
+      "mode": "half_up",
+      "step_minor": 1,
+      "interest_stage": "daily"
+    }
+  },
+  "expected": {
+    "status": "complete",
+    "closing": {
+      "interest_due_minor": 3000
+    },
+    "rows_of_kind": {
+      "accrual": [
+        {
+          "from": "2028-02-28",
+          "to": "2028-03-01",
+          "days": 3,
+          "interest_minor": 3000
+        }
+      ]
+    }
+  }
+}
