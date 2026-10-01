@@ -4,10 +4,10 @@ Date: 2026-10-01 (Europe/Kyiv). Decisions and external prerequisites:
 `Outputs/Plans/jenkin-security-finance-decisions_20261001-104806.md`. Findings:
 `Outputs/Discoveries/jenkin-security-finance-discovery_20261001-104806.md`.
 
-Status vocabulary: **IMPLEMENTED** (on `feat/jenkin-account-security-20261001`, not merged),
+Status vocabulary: **IMPLEMENTED** (on its feature branch — S0/S1 `feat/jenkin-account-security-20261001`, S2 `feat/jenkin-encryption-documents-20261001` — not merged),
 **APPROVED** (owner-approved, not started), **PROPOSED** (architecture proposal inside an approved slice,
 to be confirmed in that slice's discovery), **BLOCKED_EXTERNAL** (cannot start or finish without E-xx).
-Nothing below S1 is implemented.
+S0, S1 and S2 are implemented on branches (not merged); nothing after S2 is started.
 
 ```
 S0 ─► S1 ─► S2 ─► F1 ─► F2 ─► F3
@@ -36,7 +36,16 @@ snapshot matching the old seeds (ids `t01…t15`, quick notes `101…104`, `seed
 for the owner to review and delete by hand — never automatic (D-06); Home typography (pre-existing < 12 px
 eyebrows); email-change flow with re-verification.
 
-## S2 — encryption and document foundation — APPROVED · activation BLOCKED_EXTERNAL (E-06)
+## S2 — encryption and document foundation — IMPLEMENTED (branch `feat/jenkin-encryption-documents-20261001`, not merged) · activation BLOCKED_EXTERNAL (E-06)
+
+Report: `Outputs/Implementations/jenkin-encryption-documents-s2_20261001.md`. Implemented as below with these
+refinements (decision register A-14 … A-23): whole-object AES-GCM (no chunks, 15 MiB default, 50 MiB cap), PostgreSQL
+`document_blobs` behind `BlobStore`, raw octet-stream uploads (no multipart spooling), PDF/JPEG/PNG validated by
+content, encrypted PDFs refused, streamed decrypted documents export, rotation/verify/import/retire CLI. Existing
+plaintext data is planned separately in `Outputs/Plans/jenkin-existing-plaintext-data-plan_20261001.md` (PROPOSED,
+not implemented). Acceptance met except "key-custody runbook reviewed by the owner" (pending owner review).
+
+Original approved scope:
 
 Architecture (APPROVED unless marked PROPOSED):
 - AES-256-GCM **envelope encryption** with a maintained library (`cryptography`'s AEAD). One random 256-bit

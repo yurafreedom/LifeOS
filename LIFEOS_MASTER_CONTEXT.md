@@ -14,6 +14,10 @@ reconciled JENKIN state. Not merged; verify live.
 2026-10-01 (later): JENKIN S0/S1 security and account foundation is on the
 pushed branch feat/jenkin-account-security-20261001, based on the integration
 branch (section 88). Not merged, not deployed; verify live.
+2026-10-01 (later): JENKIN S2 encryption + document foundation is on the
+pushed branch feat/jenkin-encryption-documents-20261001, based on the S1 branch
+(section 89). Not merged, not deployed; production activation blocked on key
+custody (E-06); verify live.
 
 You are working on a real software project called LifeOS.
 
@@ -3366,6 +3370,10 @@ Status note (2026-10-01, later): password recovery, email verification,
 invitations and session management are now implemented on
 feat/jenkin-account-security-20261001 (section 88); passkeys, Diia/BankID,
 Documents and the rest stay NOT started.
+Status note (2026-10-01, later): encrypted Documents (Finance → Documents) are
+implemented on feat/jenkin-encryption-documents-20261001 (section 89);
+passkeys, Diia/BankID, bank connectors and financial obligations stay NOT
+started.
 
 ====================================================================
 88. JENKIN S0/S1 — SECURITY & ACCOUNT FOUNDATION (PUSHED BRANCH, 2026-10-01)
@@ -3437,3 +3445,53 @@ Browser storage (unsaved copies, analytics queue, legacy copies) is plaintext
 — logical per-account isolation only; added to the S2 data-protection plan.
 Verified: backend 822 passed + 1 skipped under UTC and Kyiv, frontend 882,
 live 4-worker checks on lifeos_test. Head: 20261001_0011. S2 NOT started.
+
+====================================================================
+89. JENKIN S2 — ENCRYPTION & DOCUMENT FOUNDATION (PUSHED BRANCH, 2026-10-01)
+====================================================================
+
+Branch feat/jenkin-encryption-documents-20261001 (pushed; not merged, no PR,
+no deploy; verify live), based on feat/jenkin-account-security-20261001 @
+f7a43eb. Worktree /Users/yurasachenko/LifeOS/LifeOS_encryption-documents (the
+canonical checkout held another session's staged files; the owner's task
+allowed an isolated checkout). Records:
+- Report: Outputs/Implementations/jenkin-encryption-documents-s2_20261001.md
+- Key/storage/backup runbook: Outputs/Runbooks/jenkin-document-keys-runbook.md
+- Mail + proxy setup: Outputs/Runbooks/jenkin-mail-and-proxy-setup.md
+- Plan for EXISTING plaintext data (PROPOSED, not implemented):
+  Outputs/Plans/jenkin-existing-plaintext-data-plan_20261001.md
+- Discovery §8, decisions A-14…A-23 / E-06 / E-11, roadmap §S2.
+
+What it is: SERVER-SIDE ENCRYPTION AT REST, not end-to-end. A DB-only leak
+does not reveal document contents, file names, titles or notes; the running
+API (or anyone holding its keyring) can decrypt. AES-256-GCM envelope
+(cryptography AESGCM), random DEK per version / per metadata write, versioned
+KEKs from a restricted JSON keyring (LIFEOS_KEYRING_FILE, 0600/0400),
+length-prefixed AAD binding owner + object + purpose (+ number/type/size),
+96-bit random nonces. LIFEOS_DOCUMENTS_ENABLED=false by default; when true a
+bad/missing keyring stops the API (no plaintext fallback, no key generation).
+Readable: ids, owner, version numbers, verified type, size, dates, revision,
+KEK id. Snapshots, AA tables, browser storage and the account export's temp
+file are UNCHANGED (plaintext; see the plan).
+
+Documents: migration 20261001_0012 (documents, document_versions,
+document_blobs; destructive downgrade refuses while documents exist).
+PDF/JPEG/PNG validated by bytes (encrypted PDFs refused; not antivirus),
+15 MiB default (cap 50 MiB), whole-object encryption authenticated before
+any byte is returned. Raw octet-stream uploads (no multipart spooling),
+Idempotency-Key, revision CAS, exact quotas, bounded transfer slots,
+attachment-only downloads. UI: Finance → операции | документы
+(#/finances/documents); Settings → Export → decrypted documents ZIP (streamed,
+no temp file). Tools: python -m app.cli keyring-generate / add-key /
+import-key / activate / check / retire-key, documents-rotate (re-wrap only,
+resumable), documents-verify [--deep].
+
+Verified: backend 912 passed + 1 skipped under UTC and Kyiv; frontend 895;
+ruff/typecheck/lint/build; migration round trip on lifeos_test; real browser
+(20 scenarios, downloaded bytes identical, account switch refused, 80-config
+matrix 0 overflow / 0 text < 12 px). lifeos_dev untouched (20260721_0001).
+Fixed on the way: Alembic fileConfig silenced app loggers in-process; the
+HTTPException handler dropped Retry-After.
+Production activation BLOCKED_EXTERNAL: key custody + escrow + backup
+retention (E-06), capacity (E-11). Next slice: F1 financial obligations and
+document linkage (roadmap).

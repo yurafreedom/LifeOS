@@ -111,3 +111,25 @@ fixes any database that ran M10: it clears a verification **only** when the acco
 faulty code wrote. Verification obtained afterwards through a verification link or password reset (both only
 fill an empty value, so they differ) and mail-sent invitations are untouched
 (`test_m11_clears_only_verification_that_an_unsent_invitation_produced`).
+
+## 8. S2 discovery refinement (2026-10-01, later)
+
+Base: `origin/feat/jenkin-account-security-20261001` @ `f7a43eb0f8d36342bcb2c8c952900b56edfd123d` (fetched live; the
+remote had no later commits). Work branch `feat/jenkin-encryption-documents-20261001` in the worktree
+`/Users/yurasachenko/LifeOS/LifeOS_encryption-documents` (the canonical checkout held another session's staged files;
+the task allowed an isolated checkout).
+
+S1 hardening re-verified in source before any change: `account_access.invitation_verifies_email` (only `sent`),
+`throttle.admit` (one `INSERT … ON CONFLICT DO UPDATE … RETURNING`), invitation mail after commit (`pending` →
+`sent`/`failed`), migration head `20261001_0011`. All preserved; S2 adds `20261001_0012` on top.
+
+| ID | Finding | Status | Evidence |
+|---|---|---|---|
+| E2-01 | No document storage, no encryption dependency and no key configuration existed. | **CONFIRMED → IMPLEMENTED** | No `cryptography` in the lock files; no `documents` tables. S2: `app/crypto/`, `services/documents/`, migration `20261001_0012`. |
+| E2-02 | FastAPI/Starlette multipart parsing would spool uploaded files above 1 MiB to disk. | **CONFIRMED → AVOIDED** | `starlette/formparsers.py`: `spool_max_size = 1024 * 1024`, `SpooledTemporaryFile`. Uploads are raw octet-stream bodies read from the ASGI stream into bounded memory; `test_no_plaintext_spooling_to_disk` patches every `tempfile` constructor to fail. |
+| E2-03 | The existing account export writes the account's plaintext rows to a server temporary file. | **CONFIRMED → RECORDED** (unchanged) | `services/export.py::build_account_export` (`tempfile.TemporaryFile`). Decrypted documents are therefore *not* added to it; they use the streamed `GET /api/v1/export/documents` (no temp file). Plan §6 of the plaintext-data plan. |
+| E2-04 | Running Alembic in-process disabled every application logger that already existed (`logging.config.fileConfig` default `disable_existing_loggers=True`), so tests asserting "nothing secret in the logs" could pass vacuously and an in-process migration would silence the app. | **CONFIRMED (new) → FIXED** | Found when the S2 log-secrecy test captured *zero* app records. `alembic/env.py` now passes `disable_existing_loggers=False`. The full suite (including the S1 log assertions) passes with application loggers enabled. |
+| E2-05 | The app's `HTTPException` handler dropped response headers (e.g. `Retry-After`). | **CONFIRMED (new) → FIXED** | `main.py::stable_http_error` rebuilt a `JSONResponse` without `error.headers`. S1's 429s were unaffected (they build their own `JSONResponse`); S2's `documents_busy` needed it. |
+| E2-06 | uvicorn interprets `X-Forwarded-For` itself (`--proxy-headers` default on, trusting `127.0.0.1`) before the app's `trusted_proxy_hops` logic. | **CONFIRMED → DOCUMENTED** | `uvicorn/config.py` (`proxy_headers=True`, `FORWARDED_ALLOW_IPS` default `127.0.0.1`). Configuration matrix in `Outputs/Runbooks/jenkin-mail-and-proxy-setup.md`; no default changed (E-03 still needs deployment facts). |
+| E2-07 | PostgreSQL vs object storage for ciphertext. | **DECIDED: PostgreSQL** behind `BlobStore` (A-18) | No object storage is available or configured; 15 MiB bounded versions; atomic commit with the version row. Costs (backup size, no streaming) recorded in the key runbook §10. |
+| E2-08 | Chunked vs whole-object encryption. | **DECIDED: whole-object** (A-17) | With ≤ 15 MiB (cap 50 MiB) the whole version fits in memory; the tag is verified before any byte is sent, so no unauthenticated plaintext is ever streamed. |

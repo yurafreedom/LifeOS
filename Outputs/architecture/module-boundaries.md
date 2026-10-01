@@ -52,7 +52,24 @@ reverse edges are the lazy imports inside `analytics/rules/__init__.py::_registr
 | designate the owner on a multi-user database | `app/cli.py grant-owner <email>` |
 
 A new account-owned table needs: model + migration + export (`services/export.py`) + erasure (FK cascade
-from `users`) + `tests/conftest.py::TRUNCATED_TABLES`.
+from `users`) + `tests/conftest.py::TRUNCATED_TABLES`. `tests/test_documents_api.py::test_every_owner_scoped_table_is_exported_or_explicitly_excluded`
+fails on an owner-scoped table that is neither exported nor listed in its `EXPORT_EXCLUSIONS` with a reason.
+
+### Encryption at rest and documents (JENKIN S2)
+
+| I want to change… | Go to |
+|---|---|
+| AES-256-GCM envelope, associated-data encoding, data-key wrap/unwrap | `app/crypto/envelope.py` (never a custom primitive; `cryptography`'s `AESGCM` only) |
+| keyring file format, validation, permissions, key check values | `app/crypto/keyring.py`; loaded once in `main.py::create_app` (fail closed when `documents_enabled`) |
+| key tooling (generate / add / import / activate / retire, rotate, verify) | `app/cli.py` + `services/documents/rotation.py` (re-wrap only; CAS; resumable) |
+| which contexts bind which ciphertext | `services/documents/envelopes.py` — every context names owner + object + purpose |
+| document rules: create / version / edit / delete, quotas, idempotency, revisions | `services/documents/service.py` (owner always server-derived; foreign ids = `document_not_found`) |
+| accepted formats and content validation | `services/documents/validation.py` (bytes decide; PNG/JPEG structural, PDF via pypdf; encrypted PDFs refused) |
+| where ciphertext lives | `services/documents/store.py` (`BlobStore`; `PostgresBlobStore` → `document_blobs`) |
+| HTTP: raw octet-stream uploads (no multipart, bounded read), downloads, transfer slots | `routes/documents.py` |
+| decrypted documents export (streamed, no temp file) | `services/documents/export.py` + `routes/export.py::export_documents`; the account ZIP carries readable document columns only (`services/export.py::DOCUMENT_TABLES`) |
+| tables | `models/document.py` (`documents`, `document_versions`, `document_blobs`; composite owner FKs), migration `20261001_0012` (destructive downgrade refuses while documents exist) |
+| operations | `Outputs/Runbooks/jenkin-document-keys-runbook.md`; plan for older plaintext data `Outputs/Plans/jenkin-existing-plaintext-data-plan_20261001.md` |
 
 ### Review / Debrief
 
@@ -230,6 +247,15 @@ Both dictionaries are loaded synchronously (12 modules read
 | Settings → Security | `components/settings/SecuritySection.jsx` + `api/accountSecurity.ts` |
 | unsaved snapshot edits kept per account / restore prompt | `repositories/pendingSnapshotStore.ts` + `components/PendingRecoveryPrompt.jsx`; logout resolution `components/LogoutPendingDialog.jsx` |
 | the old local-only `lifeOsState` (decision, retire, restore, delete) | `repositories/legacyLocalImport.ts`; prompt `components/StateImportPrompt.jsx`; Settings → Export `components/settings/LegacyDataSection.jsx` |
+
+### Finance → Documents (JENKIN S2)
+
+| I want to change… | Go to |
+|---|---|
+| document HTTP calls (raw upload, metadata header, idempotency keys, octet-stream downloads, documents export) | `api/documents.ts` (bound through `api/client.ts::apiFetch`) |
+| the Documents tab (upload, list, details, versions, deletion, unavailable state, protection note) | `pages/finances/FinanceDocuments.jsx`; tab switch in `pages/FinancesPage.jsx` (`#/finances/documents`, `app/routeRegistry.js`) |
+| the decrypted-documents export row | `components/settings/ExportSection.jsx::DocumentsExportRow` |
+| layout | `styles/finance-calendar.css` (`.doc-*`) |
 
 ### Operational state
 

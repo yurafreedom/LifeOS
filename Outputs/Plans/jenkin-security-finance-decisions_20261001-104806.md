@@ -43,6 +43,21 @@ party can supply). Approval never supplies credentials, keys, deployment facts o
 | A-13 | **Invitation authorization ≠ email verification.** Only an invitation delivered by mail (`delivery = sent`, link never shown to anyone) verifies the address on acceptance — the same standard as a verification link. `manual`, `failed` and `pending` invitations create an unverified member, who verifies through the normal flow. Invitation mail is sent with no transaction open (`pending` → `sent`/`failed`). Migration `20261001_0011` clears only acceptance-derived verification of unsent invitations. | A link the owner saw proves only the invitation. |
 | A-12 | `Cache-Control: no-store`, `Pragma: no-cache`, `Vary: Cookie` on all `/api` responses except `/api/healthz`. | Private responses must not be cached or shared. |
 
+## 2a. Architecture choices made under that approval (S2, 2026-10-01)
+
+| ID | Choice | Rationale |
+|---|---|---|
+| A-14 | AES-256-GCM envelope (`cryptography` `AESGCM`), random 256-bit DEK per version and per metadata write, DEKs wrapped by a versioned KEK; 96-bit CSPRNG nonces; envelope version stored per record. | Rotation re-wraps 60-byte keys, never content; metadata edits never accumulate under one key. |
+| A-15 | Associated data = length-prefixed `purpose ‖ owner ‖ document ‖ version ‖ number ‖ content_type ‖ size` (content and version metadata), `owner ‖ document ‖ revision` (descriptive metadata), plus `kek_id` for wrapping. | Unambiguous encoding; detects cross-owner/object/field substitution, reordering, and edits to readable size/type columns. |
+| A-16 | Keyring = one restricted JSON file (`LIFEOS_KEYRING_FILE`, 0600/0400, owner = service user/root; 0440 only with opt-in); environment-variable keys deliberately unsupported; KMS/HSM deferred. Startup fails closed when documents are enabled; nothing generates keys implicitly. | Simple, auditable custody for a self-hosted owner; secret mounts supported. |
+| A-17 | Whole-object encryption (no chunking) with a 15 MiB default and a 50 MiB hard cap; the whole version is authenticated before any byte is returned. | Bounded memory makes streaming unnecessary; avoids premature-release of unauthenticated plaintext. |
+| A-18 | PostgreSQL `document_blobs` behind a `BlobStore` interface; composite `(id, user_id)` FKs; `STORAGE EXTERNAL`. | No external dependency; atomic version+blob commits; replaceable later. |
+| A-19 | Uploads are raw `application/octet-stream` bodies (no multipart, no `UploadFile`), metadata in a base64url header, `Idempotency-Key` required, revision CAS (`X-LifeOS-Expected-Revision`) on new versions; read limit enforced on received bytes. | Starlette spools multipart files > 1 MiB to disk (plaintext residue); octet-stream is not a CORS-simple type; retries cannot duplicate. |
+| A-20 | Content validated by bytes: PNG/JPEG structural walk (CRC, markers; no pixel decoding), PDF via pypdf (`pypdf==6.19.0`); encrypted PDFs refused; not antivirus. | No decoder attack surface for images; honest scope. |
+| A-21 | Account export keeps readable document columns only; decrypted files only via the explicit streamed `GET /api/v1/export/documents` (no temp file). | The existing account export writes a server temp file. |
+| A-22 | Migration `20261001_0012` downgrade refuses while documents exist unless `LIFEOS_ALLOW_DESTRUCTIVE_DOWNGRADE=documents`. | A destructive downgrade must not masquerade as data-preserving. |
+| A-23 | Dependencies added: `cryptography==50.0.2`, `pypdf==6.19.0` (hashed lock files regenerated with pip-compile). | D-04. |
+
 ## 3. External prerequisites for production activation (BLOCKED_EXTERNAL)
 
 | ID | Needed from | Exactly what | Blocks |
@@ -52,7 +67,8 @@ party can supply). Approval never supplies credentials, keys, deployment facts o
 | E-03 | Owner / hosting | Deployment topology: number of trusted reverse-proxy hops (`LIFEOS_TRUSTED_PROXY_HOPS`), allowed hosts/origins, TLS termination. | Correct per-network throttling and audit networks behind a proxy. |
 | E-04 | Owner | Decision to migrate `lifeos_dev` (at `20260721_0001`) — agents migrate only `lifeos_test`. | Using S1 locally against the owner's dev data. |
 | E-05 | Owner (if several accounts pre-exist) | `python -m app.cli grant-owner <email>` to designate the owner. | Invitations on a database with more than one historical user. |
-| E-06 | Owner | Key custody for S2: where wrapping keys live (KMS/HSM/secret store), who can rotate, backup/escrow procedure. | S2 activation (encryption must not fall back to plaintext). |
+| E-06 | Owner | Key custody for S2: where the production keyring lives (host file / secret mount), who holds the offline escrow copy, who may rotate, backup-retention period of database backups (decides when old keys may be destroyed). Procedure ready: `Outputs/Runbooks/jenkin-document-keys-runbook.md`. | S2 activation (encryption must not fall back to plaintext). |
+| E-11 | Owner / hosting | Memory budget and database/backup size headroom for documents (≈ 3 × 15 MiB per concurrent transfer; documents grow every DB backup). | Choosing `DOCUMENT_MAX_*` limits in production. |
 | E-07 | monobank | Which access model applies (personal token for the owner's own self-hosted use vs. a corporate/partner API for onboarding others) and its terms. | F4. |
 | E-08 | PrivatBank | Whether a personal API is actually available for the owner's accounts; otherwise statement files only. | F5. |
 | E-09 | Diia / id.gov.ua | Partner requirements, contracts, certificates and test access. | I2. |
