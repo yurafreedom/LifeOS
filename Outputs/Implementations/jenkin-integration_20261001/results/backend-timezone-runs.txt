@@ -1,0 +1,31 @@
+=== head-UTC
+HEAD a051e43 PGTZ=UTC start 2026-09-30 23:01:39 UTC
+FAILED tests/test_aa_deletion.py::test_tombstone_clears_value_keeps_existence_and_retry_cannot_restore
+FAILED tests/test_aa_legacy_import.py::test_legacy_import_is_honest_idempotent_and_does_not_backfill_other_layers
+2 failed, 748 passed, 1 skipped, 26 warnings in 420.98s (0:07:00)
+end 2026-09-30 23:08:43 UTC
+=== head-Europe-Kyiv
+HEAD a051e43 PGTZ=Europe/Kyiv start 2026-09-30 23:08:43 UTC
+750 passed, 1 skipped, 26 warnings in 490.98s (0:08:10)
+end 2026-09-30 23:16:57 UTC
+=== baseline-UTC
+BASELINE d396fa9 PGTZ=UTC start 2026-09-30 23:34:55 UTC
+FAILED tests/test_aa_deletion.py::test_tombstone_clears_value_keeps_existence_and_retry_cannot_restore
+FAILED tests/test_aa_legacy_import.py::test_legacy_import_is_honest_idempotent_and_does_not_backfill_other_layers
+2 failed, 746 passed, 1 skipped, 26 warnings in 471.13s (0:07:51)
+end 2026-09-30 23:42:50 UTC
+=== baseline-Europe-Kyiv
+BASELINE d396fa9 PGTZ=Europe/Kyiv start 2026-09-30 23:42:50 UTC
+748 passed, 1 skipped, 26 warnings in 518.34s (0:08:38)
+end 2026-09-30 23:51:31 UTC
+=== head-UTC-control
+HEAD b19fc71 PGTZ=UTC control start 2026-10-01 00:05:58 UTC (Kyiv 2026-10-01 03:05:58)
+FAILED tests/test_aa_deletion.py::test_tombstone_clears_value_keeps_existence_and_retry_cannot_restore
+FAILED tests/test_aa_legacy_import.py::test_legacy_import_is_honest_idempotent_and_does_not_backfill_other_layers
+2 failed, 748 passed, 1 skipped, 26 warnings in 496.41s (0:08:16)
+end 2026-10-01 00:14:17 UTC
+=== integration HEAD ruff / alembic
+All checks passed!
+ruff exit 0
+20260930_0009 (head)
+20260930_0009 (head)
