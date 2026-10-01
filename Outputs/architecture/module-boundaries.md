@@ -163,10 +163,15 @@ pre-paint in `index.html`).
 
 Branding: `components/JenkinBrand.jsx` (Editorial wordmark + serif J mark,
 outlined `currentColor` SVG from `design-references/jenkin-branding/logo/`),
-`src/brand.css` (mark ink per theme, DejaVu `@font-face` + `data-font`
-override; imported by `main.jsx` after `styles.css`, outside the layer
-manifest), favicons in `public/assets/`, runtime fonts in
-`assets/fonts/dejavu-sans/`.
+`src/brand.css` (mark ink `--jenkin-ink` and logo focus ring `--jenkin-focus`
+per theme; the DejaVu `@font-face` faces; `:root[data-font="dejavu"]` re-points
+only `--font-display` / `--font-body`, and each stylesheet selector that still
+names 'Onest' / 'Work Sans' has exactly one scoped override —
+`jenkin-branding.test.jsx` fails on a missing *or* a dead override; new styles,
+the nested Calendar included, use the typography tokens instead of literals;
+`--font-mono` / `.mono` are never re-pointed; imported by `main.jsx` after
+`styles.css`, outside the layer manifest), favicons in `public/assets/`,
+runtime fonts in `assets/fonts/dejavu-sans/`.
 
 ### UI sound effects
 
@@ -275,6 +280,10 @@ reorder**; add a rule to the layer that owns the component.
 Order pinned by `styles-manifest.test.js`. Any split or move must keep the
 emitted `dist/assets/index-*.css` byte-identical. `analytics.css` (Adaptive
 Analytics components) is separate and imported by those components.
+`brand.css` (logo marks, optional interface font) is imported by `main.jsx`
+right after `styles.css`, outside the manifest: it wins ties against every
+layer without reordering them, and no layer may style `.jenkin-*` or
+`--jenkin-*`.
 
 ---
 

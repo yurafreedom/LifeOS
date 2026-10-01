@@ -7,6 +7,10 @@ publication state must be verified live (branch fix/lifeos-completion-audit).
 2026-10-01: the JENKIN shell / compact Tasks / nested Calendar implementation is
 on the pushed branch handoff/jenkin-cloud-20260930 (section 85); remote main was
 re-verified unchanged at 5e858bb. Not merged; verify live.
+2026-10-01 (later): that branch and the Editorial logo / favicon / optional
+DejaVu Sans branch (section 86) are integrated and verified on the pushed branch
+integration/jenkin-calendar-branding-20261001 — section 87 is the current
+reconciled JENKIN state. Not merged; verify live.
 
 You are working on a real software project called LifeOS.
 
@@ -2473,8 +2477,11 @@ Owner's JENKIN requirements (visible rename, interface pass, planned Calendar /
 Events / Inbox / capture / recovery / Documents work) and the lifeos_dev
 migration gap: section 84. The approved JENKIN shell, compact Tasks and nested
 tile Calendar are implemented on the pushed branch handoff/jenkin-cloud-20260930
-(section 85; not merged). Next: owner review of that branch; Events and the other
-JENKIN slices are NOT started.
+(section 85); the Editorial logo, favicon and optional DejaVu Sans interface
+font are on feat/jenkin-branding-assets-20261001 (section 86). Both are
+integrated and verified on integration/jenkin-calendar-branding-20261001
+(section 87; not merged). Next: owner review of the integration branch; Events
+and the other JENKIN slices are NOT started.
 
 Latest features can be tested in apps/web + apps/api on a disposable account.
 Destructive retention QA must use lifeos_test, never personal data.
@@ -3162,8 +3169,9 @@ Next: owner review of the local commits; G3 and the JENKIN feature plans are
 NOT started.
 Status note (2026-10-01): superseded in part by section 85 — the nested Calendar
 (from the owner's approved prototype), the paradise-day unchecked task border and
-the backend JENKIN labels/metadata are now done on handoff/jenkin-cloud-20260930.
-The rest of this section is kept as the historical record.
+the backend JENKIN labels/metadata are now done on handoff/jenkin-cloud-20260930;
+the Editorial logo, favicon and interface font are section 86; the integrated
+state is section 87. The rest of this section is kept as the historical record.
 
 ====================================================================
 85. JENKIN — SHELL, COMPACT TASKS, NESTED TILE CALENDAR (PUSHED BRANCH, 2026-10-01)
@@ -3244,9 +3252,13 @@ private-key storage, outbound automation.
 86. JENKIN BRANDING — EDITORIAL LOGO, FAVICON, OPTIONAL DEJAVU SANS (2026-10-01)
 ====================================================================
 
-[Renumbered at integration: this entry was appended as §85 on
-feat/jenkin-branding-assets-20261001 in parallel with the Calendar §85 above;
-the branding report still calls it §85.]
+[Integration note, 2026-10-01: this entry was written on
+feat/jenkin-branding-assets-20261001 before the integration and is kept verbatim
+below. It was appended there as §85 in parallel with the Calendar §85 above and
+was renumbered §86 when merged on integration/jenkin-calendar-branding-20261001;
+the branding report still calls it §85. Superseded by section 87: its
+"pre-existing, not fixed" focus gaps are fixed, and its Tasks/Calendar browser
+checks refer to the pre-compact Tasks page and the retired cube Calendar.]
 Branch feat/jenkin-branding-assets-20261001 (parallel branding-only session;
 NOT yet integrated with handoff/jenkin-cloud-20260930 — numbering of this entry
 may need reconciling at integration). Report:
@@ -3281,3 +3293,65 @@ Outputs/Implementations/jenkin-branding-logo-favicon-font_20261001.md.
   glyphs І Ї Є Ґ Ё proved rendered by the DejaVu webfont via CDP platform fonts.
   Pre-existing, not fixed: no visible focus change on .qa-title (task dialog),
   login inputs and .tb-cmd-input.
+
+====================================================================
+87. JENKIN INTEGRATION — CALENDAR / SHELL / TASKS + BRANDING (PUSHED BRANCH, 2026-10-01)
+====================================================================
+
+Current reconciled JENKIN state. Report:
+Outputs/Implementations/jenkin-integration-calendar-branding_20261001-031603.md
+Branch integration/jenkin-calendar-branding-20261001 (pushed; not merged, no PR,
+no deploy; verify live). Inputs: handoff/jenkin-cloud-20260930 @ 1e130cb
+(section 85) + feat/jenkin-branding-assets-20261001 @ 727e658 (section 86),
+merge base 0730f84; origin/main 5e858bb unchanged. Normal merge 0704970 (both
+histories kept), then 40fe3b5 typography/dead CSS, a051e43 focus gaps, c35eeda
+phone tiles, b19fc71 logo focus ring, then the docs commit. Locale pins after
+the merge: ru 1832 / uk 1831 (parity contract unchanged).
+
+Integrated product: everything in sections 85 and 86, together — Editorial
+wordmark / serif J / favicon set next to the real account block and sync phase;
+Current (default) or DejaVu Sans interface font (device-local lifeOsFont,
+pre-paint), which never changes the logo; compact Tasks; the nested Calendar.
+Integration decisions:
+- The nested Calendar follows the interface font through the typography tokens
+  only; brand.css overrides exactly the selectors that still name 'Onest' /
+  'Work Sans' (17 display + 26 body) and the test fails on a missing or a dead
+  override. --font-mono / .mono unchanged (Cyrillic .mono text keeps the OS
+  fallback; the branding report's .mono fallback question stays an OPEN OWNER
+  DECISION).
+- Fixed: the old cube overrides and unused logo CSS removed; visible keyboard
+  focus on the login inputs (the outline used the gradient --accent), the task
+  dialog title and the TopBar search (3.43–6.26:1); the logo focus ring on light
+  and Paradise-day (was 1.99 / 1.37:1, now ≥ 3.81:1); Calendar years / month
+  names / layout-A days no longer clipped on phone panels (< 380 px: two-column
+  years and months, slimmer day tiles) in either font.
+
+Verification (cloud; disposable lifeos_test at 20260930_0009): frontend 849
+tests / 55 files, typecheck, lint, analytics build, git diff --check PASS;
+backend ruff PASS, alembic head/current 20260930_0009, pytest 750 passed +
+1 skipped with a Europe/Kyiv session zone, 748 passed + 2 failed + 1 skipped
+with a UTC session zone. The two UTC failures are pre-existing and identical on
+the unchanged baseline d396fa9, and deterministic at any time of day:
+test_aa_deletion.py::test_tombstone_clears_value_keeps_existence_and_retry_cannot_restore
+(isoformat '+00:00' vs API JSON 'Z' for the same instant) and
+test_aa_legacy_import.py::test_legacy_import_is_honest_idempotent_and_does_not_backfill_other_layers
+(Kyiv-midnight occurred_at read as the previous UTC date). Open, out of scope.
+Browser (Chromium only, production build + real API): 80/80 matrix
+configurations (Current/DejaVu × RU/UK × 4 themes × 1440/1024/768/390/320,
+both layouts, every level); 598 glyph nodes — DejaVu Sans drawn by the app's
+webfont incl. І Ї Є Ґ Ё; focus, logo ring, font persistence, favicon links,
+UK login, Calendar keyboard harness (8 × 45), persistence flows, editor
+concurrency (external server write + the production reloadServerState path;
+rebase, conflict notice, both choices; Calendar editor and Tasks detail), Kyiv
+rollover with an open draft — all PASS. Screenshots and artifacts:
+Outputs/Implementations/jenkin-integration_20261001/. Not run: screen readers,
+Firefox/WebKit, native pickers.
+
+Limitations: lifeos_dev still at 20260721_0001 (not migrated; owner decision);
+.auth-link still uses the gradient --accent as a text colour (pre-existing).
+The future Events DST requirement of section 85 stands unchanged: on 25 October
+2026 in Europe/Kyiv, start 03:30 UTC+02 and end 03:45 must not silently become
+04:30; resolve start/end ambiguity independently, preserve entered values, and
+reject inconsistent chronology. Events, smart capture, auth recovery/passkeys,
+BankID/Дія, Documents, HELSI, phone-change automation and private-key storage
+are NOT started. Next: owner review of the integration branch.
