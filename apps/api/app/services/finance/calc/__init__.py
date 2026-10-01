@@ -10,10 +10,15 @@ a canonical input hash. Specification and rule catalogue:
 from app.services.finance.calc.contracts import ENGINE_VERSION, SCHEMA_VERSION
 from app.services.finance.calc.engine import calculate
 from app.services.finance.calc.reader import input_hash
+from app.services.finance.calc.reconcile import payments_from_lender_schedule, reconcile_schedule
+from app.services.finance.calc.versions import calculate_versions
 
 __all__ = [
     "ENGINE_VERSION",
     "SCHEMA_VERSION",
     "calculate",
+    "calculate_versions",
     "input_hash",
+    "payments_from_lender_schedule",
+    "reconcile_schedule",
 ]
