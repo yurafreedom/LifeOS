@@ -59,6 +59,15 @@ Architecture (APPROVED unless marked PROPOSED):
   parser) not by extension; safe downloads (`Content-Disposition: attachment`, `nosniff`, no inline HTML/SVG);
   export and erasure coverage; never log plaintext or file names with personal data.
 
+- **Browser-side data** (S1 hardening finding H-04): the per-account unsaved-snapshot copies
+  (`lifeOsPendingSnapshot:<id>`, localStorage), the analytics write queue (IndexedDB) and the legacy
+  `lifeOsState` / `lifeOsStateRetired` copies are **plaintext** in the browser profile; per-account keys are
+  logical isolation, not encryption. The data-protection plan must define: what may be kept on the device at
+  all; a retention limit (e.g. discard unsaved copies after N days with a visible notice); clearing on explicit
+  "forget this device"; whether WebCrypto encryption with a non-extractable key adds real protection against
+  the threat model (it does not protect against script running in the page); and the shared-device guidance.
+  Server-side S2 encryption does not cover this storage.
+
 Acceptance: round-trip encrypt/decrypt with AAD mismatch rejection; rotation without data loss; missing key
 → hard failure with no plaintext write; documents exported and erased with the account; size/type/content
 validation tests; key-custody runbook reviewed by the owner.

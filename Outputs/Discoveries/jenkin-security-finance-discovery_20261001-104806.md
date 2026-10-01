@@ -89,3 +89,25 @@ ledger and **not** repository fixtures. No figure from them was written anywhere
 The approved architecture and acceptance criteria are in
 `Outputs/Plans/jenkin-security-finance-roadmap_20261001-104806.md`; decisions and external prerequisites are in
 `Outputs/Plans/jenkin-security-finance-decisions_20261001-104806.md`.
+
+## 7. S1 hardening review (2026-10-01, later)
+
+An independent source review of `1ea81ad` raised two findings; both were verified against the code and the
+second was reproduced before any fix. Fixes are on the same branch (see the S1 report, §7).
+
+| ID | Finding | Status | Evidence |
+|---|---|---|---|
+| H-01 | Accepting any invitation set `email_verified_at`, although manual and failed-delivery invitations expose the link to the owner, so possession does not prove mailbox control. | **CONFIRMED → FIXED** | `services/account_access.py::accept_invitation` wrote `email_verified_at=now` unconditionally. Now `invitation_verifies_email()` verifies only `delivery == "sent"`; `manual`, `failed` and `pending` create an **unverified** member who verifies through the independent flow. Tests: four delivery paths in `test_account_access.py`. |
+| H-02 | Throttle admission raced: `throttle.check()` read the lock in one statement and `register_failure()` counted later, so concurrent requests all passed the check. | **CONFIRMED by reproduction → FIXED** | `tests/test_throttle_concurrency.py` against `1ea81ad` (independent sessions, barrier-released threads): 16/16 concurrent wrong-password logins admitted for a new address (limit 5) and 16/16 with an existing counter at 3; 16/16 password-change guesses (limit 5); 30/30 invitation-token guesses (limit 20); 16/16 recovery requests from one network (limit 10). The per-address recovery quota did not exceed its limit in that run (its read and count are adjacent and fast), but it used the same racy pattern and is fixed the same way. Fixed with one atomic `INSERT … ON CONFLICT DO UPDATE … RETURNING` admission per policy. |
+| H-03 | Invitation mail was sent while the invitation row (and the throttle row) were still inside an open transaction. | **CONFIRMED (found while fixing H-02) → FIXED** | `create_invitation` called `mail.send()` before `db.commit()`. Now: commit with `delivery = pending` → send with no transaction open → record `sent`/`failed` in a second short transaction. `test_invitation_mail_is_sent_after_the_row_is_committed`. Recovery mail was already sent after the response; verification mail after commit. |
+| H-04 | Unsaved snapshot copies (`lifeOsPendingSnapshot:<id>` in localStorage) and the analytics queue (IndexedDB) are plaintext browser storage; per-account keys are logical isolation, not encryption. | **CONFIRMED → REMAINING** | Anyone with access to the browser profile can read them. Recorded in the roadmap's data-protection plan (S2 §"Browser-side data"). |
+
+**Existing accounts (H-01).** S1 was never merged or deployed: production has no invitation-created accounts, and
+`lifeos_dev` is still at `20260721_0001` (no M10 tables at all). Only the disposable `lifeos_test` could hold such
+rows; the test suite truncates it, and the earlier browser-QA accounts were invited by mail that the file adapter
+accepted (`delivery = sent`), so they are legitimately verified under the policy. Migration `20261001_0011` still
+fixes any database that ran M10: it clears a verification **only** when the account came from a `manual` / `failed`
+/ `pending` invitation **and** `email_verified_at` still equals that invitation's `accepted_at` — the exact value the
+faulty code wrote. Verification obtained afterwards through a verification link or password reset (both only
+fill an empty value, so they differ) and mail-sent invitations are untouched
+(`test_m11_clears_only_verification_that_an_unsent_invitation_produced`).

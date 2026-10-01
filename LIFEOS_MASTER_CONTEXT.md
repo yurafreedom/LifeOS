@@ -3422,3 +3422,18 @@ decision register. lifeos_dev is still at 20260721_0001 (owner decision).
 Known remaining: snapshot/AA/profile plaintext at rest (S2); `$` labels vs AA
 `UAH` (not reinterpreted; F1); pre-existing < 12 px Home eyebrows.
 Next slice: S2 encryption + document foundation (roadmap).
+
+S1 hardening checkpoint (2026-10-01, later; same branch, commits bda61d8 +
+8698034 + docs): an independent review found and the code confirmed (1)
+accepting ANY invitation verified the email — now only delivery=sent verifies;
+manual/failed/pending invitations create an unverified member who verifies
+through the normal flow; migration 20261001_0011 clears only verification that
+an unsent invitation's acceptance wrote (equality with accepted_at). (2)
+Throttle admission raced (reproduced: 16/16 concurrent logins admitted against
+a limit of 5) — now one atomic upsert per policy, committed before hashing or
+mail; request quotas vs failure counters (reserve + refund on success).
+Invitation mail is now sent with no transaction open (pending → sent/failed).
+Browser storage (unsaved copies, analytics queue, legacy copies) is plaintext
+— logical per-account isolation only; added to the S2 data-protection plan.
+Verified: backend 822 passed + 1 skipped under UTC and Kyiv, frontend 882,
+live 4-worker checks on lifeos_test. Head: 20261001_0011. S2 NOT started.

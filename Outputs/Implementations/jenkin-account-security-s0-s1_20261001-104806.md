@@ -101,7 +101,7 @@ The docs commit cannot name its own SHA; verify the branch tip live with
   `python -m app.cli grant-owner <email>`); bootstrap creates the owner.
 - Invitations: owner only; email-bound; single use; 7 days; token digest only; re-inviting supersedes; delivery
   reported honestly — `sent`, `manual` (no mail backend: link shown once to the owner), `failed`; acceptance
-  creates an **empty, verified member** and signs in.
+  creates an **empty member** and signs in. *(Corrected in §7: only a `sent` invitation verifies the address.)*
 - Password change verifies the current password (throttled), keeps this session, revokes the others and voids
   outstanding reset links. Recovery: 202 `accepted` for every address, mail sent after the response, 1 h
   single-use links, expired / replayed / superseded links fail identically, reset revokes every session and proves
@@ -109,7 +109,7 @@ The docs commit cannot name its own SHA; verify the branch tip live with
 - Email verification: 24 h single-use links bound to the address they were sent to; send reports
   sent / unavailable / failed truthfully.
 - Sessions: list with coarse device labels; revoke one (another account's id is "not found"); revoke all others.
-- Throttling (`services/throttle.py::POLICIES`): login per address 5/15 min and per network 30/15 min; recovery per
+- Throttling (`services/throttle.py::POLICIES`; admission made atomic in §7): login per address 5/15 min and per network 30/15 min; recovery per
   address 3/h (silent) and per network 10/h; token guessing per network 20/15 min; password-change 5/15 min per
   account; verification mail 3/h; invitations 20/24 h. Identical for unknown addresses; `Retry-After` on 429.
 - Audit events (login ok/failed/throttled, logout, session revocations, password change, reset requested /
@@ -213,3 +213,73 @@ owner's decision (it is at `20260721_0001`). None of these values were invented.
 S2 — encryption and document foundation (roadmap §S2): envelope AES-256-GCM with versioned wrapping keys and
 AAD binding, no plaintext fallback, rotation/backup/custody runbook (needs E-06), encrypted document store
 (validate PostgreSQL chunks vs object storage), 15 MB PDF/JPEG/PNG with content validation, export/erasure.
+
+## 7. S1 hardening checkpoint (2026-10-01, later)
+
+Started from `1ea81ad` (verified equal to the remote). Findings H-01 … H-04 are in the discovery §7.
+
+### 7.1 Invitation authorization is not email verification (H-01)
+- `invitation_verifies_email()`: only `delivery == "sent"` verifies on acceptance. **Policy for emailed
+  invitations:** the link was handed only to the mail adapter for that address and never shown to anyone, so
+  opening it proves control of the mailbox exactly as a verification link does (SMTP acceptance is not proof of
+  inbox delivery, but only the mailbox — or the mail path to it — can read the link; this is the same assumption
+  every email-verification link makes). `manual`, `failed` and `pending` create an **unverified** member; the
+  member verifies through Settings → Security (or learns honestly that mail is unavailable).
+- Migration `20261001_0011` clears only acceptance-derived verification of unsent invitations (criterion in the
+  discovery §7); downgrade is a no-op. No production or `lifeos_dev` account could be affected (S1 never left
+  the branch; `lifeos_dev` has no M10 tables).
+
+### 7.2 Atomic throttle admission (H-02, H-03)
+- Reproduced first (`tests/test_throttle_concurrency.py` against `1ea81ad`): 16/16 concurrent wrong-password
+  logins admitted for a new address and with an existing counter (limit 5), 16/16 password-change guesses
+  (limit 5), 30/30 token guesses (limit 20), 16/16 recovery requests from one network (limit 10).
+- `throttle.admit()` is one `INSERT … ON CONFLICT DO UPDATE … RETURNING` statement (first-row creation and
+  existing counters alike), committed in its own short transaction before password hashing, token lookup or
+  mail. **Request quotas** (`reset_network`, `reset_email` — silent, generic 202 kept — `verify_send_user`,
+  `invite_user`) consume a slot per request. **Failure counters** (`login_email`, `login_network`,
+  `password_change_user`, `token_network`) reserve a slot before the secret is checked; success clears
+  (`login_email`, `password_change_user`) or refunds (`release`: `login_network`, `token_network`). A refused
+  login is audited once, when the lock starts. Unknown addresses behave exactly like known ones.
+- Invitation mail is sent with no transaction open: commit `pending` → send → record `sent`/`failed`.
+
+### 7.3 Browser storage (H-04)
+Recorded, not changed: the unsaved-snapshot copies, the analytics queue and the legacy copies are plaintext in the
+browser profile; account-specific keys are logical isolation, not encryption. Their protection and retention are
+now part of the S2 data-protection plan (roadmap §S2 "Browser-side data").
+
+### 7.4 Verification
+
+Commits: `bda61d8` (H-01 + migration `20261001_0011`), `8698034` (H-02 + H-03, pending-delivery label);
+docs in the following commit (verify the tip live with `git ls-remote`).
+
+| Check | Result |
+|---|---|
+| Reproduction before the fix (`test_throttle_concurrency.py` on `1ea81ad`) | 6 of 9 failed with the counts in §7.2 (the 3 others: correct password, per-address recovery quota, refund/window — the last needs the new API) |
+| `test_throttle_concurrency.py` after the fix | 9 passed; repeated 5× — 9 passed each time |
+| Focused (`test_throttle_concurrency`, `test_account_access`, `test_account_binding`, `test_account_security_migration`, `test_auth`) on the committed HEAD | 75 passed |
+| `apps/api: python -m pytest`, `PGTZ=UTC` | **822 passed, 1 skipped** |
+| `apps/api: python -m pytest`, `PGTZ=Europe/Kyiv` | **822 passed, 1 skipped** |
+| `ruff check .` | All checks passed |
+| `alembic heads` / `current` (lifeos_test) | `20261001_0011 (head)` / `20261001_0011 (head)` |
+| CLI round trip on lifeos_test: downgrade to `20260930_0009` (2 steps) → upgrade head (2 steps) | PASS |
+| `apps/web`: `npm test` / typecheck / lint / build | 882 passed (58 files) / PASS / PASS / PASS |
+| `git diff --check` | PASS |
+
+Real backend (uvicorn `--workers 4`, `lifeos_test`, synthetic `@example.com` accounts; no real mail):
+- 20 concurrent wrong-password logins for a new address across 4 processes → **5 × 401, 15 × 429**;
+  audit: `login_failed` 5, `login_throttled` **1** (logged once, at the start of the lock).
+- 30 concurrent invitation-token guesses → **20 × 400, 10 × 429**.
+- Mail disabled: owner invitation → `delivery: manual`, link shown once; acceptance → member with
+  `email_verified_at: null`; member's verification request → 503 `mail_unavailable`; the token never appeared in
+  the API log.
+- File mail adapter: invitation → `delivery: sent`, no link shown; acceptance → verified member.
+- 8 concurrent recovery requests for one address → **8 × 202** (generic) and **exactly 3** reset mails.
+
+### 7.5 Remaining limitations (recorded, not fixed here)
+- Network-scoped limits (`login_network`, `token_network`, `reset_network`) are per client address: everyone behind
+  one NAT shares them, and a burst of guesses from that network also blocks a genuine invitee there for up to
+  15 minutes (observed live). Per-address and per-account limits are unaffected. Tuning needs deployment facts (E-03).
+- An admitted failure-counter slot is refunded on success only; a request that crashes after admission keeps its
+  slot until the window ends (fails closed).
+- `pending` invitations (crash between commit and send) stay `pending`; the owner can revoke and re-invite.
+- H-04 browser storage stays plaintext until the S2 data-protection plan is implemented.

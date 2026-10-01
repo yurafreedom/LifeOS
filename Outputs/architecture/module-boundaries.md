@@ -43,8 +43,8 @@ reverse edges are the lazy imports inside `analytics/rules/__init__.py::_registr
 |---|---|
 | who the request is for (session → account) and the **account binding** contract (`X-LifeOS-Account`; 401 / 428 `account_binding_required` / 409 `session_user_mismatch`) | `app/dependencies.py` — every protected route depends on `get_current_user` / `get_bound_session`; only `GET /auth/me` uses the unbound `get_current_session`. `tests/test_account_binding.py::test_every_protected_route_is_bound` fails on an unbound new route |
 | login, bootstrap (creates the **owner**), logout, session issue/resolve | `services/auth.py` + `routes/auth.py` |
-| password change / recovery, email verification, sessions list/revoke, owner invitations, recent security events | `services/account_access.py`; anonymous routes in `routes/auth.py`, bound routes in `routes/account_security.py`; schemas in `schemas/auth.py` |
-| throttling limits | `services/throttle.py::POLICIES` (DB table `auth_throttle`, digests only) |
+| password change / recovery, email verification, sessions list/revoke, owner invitations (`invitation_verifies_email`: only `sent` verifies; mail sent after commit), recent security events | `services/account_access.py`; anonymous routes in `routes/auth.py`, bound routes in `routes/account_security.py`; schemas in `schemas/auth.py` |
+| throttling limits and admission | `services/throttle.py` — `POLICIES`; `admit()` is the only admission path (one atomic upsert, commit before slow work); `release()` refunds a failure-counter slot on success; `clear()` resets a key (DB table `auth_throttle`, digests only). Never read-then-count. |
 | audit events: vocabulary, retention, purge | `services/security_audit.py` (`EVENTS`; never secrets) |
 | coarse client network / device label, proxy trust | `security/client_info.py` (`Settings.trusted_proxy_hops`) |
 | outgoing mail (adapter, templates) | `app/mail/` — `delivery.py` (disabled / memory / file / SMTP; `app.state.mail`), `templates.py` |
