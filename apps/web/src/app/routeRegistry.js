@@ -9,6 +9,8 @@ function readRouteFromHash(hash = window.location.hash) {
   /* Sprint 3A · medications sub-routes: /medications/{id} → still
      dispatch the medications surface; the page reads the id itself. */
   if (raw.startsWith('medications/') || raw === 'medications') return 'medications';
+  /* JENKIN S2 · finances/documents → the Finances surface, Documents tab. */
+  if (raw === 'finances/documents') return 'finances';
   /* Slice 4 · review/{new/<subject>/<from>/<to> | <id>} → the Review surface
      reads its own parameters from the hash. */
   if (raw.startsWith('review/') && LIFE_ROUTES.has('review')) return 'review';
@@ -29,6 +31,7 @@ function readRouteFromHash(hash = window.location.hash) {
    medications/{id} sub-route, which dispatches the medications surface while
    the hash keeps the full path. */
 function normalizeRoute(next) {
+  if (next === 'finances/documents') return { route: 'finances', hash: '#/finances/documents' };
   if (!LIFE_ROUTES.has(next) && !next.startsWith('medications/')) next = 'home';
   return { route: LIFE_ROUTES.has(next) ? next : 'medications', hash: '#/' + next };
 }

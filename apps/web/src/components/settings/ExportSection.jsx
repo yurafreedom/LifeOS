@@ -1,5 +1,6 @@
 import React from 'react';
 import { exportAccount } from '../../api/exportAccount';
+import { exportDocuments, getDocumentStatus, saveBlob } from '../../api/documents.ts';
 import { LifeDataContext } from '../../context/LifeDataContext.jsx';
 import { LegacyDataSection } from './LegacyDataSection.jsx';
 import { Row } from './Row.jsx';
@@ -53,6 +54,7 @@ export function ExportSection({ t }) {
   }
   return (
     <React.Fragment>
+      <DocumentsExportRow t={t} />
       <Row label={t('set_export_json')} hint={t('set_export_server_hint')}><button className="set-btn-ghost" onClick={exportJson}>{t('set_download')}</button></Row>
       <Row label={t('set_export_account')} hint={t('set_export_account_hint')}>
         <button className="set-btn-ghost" disabled={exporting} onClick={exportServer}>
@@ -61,6 +63,49 @@ export function ExportSection({ t }) {
       </Row>
       {exportError ? <p role="alert">{exportError}</p> : null}
       <LegacyDataSection t={t} />
+    </React.Fragment>
+  );
+}
+
+/* JENKIN S2: decrypted documents leave only on this explicit request, as their
+   own streamed ZIP (the server writes no temporary file for it). Shown only when
+   the server has document storage enabled. */
+function DocumentsExportRow({ t }) {
+  const [enabled, setEnabled] = useStateSet(false);
+  const [busy, setBusy] = useStateSet(false);
+  const [error, setError] = useStateSet('');
+  const controllerRef = React.useRef(null);
+  React.useEffect(() => {
+    const controller = new window.AbortController();
+    getDocumentStatus(controller.signal)
+      .then(status => setEnabled(!!status.enabled))
+      .catch(() => {});
+    return () => { controller.abort(); controllerRef.current?.abort(); };
+  }, []);
+  if (!enabled) return null;
+  async function run() {
+    if (busy) return;
+    setBusy(true);
+    setError('');
+    const controller = new window.AbortController();
+    controllerRef.current = controller;
+    try {
+      saveBlob(await exportDocuments(controller.signal), 'jenkin-documents.zip');
+    } catch (failure) {
+      if (failure?.name === 'AbortError') return;
+      setError(t('set_export_documents_error'));
+    } finally {
+      if (!controller.signal.aborted) setBusy(false);
+    }
+  }
+  return (
+    <React.Fragment>
+      <Row label={t('set_export_documents')} hint={t('set_export_documents_hint')}>
+        <button className="set-btn-ghost" disabled={busy} onClick={run}>
+          {t(busy ? 'set_export_documents_loading' : 'set_export_documents_download')}
+        </button>
+      </Row>
+      {error ? <p role="alert">{error}</p> : null}
     </React.Fragment>
   );
 }

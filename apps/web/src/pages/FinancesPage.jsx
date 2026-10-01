@@ -6,6 +6,7 @@ import { LifeDataContext } from '../context/LifeDataContext.jsx';
 import { LifeLocaleContext, LifeStrings } from '../context/LocaleContext.jsx';
 import { LifeCatTintClass, LifeCategories, LifeExpenseCats } from '../data/categories.js';
 import { LifeFinance } from '../lib/finance.js';
+import { FinanceDocuments } from './finances/FinanceDocuments.jsx';
 
 /* global React */
 const { useState: useStateFin, useContext: useCtxFin, useMemo: useMemoFin } = React;
@@ -22,7 +23,62 @@ const { useState: useStateFin, useContext: useCtxFin, useMemo: useMemoFin } = Re
      logger row       amount + category select + log
      filter chips     all · visible · hidden
      transaction list grouped by date, each row with EyeToggle */
+/* JENKIN S2: Operations | Documents. The tab lives in the hash
+   (#/finances/documents) so it survives reloads and can be linked. */
+function readFinanceTab() {
+  if (typeof window === 'undefined') return 'transactions';
+  return window.location.hash.replace(/^#\/?/, '') === 'finances/documents' ? 'documents' : 'transactions';
+}
+
+function FinanceTabs({ tab, onTab, t }) {
+  const tabs = [
+    { id: 'transactions', label: t('fin_tab_transactions') },
+    { id: 'documents', label: t('fin_tab_documents') },
+  ];
+  return (
+    <div className="tasks-toolbar fin-tabs" role="tablist" aria-label={t('fin_tabs_label')}>
+      <div className="tasks-chips">
+        {tabs.map(item => (
+          <button key={item.id} type="button" role="tab" aria-selected={tab === item.id}
+                  className={'tasks-chip' + (tab === item.id ? ' is-on' : '')}
+                  onClick={() => onTab(item.id)}>
+            {item.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function FinancesPage({ emptyMode, onAnalytics }) {
+  const { t } = useCtxFin(LifeLocaleContext);
+  const [tab, setTab] = useStateFin(readFinanceTab);
+  React.useEffect(() => {
+    function onHash() { setTab(readFinanceTab()); }
+    window.addEventListener('hashchange', onHash);
+    return () => window.removeEventListener('hashchange', onHash);
+  }, []);
+  function selectTab(next) {
+    const target = next === 'documents' ? '#/finances/documents' : '#/finances';
+    setTab(next);
+    if (window.location.hash !== target) window.location.hash = target;
+  }
+  if (tab === 'documents') {
+    return (
+      <div className="page fin-page">
+        <PageHeader title={t('money_title')} subtitle={t('fin_tab_documents')} />
+        <FinanceTabs tab={tab} onTab={selectTab} t={t} />
+        <FinanceDocuments />
+      </div>
+    );
+  }
+  return (
+    <FinanceTransactions emptyMode={emptyMode} onAnalytics={onAnalytics}
+                         tabs={<FinanceTabs tab={tab} onTab={selectTab} t={t} />} />
+  );
+}
+
+function FinanceTransactions({ emptyMode, onAnalytics, tabs }) {
   const { t, locale } = useCtxFin(LifeLocaleContext);
   const data = useCtxFin(LifeDataContext);
   const I = LIcons;
@@ -112,6 +168,8 @@ function FinancesPage({ emptyMode, onAnalytics }) {
           <button type="button" className="set-btn-ghost" onClick={onAnalytics}>Аналитика</button>
         ) : null}
       />
+
+      {tabs}
 
       {/* budget summary */}
       <section className={"card panel fin-summary" + (over ? ' is-over' : warn ? ' is-warn' : '')}>

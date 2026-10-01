@@ -508,3 +508,50 @@ button.cal-tile:hover:not(:disabled) {
 
 /* light theme · calendar inputs */
 [data-theme="light"] .cal-input { background: var(--bg-elev-1); }
+
+/* ── JENKIN S2 · Finance → Documents ─────────────────────────────────
+   Reuses panels, chips, settings inputs and buttons; only layout here.
+   Text never below 12px; everything wraps at 320px. */
+.fin-tabs { margin-bottom: 4px; }
+.doc-page { display: grid; gap: 14px; min-width: 0; }
+.doc-panel { min-width: 0; }
+.doc-intro-text, .doc-guidance, .doc-unavailable p { margin: 0; color: var(--fg2); font-size: 13px; line-height: 1.5; }
+.doc-guidance { margin-bottom: 8px; }
+.doc-protection { margin-top: 10px; font-size: 13px; color: var(--fg2); }
+.doc-protection summary { cursor: pointer; color: var(--text); font-size: 13px; }
+.doc-protection ul { margin: 8px 0 0; padding-left: 18px; display: grid; gap: 6px; line-height: 1.45; }
+.doc-usage { margin-top: 10px; font-size: 12px; color: var(--fg3); overflow-wrap: anywhere; }
+.doc-upload { display: grid; gap: 10px; min-width: 0; }
+.doc-upload .sec-field, .doc-edit .sec-field { display: grid; gap: 4px; min-width: 0; font-size: 13px; color: var(--fg2); }
+.doc-upload .set-input, .doc-edit .set-input { width: 100%; box-sizing: border-box; min-width: 0; }
+.doc-notes { resize: vertical; min-height: 44px; font-family: inherit; }
+.doc-file-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; min-width: 0; }
+.doc-file-name { font-size: 13px; color: var(--fg2); overflow-wrap: anywhere; min-width: 0; }
+.doc-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.doc-pending { margin: 0; font-size: 13px; color: var(--fg2); }
+.doc-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
+.doc-item { padding: 12px 0; border-top: 1px solid var(--border); min-width: 0; }
+.doc-item:first-child { border-top: 0; }
+.doc-item-row { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: flex-start; justify-content: space-between; }
+.doc-item-main { flex: 1 1 220px; min-width: 0; display: grid; gap: 4px; }
+.doc-item-title { font-size: 14px; color: var(--text); overflow-wrap: anywhere; }
+.doc-item-meta { font-size: 12px; color: var(--fg3); overflow-wrap: anywhere; }
+.doc-item-notes { font-size: 13px; color: var(--fg2); white-space: pre-wrap; overflow-wrap: anywhere; }
+.doc-item-state { font-size: 13px; color: var(--danger); line-height: 1.4; }
+.doc-item.is-unreadable .doc-item-title { color: var(--fg3); }
+.doc-item-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.doc-details { margin-top: 10px; display: grid; gap: 10px; min-width: 0; padding: 12px; border: 1px solid var(--border); border-radius: 12px; }
+.doc-edit { max-width: none; margin-top: 0; }
+.doc-versions { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.doc-version { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; min-width: 0; }
+.doc-version-main { flex: 1 1 180px; min-width: 0; display: flex; gap: 8px; align-items: baseline; }
+.doc-version-num { font-size: 12px; color: var(--fg3); }
+.doc-version-name { font-size: 13px; color: var(--text); overflow-wrap: anywhere; min-width: 0; }
+.doc-version-meta { flex: 1 1 100%; order: 3; font-size: 12px; color: var(--fg3); overflow-wrap: anywhere; }
+.doc-version-upload { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.doc-file-button { position: relative; display: inline-flex; align-items: center; cursor: pointer; }
+.doc-file-button:focus-within { outline: 2px solid var(--primary, #229ED9); outline-offset: 2px; }
+.doc-visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.doc-delete { display: grid; gap: 8px; }
+.doc-delete-btn { justify-self: start; color: var(--danger); }
+.doc-delete-warning { margin: 0; font-size: 13px; color: var(--text); line-height: 1.45; }
