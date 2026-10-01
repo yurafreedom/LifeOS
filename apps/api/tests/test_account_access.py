@@ -658,3 +658,21 @@ def test_pending_delivery_invitation_creates_an_unverified_member(
         db.execute(update(AccountInvitation).values(delivery="pending"))
     _invitee, accepted = _accept(client.app, token, "pending-friend@example.com")
     assert accepted.json()["email_verified_at"] is None
+
+
+def test_invitation_mail_is_sent_after_the_row_is_committed(client, settings, account_factory, mail, session_factory):
+    """No transaction is held across delivery: the adapter sees a committed 'pending' row."""
+    owner = account_factory("policy-commit@example.com")
+    _make_owner(session_factory, owner)
+    authenticate(client, settings, owner)
+    seen: list[str] = []
+    original = mail.send
+
+    def observing_send(message):
+        with session_factory() as db:  # an independent session
+            seen.extend(db.scalars(select(AccountInvitation.delivery)))
+        original(message)
+
+    mail.send = observing_send
+    assert client.post("/api/v1/account/invitations", json={"email": "commit-friend@example.com"}).json()["delivery"] == "sent"
+    assert seen == ["pending"]

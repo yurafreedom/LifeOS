@@ -58,8 +58,18 @@ def _link(settings: Settings, action: str, raw: str) -> str:
     return f"{settings.app_url}/#/auth/{action}/{raw}"
 
 
-def _token_failure(db: Session, client: ClientContext) -> AuthServiceError:
-    throttle.register_failure(db, "token_network", client.address)
+def _admit(db: Session, scope: str, value: str | None) -> None:
+    """Take a throttle slot atomically and commit it before any slow work."""
+    try:
+        throttle.admit(db, scope, value)
+    except throttle.ThrottledError as error:
+        db.commit()
+        raise _throttled(error) from None
+    db.commit()
+
+
+def _token_failure(db: Session) -> AuthServiceError:
+    # The slot reserved at admission stays consumed: it is this failure.
     db.commit()
     return AuthServiceError(*INVALID_TOKEN, 400)
 
@@ -85,13 +95,8 @@ def change_password(
 ) -> int:
     """Verify the current password, set the new one, revoke the other sessions."""
     user_key = str(user.id)
-    try:
-        throttle.check(db, "password_change_user", user_key)
-    except throttle.ThrottledError as error:
-        db.rollback()
-        raise _throttled(error) from None
+    _admit(db, "password_change_user", user_key)
     if not verify_password(current_password, user.password_hash):
-        throttle.register_failure(db, "password_change_user", user_key)
         security_audit.record(
             db, "password_change_failed", user_id=user.id, session_id=session.id, client=client
         )
@@ -131,20 +136,15 @@ def request_password_reset(
 ) -> tuple[MailMessage, UUID] | None:
     """Return the message to send after the response, or None. Same answer for every address."""
     _require_mail(mail)
-    try:
-        throttle.check(db, "reset_network", client.address)
-    except throttle.ThrottledError as error:
-        db.rollback()
-        raise _throttled(error) from None
-    throttle.register_failure(db, "reset_network", client.address)
+    _admit(db, "reset_network", client.address)
     canonical = normalize_email(email)
     try:
-        throttle.check(db, "reset_email", canonical)
+        throttle.admit(db, "reset_email", canonical)
     except throttle.ThrottledError:
         # Quietly send nothing more to this address; the answer stays generic.
         db.commit()
         return None
-    throttle.register_failure(db, "reset_email", canonical)
+    db.commit()
     user = db.scalar(select(User).where(func.lower(User.email) == canonical))
     if user is None or not user.is_active:
         db.commit()
@@ -177,11 +177,7 @@ def request_password_reset(
 def confirm_password_reset(
     db: Session, *, raw_token: str, new_password: str, client: ClientContext
 ) -> int:
-    try:
-        throttle.check(db, "token_network", client.address)
-    except throttle.ThrottledError as error:
-        db.rollback()
-        raise _throttled(error) from None
+    _admit(db, "token_network", client.address)
     now = datetime.now(UTC)
     token = db.execute(
         select(AuthToken)
@@ -198,7 +194,7 @@ def confirm_password_reset(
         or not user.is_active
         or normalize_email(token.email) != normalize_email(user.email)
     ):
-        raise _token_failure(db, client)
+        raise _token_failure(db)
     user.password_hash = hash_password(new_password)
     user.password_changed_at = now
     if user.email_verified_at is None:
@@ -215,6 +211,7 @@ def confirm_password_reset(
     )
     revoked = db.execute(delete(UserSession).where(UserSession.user_id == user.id)).rowcount
     throttle.clear(db, "login_email", normalize_email(user.email))
+    throttle.release(db, "token_network", client.address)
     security_audit.record(
         db, "password_reset_completed", user_id=user.id, client=client,
         details={"revoked_sessions": revoked},
@@ -232,13 +229,7 @@ def send_email_verification(
     _require_mail(mail)
     if user.email_verified_at is not None:
         raise AuthServiceError("already_verified", "This email address is already verified.", 409)
-    user_key = str(user.id)
-    try:
-        throttle.check(db, "verify_send_user", user_key)
-    except throttle.ThrottledError as error:
-        db.rollback()
-        raise _throttled(error) from None
-    throttle.register_failure(db, "verify_send_user", user_key)
+    _admit(db, "verify_send_user", str(user.id))
     now = datetime.now(UTC)
     db.execute(
         update(AuthToken)
@@ -264,11 +255,7 @@ def send_email_verification(
 
 
 def confirm_email_verification(db: Session, *, raw_token: str, client: ClientContext) -> None:
-    try:
-        throttle.check(db, "token_network", client.address)
-    except throttle.ThrottledError as error:
-        db.rollback()
-        raise _throttled(error) from None
+    _admit(db, "token_network", client.address)
     now = datetime.now(UTC)
     token = db.execute(
         select(AuthToken)
@@ -285,10 +272,11 @@ def confirm_email_verification(db: Session, *, raw_token: str, client: ClientCon
         or not user.is_active
         or normalize_email(token.email) != normalize_email(user.email)
     ):
-        raise _token_failure(db, client)
+        raise _token_failure(db)
     token.consumed_at = now
     if user.email_verified_at is None:
         user.email_verified_at = now
+    throttle.release(db, "token_network", client.address)
     security_audit.record(db, "email_verified", user_id=user.id, client=client)
     db.commit()
 
@@ -406,17 +394,18 @@ def create_invitation(
     mail: MailDelivery,
     client: ClientContext,
 ) -> InvitationResult:
+    """Create, commit, then deliver — no transaction or row lock is held across SMTP.
+
+    The row is committed with delivery ``pending``; after the send attempt a
+    second short transaction records ``sent`` / ``failed`` (or ``manual`` when no
+    mail backend exists). A crash in between leaves ``pending``, which is never
+    treated as delivered.
+    """
     _require_owner(owner)
-    owner_key = str(owner.id)
-    try:
-        throttle.check(db, "invite_user", owner_key)
-    except throttle.ThrottledError as error:
-        db.rollback()
-        raise _throttled(error) from None
-    throttle.register_failure(db, "invite_user", owner_key)
+    _admit(db, "invite_user", str(owner.id))
     canonical = normalize_email(email)
     if db.scalar(select(User.id).where(func.lower(User.email) == canonical)) is not None:
-        db.commit()
+        db.rollback()
         raise AuthServiceError(
             "email_already_registered", "An account with this email already exists.", 409
         )
@@ -433,27 +422,32 @@ def create_invitation(
     raw, digest = _new_secret()
     link = _link(settings, "invite", raw)
     invitation = AccountInvitation(
-        email=canonical, invited_by=owner.id, token_hash=digest, delivery="manual",
+        email=canonical, invited_by=owner.id, token_hash=digest,
+        delivery="pending" if mail.available else "manual",
         expires_at=now + timedelta(seconds=settings.invitation_ttl_seconds),
     )
     db.add(invitation)
-    db.flush()
-    invite_url: str | None = link
+    db.commit()
+
+    delivery = invitation.delivery
     if mail.available:
         try:
-            mail.send(templates.invitation(
-                canonical, link, settings.invitation_ttl_seconds // 86400
-            ))
-            invitation.delivery = "sent"
-            invite_url = None
+            mail.send(templates.invitation(canonical, link, settings.invitation_ttl_seconds // 86400))
+            delivery = "sent"
         except Exception:  # noqa: BLE001 - any adapter failure means "not sent"
-            invitation.delivery = "failed"
+            delivery = "failed"
+        db.execute(
+            update(AccountInvitation)
+            .where(AccountInvitation.id == invitation.id)
+            .values(delivery=delivery)
+        )
+        invitation.delivery = delivery
     security_audit.record(
         db, "invitation_created", user_id=owner.id, client=client,
-        details={"delivery": invitation.delivery, "invitation_id": str(invitation.id)},
+        details={"delivery": delivery, "invitation_id": str(invitation.id)},
     )
     db.commit()
-    return InvitationResult(invitation=invitation, invite_url=invite_url)
+    return InvitationResult(invitation=invitation, invite_url=None if delivery == "sent" else link)
 
 
 def list_invitations(db: Session, *, owner: User) -> list[AccountInvitation]:
@@ -492,19 +486,14 @@ def revoke_invitation(
 
 
 def _open_invitation(db: Session, raw_token: str, client: ClientContext) -> AccountInvitation:
-    try:
-        throttle.check(db, "token_network", client.address)
-    except throttle.ThrottledError as error:
-        db.rollback()
-        raise _throttled(error) from None
+    _admit(db, "token_network", client.address)
     invitation = db.execute(
         select(AccountInvitation)
         .where(AccountInvitation.token_hash == hash_session_token(raw_token))
         .with_for_update()
     ).scalar_one_or_none()
     if invitation is None or invitation_status(invitation) != "pending":
-        throttle.register_failure(db, "token_network", client.address)
-        db.commit()
+        db.commit()  # the reserved slot stays consumed: it is this failure
         raise AuthServiceError(*INVALID_INVITATION, 400)
     return invitation
 
@@ -514,7 +503,8 @@ def inspect_invitation(
 ) -> tuple[str, datetime]:
     invitation = _open_invitation(db, raw_token, client)
     email, expires_at = invitation.email, invitation.expires_at
-    db.rollback()
+    throttle.release(db, "token_network", client.address)
+    db.commit()
     return email, expires_at
 
 
@@ -555,6 +545,7 @@ def accept_invitation(
         ) from None
     invitation.accepted_at = now
     invitation.accepted_user_id = user.id
+    throttle.release(db, "token_network", client.address)
     session, raw_session = new_session(user, settings, client)
     db.add(session)
     db.flush()

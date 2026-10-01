@@ -97,30 +97,47 @@ def bootstrap_first_user(
     return IssuedSession(user=user, raw_token=raw_token, expires_at=session.expires_at)
 
 
+def _throttled_login(db: Session, error: throttle.ThrottledError, canonical_email: str,
+                     client: ClientContext | None) -> AuthServiceError:
+    """Refusal: audited once, when the lock starts, never per refused attempt."""
+    if error.newly_locked:
+        known = db.scalar(select(User.id).where(func.lower(User.email) == canonical_email))
+        security_audit.record(db, "login_throttled", user_id=known, client=client)
+    db.commit()
+    return AuthServiceError(
+        "too_many_attempts", "Too many attempts. Try again later.", 429,
+        retry_after=error.retry_after_seconds,
+    )
+
+
 def authenticate_user(
     db: Session, request: LoginRequest, settings: Settings, client: ClientContext | None = None
 ) -> IssuedSession:
-    """Password login with per-address and per-network throttling.
+    """Password login with atomic per-network and per-address throttling.
 
+    Both slots are *reserved* (committed) before the password is checked, so
+    concurrent guesses cannot exceed the limits; a success gives them back.
     The same generic error answers an unknown address, an inactive account and
-    a wrong password; a throttled address is throttled whether or not it has
-    an account, so neither the message nor the lockout reveals existence.
+    a wrong password, and an address is throttled whether or not it has an
+    account, so neither the message nor the lockout reveals existence.
     """
     canonical_email = normalize_email(str(request.email))
     password = request.password.get_secret_value()
     address = client.address if client else None
     now = datetime.now(UTC)
 
+    db.rollback()
     try:
-        throttle.check(db, "login_network", address, now=now)
-        throttle.check(db, "login_email", canonical_email, now=now)
+        throttle.admit(db, "login_network", address, now=now)
     except throttle.ThrottledError as error:
-        db.rollback()
-        raise AuthServiceError(
-            "too_many_attempts", "Too many attempts. Try again later.", 429,
-            retry_after=error.retry_after_seconds,
-        ) from None
-    db.rollback()  # the checks only read; the login runs in its own transaction
+        raise _throttled_login(db, error, canonical_email, client) from None
+    try:
+        throttle.admit(db, "login_email", canonical_email, now=now)
+    except throttle.ThrottledError as error:
+        # This attempt never happens: hand the network slot back.
+        throttle.release(db, "login_network", address)
+        raise _throttled_login(db, error, canonical_email, client) from None
+    db.commit()  # reservations are visible to concurrent attempts before hashing
 
     failure: AuthServiceError | None = None
     with db.begin():
@@ -128,16 +145,14 @@ def authenticate_user(
         user = db.scalar(select(User).where(func.lower(User.email) == canonical_email))
         password_hash = user.password_hash if user is not None and user.is_active else None
         if not verify_password_or_dummy(password, password_hash):
-            locked = throttle.register_failure(db, "login_email", canonical_email, now=now)
-            locked = throttle.register_failure(db, "login_network", address, now=now) or locked
+            # The reserved slots stay consumed: they are this failure.
             known = user.id if user is not None else None
             security_audit.record(db, "login_failed", user_id=known, client=client)
-            if locked:
-                security_audit.record(db, "login_throttled", user_id=known, client=client)
             failure = AuthServiceError("invalid_credentials", "Email or password is invalid.", 401)
         else:
             assert user is not None
             throttle.clear(db, "login_email", canonical_email)
+            throttle.release(db, "login_network", address)
             session, raw_token = new_session(user, settings, client)
             db.add(session)
             db.flush()

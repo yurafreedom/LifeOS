@@ -1124,6 +1124,7 @@ export const ru = {
     sec_delivery_sent: 'письмо отправлено',
     sec_delivery_manual: 'передано вручную',
     sec_delivery_failed: 'письмо не доставлено',
+    sec_delivery_pending: 'доставка не подтверждена',
     sec_invite_revoke: 'отозвать',
     sec_events_head: 'СОБЫТИЯ БЕЗОПАСНОСТИ',
     sec_events_copy: 'Входы, выходы, смена пароля, приглашения и завершение сеансов за последние 12 месяцев. Пароли, ссылки и содержимое данных не записываются.',

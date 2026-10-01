@@ -14,7 +14,8 @@ export type AccountSession = {
 };
 
 export type InvitationStatus = 'pending' | 'accepted' | 'revoked' | 'expired';
-export type InvitationDelivery = 'sent' | 'manual' | 'failed';
+/** `pending`: committed, delivery not confirmed (never treated as sent). */
+export type InvitationDelivery = 'pending' | 'sent' | 'manual' | 'failed';
 
 export type Invitation = {
   id: string;

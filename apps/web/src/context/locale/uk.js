@@ -1064,6 +1064,7 @@ export const uk = {
     sec_delivery_sent: 'лист надіслано',
     sec_delivery_manual: 'передано вручну',
     sec_delivery_failed: 'лист не доставлено',
+    sec_delivery_pending: 'доставку не підтверджено',
     sec_invite_revoke: 'відкликати',
     sec_events_head: 'ПОДІЇ БЕЗПЕКИ',
     sec_events_copy: 'Входи, виходи, зміна пароля, запрошення й завершення сеансів за останні 12 місяців. Паролі, посилання та вміст даних не записуються.',
