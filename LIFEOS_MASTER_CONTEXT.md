@@ -26,6 +26,10 @@ current reconciled JENKIN state. Not merged into main, not deployed; verify live
 (docs/product/JENKIN_PRODUCT_OVERVIEW.md) and the in-app update history
 (#/updates, canonical apps/web/src/data/releaseNotes.json) are on the same
 integration branch — section 93. L1 is still not started.
+2026-10-01 (later): a bounded usability + verification follow-up (persisted
+RU/UK locale, non-overlapping sync chip, 12 px Home hints, closed verification
+gaps) is on the pushed branch feat/jenkin-usability-followup-20261001, based on
+the integration branch at 69477c9 — section 94. Not merged; verify live.
 
 You are working on a real software project called LifeOS.
 
@@ -2907,6 +2911,8 @@ Confirmed wider product gaps (scope must be planned separately):
   wrong. The Slice 8 harness missed it because its goto() applied the theme via
   a same-document hash navigation; harnesses must also re-select UK after every
   full load (locale is in-memory app state and resets to RU on reload).
+  [Superseded by section 94: the locale now persists as localStorage
+  lifeOsLocale; harnesses set that key instead of re-selecting UK.]
 - Project Analytics history sub-sections after retention: FIXED (item 3).
   Contract limit: the server flags an erased project only when nothing
   survives, so a forecast recorded after pruning hides the erased-history note.
@@ -3680,3 +3686,45 @@ Outputs/Implementations/jenkin-product-overview-release-notes_20261001.md
 - Next (unchanged): L1/F1 finance persistence and confirmed-term mapping into
   the L2 input schema, then L3 intake. When a user-facing slice lands, add its
   notes to the 'unreleased' entry.
+
+====================================================================
+94. JENKIN USABILITY + VERIFICATION FOLLOW-UP (PUSHED BRANCH, 2026-10-01)
+====================================================================
+
+Branch feat/jenkin-usability-followup-20261001 (owner-requested worktree
+/Users/yurasachenko/LifeOS/LifeOS_usability-followup; start 69477c9 = section
+93; not merged, no PR, no deploy; verify live). Code commit 03c00b8. Report:
+Outputs/Implementations/jenkin-usability-followup_20261001.md
+
+- Locale: app/useLocalePreference.js — localStorage lifeOsLocale ('ru'|'uk',
+  anything else → RU), read once per tab at start, applied as <html lang> and
+  pre-paint in index.html; login, setup and recovery pages follow it.
+  DELIBERATE: no cross-tab storage listener (as theme/font) — an open tab keeps
+  its language until it reloads. Device preference, not per account, not in the
+  snapshot. Harnesses: set lifeOsLocale instead of clicking Settings.
+- Sync chip (.global-sync, end of styles/paradise.css): never position:fixed.
+  saved/saving = own row under the top bar <1024 px, absolute top-right ≥1024
+  (scrolls away). offline/error/conflict = sticky full-width band (--nav-bg +
+  blur) at every width + scroll-padding-top 56px; SyncStatus.jsx and the
+  coordinator are unchanged (role=status, Settings retry/export/reload). The
+  earlier overlap also existed at 641–1023 px (768: covered the DejaVu UK title
+  at rest), so the fix covers tablets too.
+- Home empty hints (.stat-context.is-empty): 12 px (--text-sm) and wrap
+  (≤3 lines at 768) instead of 11 px + ellipsis. Approved 11 px mono eyebrows
+  unchanged.
+- Verification gaps closed on a synthetic stack (scratch JENKIN_PREVIEW_HOME,
+  lifeos_preview_ufqa, ports 4730/8730; owner token/keyring/DB never read):
+  first-account setup submitted through the real UI with a disposable token;
+  browser-saved downloads (v1, v2, current, PDF) SHA-256-equal to originals;
+  launcher backup (backup_before_migration called directly — the launcher only
+  backs up before a real migration) restored with the manifest command into a
+  fresh DB: 40/40 tables digest-identical, every version decrypted and
+  downloaded byte-equal through the UI after a fresh login; a non-matching
+  keyring gave 503 document_key_unavailable; real CDP prefers-reduced-motion on
+  #/updates: chevron 0s, no running animations (control: 180 ms).
+- Checks: web 963 tests / 61 files, typecheck, lint, build, release-notes
+  check; focused backend 100 passed (crypto/documents/rotation/validation/
+  export, disposable DB, no backend change). Browser: 112-config Home matrix,
+  5 more routes × 320/390 × RU/UK, 18 real offline-band configs (real error and
+  409 conflict at 390), two-tab locale check.
+- Next (unchanged): L1/F1, then L3.

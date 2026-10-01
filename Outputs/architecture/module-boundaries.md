@@ -218,7 +218,18 @@ Shell effects: `app/useTheme.js` (theme + paradise scene, `localStorage`
 (the six Clarify transitions + toasts), `app/useUiSound.js` (UI sound
 listeners + Settings preference hook), `app/useInterfaceFont.js` (optional
 DejaVu Sans interface font, `lifeOsFont`, applied as `<html data-font>` and
-pre-paint in `index.html`).
+pre-paint in `index.html`), `app/useLocalePreference.js` (RU/UK interface
+language, `lifeOsLocale`, validated against `LIFE_LOCALES`, read once per tab at
+start — deliberately no cross-tab `storage` listener — applied as `<html lang>`
+and pre-paint in `index.html`; `App()` feeds it to `LifeLocaleContext`, so the
+login and setup pages follow it).
+
+Global sync chip (`components/SyncStatus.jsx` in `.global-sync`, styles at the
+end of `styles/paradise.css`): never a fixed layer. saved/saving: absolute
+top-right at ≥1024 px (scrolls with the top bar), its own row under the top bar
+below. offline/error/conflict: a sticky full-width band in the content column
+at every width, plus `scroll-padding-top` while it shows. The sidebar footer
+(`sb-sync`) shows the same phase on wide screens.
 
 Branding: `components/JenkinBrand.jsx` (Editorial wordmark + serif J mark,
 outlined `currentColor` SVG from `design-references/jenkin-branding/logo/`),
