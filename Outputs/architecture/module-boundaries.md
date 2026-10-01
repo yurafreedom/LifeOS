@@ -118,6 +118,31 @@ Internal direction: `errors`, `refs`, `periods` → `contracts` → `resolve` �
 → `read_model` → `revisions`; `redaction` → models + `refs`; `exports` → models only.
 A GET never writes (READ ONLY transaction in the route).
 
+### Finance calculation engine (JENKIN L2)
+
+Facade: **`app/services/finance/calc/__init__.py`** — import only from here (`calculate`,
+`calculate_versions`, `reconcile_schedule`, `payments_from_lender_schedule`, `input_hash`). Pure: no
+model, route, session, clock or network import; nothing in the package imports the facade. It does not
+replace System Review's `simulate_payoff` (`system_review/consequences.py`), which keeps its contract.
+Spec and rule catalogue: `Outputs/Plans/jenkin-loan-engine-l2-spec_20261001-163647.md`.
+
+| I want to change… | Go to `app/services/finance/calc/` |
+|---|---|
+| versions, enumerated vocabulary, limits, status names | `contracts.py` (leaf) |
+| Decimal context, rounding, anchored month dates, day counts | `numbers.py` (leaf) |
+| canonical hash; missing / unsupported / invalid reporting; typed getters | `reader.py` |
+| result rows, explanation ledger, accrual segments | `ledger.py` |
+| shared term blocks (opening, rate, rounding, fees, payments, early repayment, penalties) | `terms.py` |
+| a model | `daily.py`, `amortizing.py`, `revolving.py` (each: `parse` → spec, `run` → body) |
+| dispatch and result envelope | `engine.py` |
+| lender-schedule comparison | `reconcile.py` |
+| effective-dated amendments | `versions.py` (calls `engine.calculate`) |
+
+Internal direction: `contracts`, `numbers` → `reader` → `ledger`, `terms` → models → `engine` →
+`versions`; `reconcile` → `contracts`, `reader`. A new mechanic = an enumerated value in `contracts.py`,
+its parser/runner code, a synthetic golden fixture in `tests/finance_calc/fixtures/` and the spec entry.
+Engine tests live in `tests/finance_calc/` (their `conftest.py` makes them run without a database).
+
 ### Retention (Slice 8)
 
 Facade: **`app/services/aa_retention.py`** — import only from here

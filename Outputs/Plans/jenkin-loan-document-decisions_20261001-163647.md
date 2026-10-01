@@ -32,6 +32,9 @@ Kinds: **OWNER** (approved by the owner), **ARCH** (architecture choice under th
 | LA-07 | Same-day events use a fixed, documented order; overlapping term versions are rejected. | Reproducibility. |
 | LA-08 | Future extraction tables use the `fin_*` prefix (S2's export guard requires `document%` = exactly its three tables). | Avoids breaking export. |
 | LA-09 | Future adapter, not replacement: System Review keeps `simulate_payoff`; a later slice may route a confirmed `fin_*` loan through the engine and expose it to System Review read-only. | Preserve current contracts. |
+| LA-10 | Engine result status: `complete` / `partial` (computed for the supported part; `totals.complete=false`, `excludes` named) / `unsupported` (nothing computed: missing required input or central mechanic outside the catalogue) / `invalid` (malformed or contradictory). | Keeps "missing" distinct from "wrong" and never labels an incomplete total complete. |
+| LA-11 | L2 catalogue v1 (spec §4): `daily_accrual`, `amortizing` (monthly, regular first period, period-rate rule), limited `revolving` (explicit cycles and grace policy); amendments for `daily_accrual` only. Everything else is named `unsupported`. | Limited, verifiable scope; extends by adding enumerated rules, not lender code. |
+| LA-12 | Gate runs that need PostgreSQL while another session holds or migrates `lifeos_test` to an unmerged revision use an isolated, disposable `*_test` database, dropped afterwards (owner-permitted for L2). `lifeos_dev` is never used. | Avoids interfering with S2's shared test database and its unmerged migration. |
 
 ## 3. External prerequisites
 

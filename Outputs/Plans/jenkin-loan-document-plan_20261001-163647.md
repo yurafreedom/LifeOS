@@ -4,7 +4,7 @@ Date: 2026-10-01 (Europe/Kyiv). Discovery: `Outputs/Discoveries/jenkin-loan-docu
 Decisions: `Outputs/Plans/jenkin-loan-document-decisions_20261001-163647.md`. Refines roadmap slices F1–F3 in
 `Outputs/Plans/jenkin-security-finance-roadmap_20261001-104806.md`; it does not replace them.
 
-Status: **IN PROGRESS** (this branch), **PLANNED**, **BLOCKED_EXTERNAL**.
+Status: **IMPLEMENTED on branch**, **PLANNED**, **BLOCKED_EXTERNAL**.
 
 ## 1. Target architecture (PROPOSED)
 
@@ -23,7 +23,7 @@ S2 document versions ─► intake bundle (fin_intake_*)
 
 | Slice | Content | Depends on | Status |
 |---|---|---|---|
-| **L2** | Pure deterministic engine + rule catalogue v1 + reconciliation + effective-dated versions; synthetic golden fixtures. No persistence/routes/UI. | — | **IN PROGRESS** (`feat/jenkin-loan-engine-l2-20261001`) |
+| **L2** | Pure deterministic engine + rule catalogue v1 + reconciliation + effective-dated versions; synthetic golden fixtures. No persistence/routes/UI. | — | **IMPLEMENTED on branch** `feat/jenkin-loan-engine-l2-20261001` (not merged). Spec: `Outputs/Plans/jenkin-loan-engine-l2-spec_20261001-163647.md`; report: `Outputs/Implementations/jenkin-loan-engine-l2_20261001-163647.md` |
 | L1 | `fin_obligations`, `fin_terms_versions`, `fin_lender_schedules(+rows)`, `fin_balance_observations`, `fin_payments`, `fin_allocations`; minor units + currency; CAS + idempotency; `fin_*` export registry and guard; cascade erasure; nullable links to S2 document versions; mapping L2 input ⇄ terms rows; fallback manual form + schedule-table entry. | L2 contract | PLANNED |
 | L3 | Intake framework, local-only mode: bundles, durable DB job queue (`SKIP LOCKED`), local preprocessing (pypdf + pdfplumber; OCRmyPDF/Tesseract for scans), encrypted artefacts under new S2 envelope purposes, evidence levels L-a…L-d, review UI with page evidence. | **verified S2 interfaces** (§3), L1 | PLANNED |
 | L4 | Review → confirmation → loan record; schedules and SVG charts; reconciliation view keeping both schedules. | L1, L2, L3 | PLANNED |
