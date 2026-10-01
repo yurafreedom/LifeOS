@@ -1,6 +1,7 @@
 """T-15 and D1 privacy: erasure, receipts, cascades, redaction, isolation."""
 
 import json
+from datetime import datetime
 from uuid import UUID, uuid4
 
 import pytest
@@ -143,7 +144,11 @@ def test_tombstone_clears_value_keeps_existence_and_retry_cannot_restore(
     assert replay.json()["value"]["num"] is None
     with session_factory() as db:
         row = db.get(AAMeasurement, UUID(fact["id"]))
-        assert row.recorded_at.isoformat() == fact["provenance"]["recorded_at"]
+        # Compare instants as instants: the API may spell UTC as "Z" while
+        # Python's isoformat() says "+00:00" (and the DB session zone may differ).
+        assert row.recorded_at == datetime.fromisoformat(
+            fact["provenance"]["recorded_at"].replace("Z", "+00:00")
+        )
         assert row.source_kind == fact["provenance"]["source_kind"]
         assert row.tombstoned_at is not None
         assert all(

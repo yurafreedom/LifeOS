@@ -1,6 +1,7 @@
 """C1/D3: import genuine snapshot transactions, and nothing invented."""
 
 from decimal import Decimal
+from zoneinfo import ZoneInfo
 
 from sqlalchemy import select
 
@@ -56,7 +57,9 @@ def test_legacy_import_is_honest_idempotent_and_does_not_backfill_other_layers(
         assert len(rows) == 1
         row = rows[0]
         assert row.value_num == Decimal("42.5")
-        assert row.occurred_at.date().isoformat() == "2026-08-10"
+        # A business date is read in its own zone (Kyiv midnight), never in the
+        # database session's zone.
+        assert row.occurred_at.astimezone(ZoneInfo("Europe/Kyiv")).date().isoformat() == "2026-08-10"
         assert row.source_kind == "IMPORTED" and row.method == "LEGACY_IMPORT"
         assert row.original_recorded_at_known is False
         assert row.recorded_at > row.occurred_at
