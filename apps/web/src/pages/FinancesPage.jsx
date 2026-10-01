@@ -5,7 +5,6 @@ import { LIcons } from '../components/icons.jsx';
 import { LifeDataContext } from '../context/LifeDataContext.jsx';
 import { LifeLocaleContext, LifeStrings } from '../context/LocaleContext.jsx';
 import { LifeCatTintClass, LifeCategories, LifeExpenseCats } from '../data/categories.js';
-import { LifeDashSeed } from '../data/dashboard-seed.js';
 import { LifeFinance } from '../lib/finance.js';
 
 /* global React */
@@ -46,11 +45,13 @@ function FinancesPage({ emptyMode, onAnalytics }) {
   const hidden      = txList.reduce((s, x) => s + (F.isIncluded(x, overrides) ? 0 : (+x.amount || 0)), 0);
   const visibleCount = txList.filter(x => F.isIncluded(x, overrides)).length;
 
-  const seed = LifeDashSeed || {};
-  const cap  = (seed.budget && seed.budget.capUsd) || 4000;
-  const pct  = cap > 0 ? Math.min(100, (inTotals / cap) * 100) : 0;
-  const warn = pct >= 80 && pct <= 100;
-  const over = inTotals > cap;
+  /* JENKIN S1: no budget cap is configurable yet, so none is shown — the old
+     seeded $4,000 cap made every account look budgeted. Amounts keep the
+     historical "$" label: their currency is not reinterpreted here (F1). */
+  const cap  = null;
+  const pct  = 0;
+  const warn = false;
+  const over = false;
 
   const intlLoc = LifeStrings[locale]._intl_locale;
   const monthShort = new Date().toLocaleDateString(intlLoc, { month: 'short' }).replace('.', '');
@@ -118,7 +119,7 @@ function FinancesPage({ emptyMode, onAnalytics }) {
           <div className="fin-summary-cell">
             <div className="fin-summary-eyebrow mono">{t('fin_total_in')}</div>
             <div className="fin-summary-val mono">${fmt(inTotals)}</div>
-            <div className="fin-summary-meta mono">{t('fin_budget_val', fmt(inTotals), fmt(cap))}</div>
+            <div className="fin-summary-meta mono">{t('fin_budget_unset')}</div>
           </div>
           <div className="fin-summary-cell">
             <div className="fin-summary-eyebrow mono">{t('fin_total_hidden')}</div>
@@ -127,15 +128,17 @@ function FinancesPage({ emptyMode, onAnalytics }) {
               {txList.length - visibleCount}/{txList.length} · {t.pl('pl_tx', txList.length - visibleCount)}
             </div>
           </div>
-          <div className="fin-summary-bar-wrap">
-            <div className="fin-summary-bar-track">
-              <div className={"fin-summary-bar-fill" + (over ? ' is-over' : warn ? ' is-warn' : '')}
-                   style={{ width: pct + '%' }} />
+          {cap != null && (
+            <div className="fin-summary-bar-wrap">
+              <div className="fin-summary-bar-track">
+                <div className={"fin-summary-bar-fill" + (over ? ' is-over' : warn ? ' is-warn' : '')}
+                     style={{ width: pct + '%' }} />
+              </div>
+              <div className="fin-summary-bar-meta mono">
+                {Math.round(pct)}% · {t('fin_budget_label', monthShort.toLowerCase())}
+              </div>
             </div>
-            <div className="fin-summary-bar-meta mono">
-              {Math.round(pct)}% · {t('fin_budget_label', monthShort.toLowerCase())}
-            </div>
-          </div>
+          )}
         </div>
 
         <form className="fin-logger" onSubmit={logIt}>

@@ -14,16 +14,34 @@ const {
    Sprint 1 ships seed data + layout. The live reminders rail at the top
    shows mock countdowns; Sprint 3 will replace these with real timers
    bound to last-feed-at, last-walk-at, and the next vet visit date. */
-function DogPage({ dog, onUpdate, locale, t }) {
+/* JENKIN S1 · a new account has no pet profile ({}): say so honestly instead
+   of inventing a breed, vet schedule or feeding countdowns. An existing
+   profile renders exactly as before. */
+function DogPage(props) {
+  const { dog, t } = props;
+  if (!dog || !dog.profile || !dog.vet || !dog.reminders) {
+    return (
+      <div className="page dog-page">
+        <PageHeader title={t('dog_title')} subtitle={t('dog_subtitle')} />
+        <section className="pc-card dog-empty">
+          <p className="empty-state">{t('dog_empty')}</p>
+        </section>
+      </div>
+    );
+  }
+  return <DogProfile {...props} />;
+}
+
+function DogProfile({ dog, onUpdate, locale, t }) {
   const I = LIcons;
   const Field = EditableField;
 
   const vetCountdown = useMemoDog(() => {
-    const [d, m, y] = dog.vet.next.date.split('.').map(Number);
+    const [d, m, y] = String(dog.vet.next?.date || '').split('.').map(Number);
     const next = new Date(y, m - 1, d);
     const days = Math.max(0, Math.ceil((next - new Date()) / 86400000));
-    return days;
-  }, [dog.vet.next.date]);
+    return Number.isFinite(days) ? days : 0;
+  }, [dog.vet.next?.date]);
 
   return (
     <div className="page dog-page">

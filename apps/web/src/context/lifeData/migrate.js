@@ -2,7 +2,6 @@ import { validateReferenceRecord, validateWaitingItemRecord } from '../../domain
 import { validateProjectRecord } from '../../domain/projects.ts';
 import { validateTaskRecord } from '../../domain/tasks.ts';
 import { validateWaitingLifecycle } from '../../domain/waiting.ts';
-import { buildDefaultGoals, buildDefaultHabits, seedTransactions } from './initialState.js';
 
 function isPlainObject(value) {
   return value != null && typeof value === 'object' && !Array.isArray(value);
@@ -26,22 +25,17 @@ function migrateStateCopy(input) {
     throw new Error('State version is invalid.');
   }
   if (state.version > 2) throw new Error('State version is newer than this app supports.');
-  /* Sprint 3B · v1 → v2: seed transactions + categoryOverrides for
-     flexible-finance. v1 snapshots had transactions:[] from Sprint 3A
-     because no logger surface existed yet — reseed so the demo has
-     content on first paint after upgrade. */
+  /* Sprint 3B · v1 → v2: transactions + categoryOverrides for flexible
+     finance. JENKIN S1: a missing collection becomes EMPTY — migration never
+     fabricates demo transactions into an account (it used to reseed them). */
   if (knownVersionlessV1 || state.version < 2) {
-    if (!Array.isArray(state.transactions) || state.transactions.length === 0) {
-      state.transactions = seedTransactions();
-    }
+    if (!Array.isArray(state.transactions)) state.transactions = [];
     if (state.categoryOverrides == null) state.categoryOverrides = {};
     state.version = 2;
   }
-  /* Goals hoisted into persisted state (Batch 1 rev · FIX 7). Older
-     snapshots (v1/v2) predate the field — seed the shipped defaults so the
-     Goals screen isn't empty after upgrade. Unconditional null-check, runs
-     regardless of version gate. */
-  if (!Array.isArray(state.goals)) state.goals = buildDefaultGoals();
+  /* Goals hoisted into persisted state (Batch 1 rev · FIX 7). Older snapshots
+     predate the field. JENKIN S1: absent means none — no demo goals. */
+  if (!Array.isArray(state.goals)) state.goals = [];
   if (!Object.prototype.hasOwnProperty.call(state, 'projects')) state.projects = [];
   if (!Array.isArray(state.projects)) throw new Error('State collection projects is invalid.');
   state.projects.forEach(validateProjectRecord);
@@ -64,11 +58,10 @@ function migrateStateCopy(input) {
   }
   state.references.forEach(validateReferenceRecord);
   if (!Array.isArray(state.habits)) {
-    state.habits = buildDefaultHabits();
+    state.habits = [];
   } else {
-    state.habits = state.habits.map((habit, index) => {
+    state.habits = state.habits.map(habit => {
       if (!isPlainObject(habit)) throw new Error('Habit data is invalid.');
-      const fallback = buildDefaultHabits()[index];
       const titleKey = typeof habit.titleKey === 'string' ? habit.titleKey : null;
       const name = typeof habit.name === 'string' ? habit.name : null;
       if (!titleKey && !name) throw new Error('Habit title is missing.');
@@ -77,7 +70,7 @@ function migrateStateCopy(input) {
         ...(titleKey ? { titleKey } : { name }),
         week: Array.isArray(habit.week) && habit.week.length === 7
           ? habit.week.map(value => value ? 1 : 0)
-          : (fallback ? fallback.week.slice() : [0,0,0,0,0,0,0]),
+          : [0,0,0,0,0,0,0],
       };
     });
   }

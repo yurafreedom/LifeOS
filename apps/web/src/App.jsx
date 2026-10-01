@@ -179,8 +179,8 @@ function AppShell({ user }) {
   const counts = {
     notes:  quickNotes.length,
     tasks:  resolvedTasks.filter(isTaskActive).length,
-    habits: 7,
-    goals:  3,
+    habits: (persist.habits || []).length,
+    goals:  (persist.goals || []).filter(goal => !(Number(goal.pct) >= 100)).length,
     projects: projects.filter(project => project.status === 'active').length,
   };
 

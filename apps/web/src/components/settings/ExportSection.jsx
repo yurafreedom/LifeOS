@@ -1,6 +1,7 @@
 import React from 'react';
 import { exportAccount } from '../../api/exportAccount';
 import { LifeDataContext } from '../../context/LifeDataContext.jsx';
+import { LegacyDataSection } from './LegacyDataSection.jsx';
 import { Row } from './Row.jsx';
 
 const { useState: useStateSet } = React;
@@ -10,12 +11,19 @@ export function ExportSection({ t }) {
   const data = React.useContext(LifeDataContext);
   const [exporting, setExporting] = useStateSet(false);
   const [exportError, setExportError] = useStateSet('');
+  /* Aborted when the section unmounts (route change, account switch); a ZIP
+     that settles after the tab's account changed is discarded by the bound
+     fetch and never offered as a file (api/accountBinding.ts). */
+  const controllerRef = React.useRef(null);
+  React.useEffect(() => () => controllerRef.current?.abort(), []);
   async function exportServer() {
     if (exporting) return;
     setExporting(true);
     setExportError('');
+    const controller = new window.AbortController();
+    controllerRef.current = controller;
     try {
-      const blob = await exportAccount();
+      const blob = await exportAccount(controller.signal);
       const url = URL.createObjectURL(blob);
       const anchor = document.createElement('a');
       anchor.href = url;
@@ -25,10 +33,11 @@ export function ExportSection({ t }) {
         anchor.remove();
         setTimeout(() => URL.revokeObjectURL(url), 1000);
       }
-    } catch {
+    } catch (error) {
+      if (error?.name === 'AbortError') return;
       setExportError(t('set_export_account_error'));
     } finally {
-      setExporting(false);
+      if (!controller.signal.aborted) setExporting(false);
     }
   }
   function exportJson() {
@@ -44,15 +53,14 @@ export function ExportSection({ t }) {
   }
   return (
     <React.Fragment>
-      <Row label={t('set_export_json')} hint={t('set_export_server_hint')}><button className="set-btn-ghost" onClick={exportJson}>download</button></Row>
+      <Row label={t('set_export_json')} hint={t('set_export_server_hint')}><button className="set-btn-ghost" onClick={exportJson}>{t('set_download')}</button></Row>
       <Row label={t('set_export_account')} hint={t('set_export_account_hint')}>
         <button className="set-btn-ghost" disabled={exporting} onClick={exportServer}>
           {t(exporting ? 'set_export_account_loading' : 'set_export_account_download')}
         </button>
       </Row>
       {exportError ? <p role="alert">{exportError}</p> : null}
-      <Row label={t('set_export_csv')}  hint=".csv · 12 KB"><button className="set-btn-ghost">download</button></Row>
-      <Row label={t('set_export_md')}   hint=".md · 24 KB"><button className="set-btn-ghost">download</button></Row>
+      <LegacyDataSection t={t} />
     </React.Fragment>
   );
 }

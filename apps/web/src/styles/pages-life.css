@@ -334,6 +334,8 @@
    Dog tab
    ============================================================ */
 .dog-page { gap: var(--pad-lg); }
+.dog-empty { max-width: 560px; }
+.dog-empty .empty-state { margin: 0; line-height: 1.5; }
 .dog-reminders {
   display: flex; gap: 8px; flex-wrap: wrap;
   padding: var(--pad-sm) var(--pad-md);

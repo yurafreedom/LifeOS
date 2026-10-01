@@ -479,6 +479,16 @@
   font-size: 12px; color: var(--fg4);
   margin: 18px 0 4px;
 }
+/* JENKIN S1 · honest "not connected / not available" integration panels. */
+.set-unavailable {
+  max-width: 560px; padding: 16px 18px;
+  border: 1px solid var(--border-s); border-radius: 12px;
+  background: var(--surface-2, transparent);
+}
+.set-unavailable-state { font-size: 12px; color: var(--fg3); text-transform: uppercase; letter-spacing: .04em; }
+.set-unavailable-title { margin: 6px 0 4px; color: var(--fg1); font-size: var(--text-md, 15px); font-weight: 600; }
+.set-unavailable-body { margin: 0; color: var(--fg2); font-size: var(--text-sm); line-height: 1.5; }
+.set-legacy-copy { max-width: 560px; line-height: 1.5; }
 
 /* Batch 1 rev · FIX 6 — the segmented "box" is neutralised so each option
    is a standalone unified capsule (cream at rest / orange active). */

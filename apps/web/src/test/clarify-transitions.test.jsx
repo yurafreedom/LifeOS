@@ -1,7 +1,8 @@
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
-import { LifeDataContext, buildInitialState } from '../context/LifeDataContext.jsx';
+import { LifeDataContext } from '../context/LifeDataContext.jsx';
+import { buildDemoState } from '../context/lifeData/demoState.js';
 import { LifeLocaleContext, LifeMakeT } from '../context/LocaleContext.jsx';
 import { QuickNotesPage } from '../pages/QuickNotesPage.jsx';
 import { TasksPage } from '../pages/TasksPage.jsx';
@@ -24,8 +25,10 @@ import { createProjectRecord } from '../domain/projects';
 const LOCALE = { locale: 'ru', t: LifeMakeT('ru'), themeEff: 'dark' };
 const NOW = '2026-09-28T09:14:00.000Z';
 
+/* Explicit demo fixture (JENKIN S1): production accounts start empty, so the
+   inbox notes these transitions act on come from the demo fixture. */
 function freshState() {
-  return buildInitialState();
+  return buildDemoState();
 }
 
 function firstNote(state) {
@@ -153,7 +156,7 @@ describe('Clarify transitions over the real snapshot', () => {
   });
 
   it('Delete keeps using the existing deleteQuickNote path, nothing else', () => {
-    const provider = buildInitialState();
+    const provider = buildDemoState();
     expect(provider.quickNotes.length).toBeGreaterThan(0);
     /* The panel's delete branch calls data.deleteQuickNote — there is no
        Clarify-specific delete transition and no destination collection. */

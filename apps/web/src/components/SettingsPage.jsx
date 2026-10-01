@@ -101,9 +101,8 @@ function CategoriesSection({ t, locale }) {
                 </span>
                 <span>{c.name[locale]}</span>
               </div>
-              <div className="set-table-cell mono">
-                {c.kind === 'expense' ? '$' + (100 + (c.id.length * 20)) : '—'}
-              </div>
+              {/* No category budgets exist yet: never an invented amount. */}
+              <div className="set-table-cell mono" title={t('set_cat_budget_unset')}>—</div>
               <div className="set-table-cell set-table-cell-eye">
                 <EyeToggle
                   included={included}
@@ -116,58 +115,35 @@ function CategoriesSection({ t, locale }) {
             </div>
           );
         })}
-        <button className="set-add-row mono">{t('set_cat_add')}</button>
       </div>
     </React.Fragment>
   );
 }
 
-function TelegramSection({ t }) {
+/* JENKIN S1 · honest integration states. These sections used to show masked
+   fake tokens, a fake last-sync time, "7 pending" transactions and switches
+   that did nothing. Nothing is connected and no token is stored, so they say
+   exactly that. Bank access is the F4/F5 roadmap slice. */
+function UnavailableIntegration({ t, title, body }) {
   return (
-    <React.Fragment>
-      <Row label={t('set_tg_token')} hint="hidden when set">
-        <input className="set-input mono" type="password" defaultValue="1234567:AAAAAAAA-bot-token-masked"/>
-      </Row>
-      <Row label={t('set_tg_chat')}><input className="set-input mono" defaultValue="123456789"/></Row>
-      <Row label="">
-        <button className="set-btn-primary">{t('set_tg_test')}</button>
-      </Row>
-      <div className="set-subhead mono">RULES</div>
-      <Row label={t('set_notif_bot')}><Toggle on={true}/></Row>
-      <Row label={t('set_notif_goal')}><Toggle on={true}/></Row>
-      <Row label={t('set_notif_streak')}><Toggle on={true}/></Row>
-    </React.Fragment>
+    <div className="set-unavailable" role="status">
+      <div className="set-unavailable-state mono">{t('set_not_connected')}</div>
+      <p className="set-unavailable-title">{title}</p>
+      <p className="set-unavailable-body">{body}</p>
+    </div>
   );
+}
+
+function TelegramSection({ t }) {
+  return <UnavailableIntegration t={t} title={t('set_telegram')} body={t('set_tg_unavailable')} />;
 }
 
 function MonobankSection({ t }) {
-  return (
-    <React.Fragment>
-      <Row label={t('set_mono_token')}>
-        <input className="set-input mono" type="password" defaultValue="uXXXXXXXXXXXXXXXX-monobank-token-masked"/>
-      </Row>
-      <Row label={t('set_mono_last')} hint={t('set_mono_pending', 7) + ' · ' + t.pl('pl_tx', 7)}>
-        <span className="mono set-mono-time">2026-05-21 14:02</span>
-      </Row>
-      <Row label="">
-        <button className="set-btn-primary">{t('set_mono_sync')}</button>
-      </Row>
-    </React.Fragment>
-  );
+  return <UnavailableIntegration t={t} title={t('set_monobank')} body={t('set_mono_unavailable')} />;
 }
 
 function NotificationsSection({ t }) {
-  return (
-    <React.Fragment>
-      <Row label={t('set_notif_goal')}><Toggle on={true}/></Row>
-      <Row label={t('set_notif_budget')}><Toggle on={true}/></Row>
-      <Row label={t('set_notif_streak')}><Toggle on={true}/></Row>
-      <Row label={t('set_notif_bot')}><Toggle on={false}/></Row>
-      <Row label={t('set_quiet_hours')} hint="22:00 → 09:00">
-        <span className="mono set-mono-time">22:00 — 09:00</span>
-      </Row>
-    </React.Fragment>
-  );
+  return <UnavailableIntegration t={t} title={t('set_notifications')} body={t('set_notif_unavailable')} />;
 }
 
 function AppearanceSection({ t, locale, setLocale }) {
@@ -252,25 +228,7 @@ function AppearanceSection({ t, locale, setLocale }) {
           ))}
         </div>
       </Row>
-      <Row label={t('set_accent_intensity')} hint="100%">
-        <input type="range" className="set-range" min="50" max="120" defaultValue="100"/>
-      </Row>
-      <Row label={t('set_density')}>
-        <div className="set-seg">
-          <button className="set-seg-btn is-on">{t('set_density_cozy')}</button>
-          <button className="set-seg-btn">{t('set_density_compact')}</button>
-        </div>
-      </Row>
     </React.Fragment>
-  );
-}
-
-function Toggle({ on }) {
-  const [v, setV] = useStateSet(on);
-  return (
-    <button className={"set-toggle" + (v ? " is-on" : "")} onClick={() => setV(!v)}>
-      <span className="set-toggle-knob"/>
-    </button>
   );
 }
 

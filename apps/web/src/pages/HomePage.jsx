@@ -4,7 +4,7 @@ import { AnalyticsContext } from '../context/AnalyticsContext.jsx';
 import { LifeDataContext } from '../context/LifeDataContext.jsx';
 import { LifeLocaleContext } from '../context/LocaleContext.jsx';
 import { LifeExpenseCats } from '../data/categories.js';
-import { LifeDashSeed } from '../data/dashboard-seed.js';
+import { todayDateOnly } from '../domain/calendarModel.ts';
 import { LifeFinance } from '../lib/finance.js';
 import { CategoryChart } from './home/CategoryChart.jsx';
 import { StatCard } from './home/StatCard.jsx';
@@ -89,14 +89,62 @@ function HomeSignals({ analytics, projects, onNav, t }) {
      4 · design-system cards + verifier
    Sections render unconditionally; each handles its own empty state.
 
-   Stat seeds come from LifeDashSeed; navigation requests funnel
-   through props.onNav so we don't re-import the route registry here.
+   Navigation requests funnel through props.onNav so we don't re-import
+   the route registry here.
 
-   Sprint 3B · flexible finance: budget/category/trend numbers are now
-   derived from state.transactions filtered by the per-tx + per-category
-   eye toggles. Only the CURRENT month's trend point recomputes —
-   prior 5 months stay on seed (we don't carry per-transaction history
-   for past months). */
+   JENKIN S1 · honest production state: every number on this page comes
+   from the account's own snapshot or is an explicit empty state. The old
+   dashboard seed (a $4,000 budget, a 47-day streak, an 84% goal, 23/30
+   tasks, six months of invented income/expense history, per-category caps)
+   is gone: no budget is configured anywhere, and income is not recorded,
+   so the 6-month trend shows its empty state rather than half-real data.
+   Category totals are derived from state.transactions with the per-tx and
+   per-category eye toggles (Sprint 3B). */
+/* ── honest derived stats (JENKIN S1) ───────────────────────────── */
+function shiftDate(date, days) {
+  const [y, m, d] = date.split('-').map(Number);
+  return new Date(Date.UTC(y, m - 1, d + days)).toISOString().slice(0, 10);
+}
+
+/** The habit with the longest current streak the user recorded, or null. */
+function longestStreak(habits) {
+  let best = null;
+  for (const habit of habits || []) {
+    const days = Number(habit && habit.streak);
+    if (!Number.isFinite(days) || days <= 0) continue;
+    if (!best || days > best.days) best = { days, habitKey: habit.titleKey || null, name: habit.name || habit.title || null };
+  }
+  return best;
+}
+
+/** The open goal closest to completion, or null. */
+function nearestGoal(goals) {
+  let best = null;
+  for (const goal of goals || []) {
+    const pct = Number(goal && goal.pct);
+    if (!Number.isFinite(pct) || pct >= 100) continue;
+    if (!best || pct > best.pct) best = { pct, titleKey: goal.titleKey || null, title: goal.title || null };
+  }
+  return best;
+}
+
+/** Tasks dated in the current Monday–Sunday week (Kyiv day): done / total. */
+function tasksThisWeek(tasks, today) {
+  const [y, m, d] = today.split('-').map(Number);
+  const weekday = (new Date(Date.UTC(y, m - 1, d)).getUTCDay() + 6) % 7;
+  const from = shiftDate(today, -weekday);
+  const to = shiftDate(from, 6);
+  let done = 0;
+  let total = 0;
+  for (const task of tasks || []) {
+    const date = task && task.schedule && task.schedule.date;
+    if (!date || date < from || date > to || task.closure) continue;
+    total += 1;
+    if (task.done) done += 1;
+  }
+  return { done, total };
+}
+
 function HomePage({ onNav, onOpenTask, emptyMode }) {
   const { t, locale } = useCtxHome(LifeLocaleContext);
   const data = React.useContext(LifeDataContext);
@@ -111,7 +159,6 @@ function HomePage({ onNav, onOpenTask, emptyMode }) {
     analytics.loadSignals(controller.signal).catch(() => {});
     return () => controller.abort();
   }, [signalsReady, emptyMode]);
-  const seed = emptyMode ? {} : (LifeDashSeed || {});
   const F = LifeFinance;
 
   /* ── derived finance (Sprint 3B) ────────────────────────────────── */
@@ -121,41 +168,33 @@ function HomePage({ onNav, onOpenTask, emptyMode }) {
   const inTotals   = F.sumIncluded(txList, overrides);
   const hiddenAmt  = txList.reduce((s, x) => s + (F.isIncluded(x, overrides) ? 0 : (+x.amount || 0)), 0);
 
-  /* ── hero stats — derive presentation values from seed ──────────── */
-  const seedBudget = seed.budget || { capUsd: 0, spentUsd: 0 };
-  const budget = {
-    capUsd:   seedBudget.capUsd,
-    spentUsd: emptyMode || txAll.length === 0 ? seedBudget.spentUsd : inTotals,
-    capsByCat: seedBudget.capsByCat,
-  };
-  const budgetPct = budget.capUsd > 0 ? Math.round((budget.spentUsd / budget.capUsd) * 100) : null;
-  const budgetWarn = budgetPct != null && budgetPct >= 80 && budgetPct <= 100;
-  const budgetOver = budgetPct != null && budgetPct > 100;
+  /* No budget cap exists in the product yet: the card says so. */
+  const budget = { capUsd: 0, spentUsd: inTotals };
+  const budgetPct = null;
+  const budgetWarn = false;
+  const budgetOver = false;
 
-  const streak = seed.longestStreak;
-  const goal = seed.nearestGoal;
-  const tasks = seed.tasksThisWeek || { done: 0, total: 0 };
+  const habits = emptyMode ? [] : ((data && data.state && data.state.habits) || []);
+  const goals = emptyMode ? [] : ((data && data.state && data.state.goals) || []);
+  const taskList = emptyMode ? [] : ((data && data.state && data.state.tasks) || []);
+  const streak = useMemoHome(() => longestStreak(habits), [habits]);
+  const goal = useMemoHome(() => nearestGoal(goals), [goals]);
+  const tasks = useMemoHome(() => tasksThisWeek(taskList, todayDateOnly()), [taskList]);
 
   const fmt = (n) => Number(n).toLocaleString(locale === 'uk' ? 'uk-UA' : 'ru-RU');
 
-  /* Trend: keep prior months on seed, replace CURRENT (last) month
-     with derived sum. When no transactions exist (empty mode or fresh
-     v1 snapshot pre-migration) fall back to seed entirely. */
-  const trendData = useMemoHome(() => {
-    const base = seed.last6Months || [];
-    if (emptyMode || txAll.length === 0 || base.length === 0) return base;
-    const next = base.slice();
-    const last = next[next.length - 1];
-    next[next.length - 1] = { ...last, expenses: inTotals };
-    return next;
-  }, [seed.last6Months, emptyMode, txAll.length, inTotals]);
-
-  /* Category breakdown: rebuild from transactions when we have any,
-     otherwise fall back to seed. categoryOverrides drops whole rows. */
+  /* Category breakdown for the current month and the last 30 days, both
+     from real transactions; categoryOverrides drops whole rows. */
+  const today = todayDateOnly();
   const catBreakdown = useMemoHome(() => {
-    if (emptyMode || txAll.length === 0) return seed.categoryBreakdown || [];
-    return F.byCategory(txAll, overrides);
-  }, [emptyMode, txAll, overrides, seed.categoryBreakdown]);
+    if (emptyMode) return [];
+    return F.byCategory(txAll.filter(tx => String(tx.date || '').slice(0, 7) === today.slice(0, 7)), overrides);
+  }, [emptyMode, txAll, overrides, today]);
+  const catBreakdown30 = useMemoHome(() => {
+    if (emptyMode) return [];
+    const from = shiftDate(today, -29);
+    return F.byCategory(txAll.filter(tx => String(tx.date || '') >= from && String(tx.date || '') <= today), overrides);
+  }, [emptyMode, txAll, overrides, today]);
 
   const allCatsHidden = !emptyMode && F.allCategoriesHidden(overrides, LifeExpenseCats || []);
 
@@ -163,7 +202,7 @@ function HomePage({ onNav, onOpenTask, emptyMode }) {
     {
       id: 'budget',
       eyebrow: t('home_card_budget'),
-      value:   budget.capUsd > 0 ? `${budgetPct}%` : null,
+      value:   budget.capUsd > 0 && budgetPct != null ? `${budgetPct}%` : null,
       valueClass: budgetOver ? 'is-over' : budgetWarn ? 'is-stakes' : '',
       context: hiddenAmt > 0 && !emptyMode
         ? t('home_card_budget_derived', fmt(budget.spentUsd), fmt(hiddenAmt))
@@ -176,7 +215,7 @@ function HomePage({ onNav, onOpenTask, emptyMode }) {
       eyebrow: t('home_card_streak'),
       value:   streak && streak.days > 0 ? streak.days : null,
       context: streak
-        ? t('home_card_streak_ctx', t(streak.habitKey), streak.days, t.pl('pl_day', streak.days))
+        ? t('home_card_streak_ctx', streak.name || t(streak.habitKey), streak.days, t.pl('pl_day', streak.days))
         : '',
       emptyContext: t('home_card_streak_empty'),
       onClick: () => onNav('habits'),
@@ -185,7 +224,7 @@ function HomePage({ onNav, onOpenTask, emptyMode }) {
       id: 'goal',
       eyebrow: t('home_card_goal'),
       value:   goal && goal.pct > 0 ? `${goal.pct}%` : null,
-      context: goal ? t(goal.titleKey) : '',
+      context: goal ? (goal.title || t(goal.titleKey)) : '',
       emptyContext: t('home_card_goal_empty'),
       onClick: () => onNav('goals'),
     },
@@ -227,12 +266,12 @@ function HomePage({ onNav, onOpenTask, emptyMode }) {
       {/* charts row — trend (left) + categories (right). 50/50 ≥960px, stacked below. */}
       <section className="home-charts">
         <TrendChart
-          data={emptyMode ? [] : trendData}
+          data={[]}
           onNav={onNav} />
         <CategoryChart
-          monthData={allCatsHidden ? [] : (emptyMode ? [] : catBreakdown)}
-          days30Data={emptyMode ? [] : (seed.categoryBreakdown30d || [])}
-          capsByCat={(seed.budget && seed.budget.capsByCat) || {}}
+          monthData={allCatsHidden ? [] : catBreakdown}
+          days30Data={allCatsHidden ? [] : catBreakdown30}
+          capsByCat={{}}
           locale={locale}
           allHidden={allCatsHidden}
           allHiddenHint={t('home_cat_all_hidden')}

@@ -43,15 +43,19 @@ describe('state migration', () => {
     expect(migrated.version).toBe(2);
   });
 
-  it('migrates a known versionless v1 shape', () => {
+  it('migrates a known versionless v1 shape without fabricating demo content', () => {
     const source = buildInitialState() as Record<string, any>;
     delete source.version;
     source.transactions = [];
     source.habits = {};
+    delete source.goals;
     const migrated = migrateStateCopy(source);
     expect(migrated.version).toBe(2);
-    expect(migrated.transactions.length).toBeGreaterThan(0);
-    expect(migrated.habits).toHaveLength(4);
+    // JENKIN S1: migration used to reseed 15 demo transactions, 3 goals and 4
+    // habits into real accounts. Absent or empty now stays empty.
+    expect(migrated.transactions).toEqual([]);
+    expect(migrated.habits).toEqual([]);
+    expect(migrated.goals).toEqual([]);
   });
 
   it('rejects unsupported newer versions and malformed collections', () => {
