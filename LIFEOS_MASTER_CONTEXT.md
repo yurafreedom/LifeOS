@@ -11,6 +11,9 @@ re-verified unchanged at 5e858bb. Not merged; verify live.
 DejaVu Sans branch (section 86) are integrated and verified on the pushed branch
 integration/jenkin-calendar-branding-20261001 — section 87 is the current
 reconciled JENKIN state. Not merged; verify live.
+2026-10-01 (later): JENKIN S0/S1 security and account foundation is on the
+pushed branch feat/jenkin-account-security-20261001, based on the integration
+branch (section 88). Not merged, not deployed; verify live.
 
 You are working on a real software project called LifeOS.
 
@@ -2480,8 +2483,12 @@ tile Calendar are implemented on the pushed branch handoff/jenkin-cloud-20260930
 (section 85); the Editorial logo, favicon and optional DejaVu Sans interface
 font are on feat/jenkin-branding-assets-20261001 (section 86). Both are
 integrated and verified on integration/jenkin-calendar-branding-20261001
-(section 87; not merged). Next: owner review of the integration branch; Events
-and the other JENKIN slices are NOT started.
+(section 87; not merged). The security/account foundation (S0/S1: account
+binding, safe sync/logout, empty new accounts, invitations, recovery, sessions,
+throttling, audit) is on feat/jenkin-account-security-20261001 on top of it
+(section 88; not merged). Next: owner review of both branches; then S2
+(encryption + document foundation). Events and the other JENKIN slices are NOT
+started.
 
 Latest features can be tested in apps/web + apps/api on a disposable account.
 Destructive retention QA must use lifeos_test, never personal data.
@@ -3355,3 +3362,63 @@ The future Events DST requirement of section 85 stands unchanged: on 25 October
 reject inconsistent chronology. Events, smart capture, auth recovery/passkeys,
 BankID/Дія, Documents, HELSI, phone-change automation and private-key storage
 are NOT started. Next: owner review of the integration branch.
+Status note (2026-10-01, later): password recovery, email verification,
+invitations and session management are now implemented on
+feat/jenkin-account-security-20261001 (section 88); passkeys, Diia/BankID,
+Documents and the rest stay NOT started.
+
+====================================================================
+88. JENKIN S0/S1 — SECURITY & ACCOUNT FOUNDATION (PUSHED BRANCH, 2026-10-01)
+====================================================================
+
+Branch feat/jenkin-account-security-20261001 (pushed; not merged, no PR, no
+deploy; verify live), based on integration/jenkin-calendar-branding-20261001 @
+83cba06 (verified ancestor). Worked in the isolated worktree
+/Users/yurasachenko/LifeOS/LifeOS_account-security because the canonical
+checkout held another session's staged files; the owner's task allowed an
+isolated checkout. Records:
+- Discovery (reconstructed from source; evidence + status per finding):
+  Outputs/Discoveries/jenkin-security-finance-discovery_20261001-104806.md
+- Decision register (owner decisions vs architecture vs EXTERNAL prerequisites):
+  Outputs/Plans/jenkin-security-finance-decisions_20261001-104806.md
+- Roadmap with acceptance criteria (S2, F1–F5, I1/I2 — NOT implemented):
+  Outputs/Plans/jenkin-security-finance-roadmap_20261001-104806.md
+- Report: Outputs/Implementations/jenkin-account-security-s0-s1_20261001-104806.md
+The previous "wait for the JENKIN integration" gate is resolved and removed.
+
+Implemented (S1):
+- Account binding: every protected API route requires X-LifeOS-Account = the
+  client's expected account (428 account_binding_required / 409
+  session_user_mismatch, before any read or write). Never authorization:
+  ownership still comes from the session. /auth/me unbound; logout optionally
+  bound. Client: api/accountBinding.ts generation — account change aborts
+  requests and discards late responses; providers keyed by account+generation;
+  BroadcastChannel + focus/visibility/pageshow/online revalidation; explicit
+  "switched" screen.
+- Sync: both coordinators abort on dispose; replay loop stops; queue v2
+  (owner required, owner-checked updates, ownerless records quarantined,
+  replay bound to the record's owner, per-account Web Lock).
+- Unsaved edits kept per account on expiry / switch / "sign out keeping a
+  copy" and offered back only to that account (CAS restore). Logout saves
+  first, else retry / download / keep copy / confirmed discard; a failed
+  logout never claims success. Private /api responses are no-store.
+- Legacy lifeOsState: ownership confirmation before preview/download/import,
+  per-account decision respected, import retires the copy recoverably.
+- Honest production state: new accounts are EMPTY (demo only in the test
+  fixture lifeData/demoState.js); migration no longer reseeds demo data; no
+  fake tokens, balances, budgets, sync status or dead exports. Existing owner
+  data untouched (no automatic cleanup).
+- Access (migration 20261001_0010): owner role (sole existing user → owner;
+  several → nobody; `python -m app.cli grant-owner <email>`), owner-only
+  email-bound single-use 7-day invitations, password change (revokes other
+  sessions), recovery (generic 202, 1 h single-use, revokes all sessions),
+  email verification (24 h), session list/revoke, DB-backed throttling,
+  audit events (no secrets; 365 days; exported; erased with the account).
+  Mail: disabled / memory (tests) / file (dev) / SMTP (production).
+
+Production activation is BLOCKED_EXTERNAL on SMTP credentials + sender, the
+public HTTPS app URL, proxy-hop facts and (for S2) key custody — see the
+decision register. lifeos_dev is still at 20260721_0001 (owner decision).
+Known remaining: snapshot/AA/profile plaintext at rest (S2); `$` labels vs AA
+`UAH` (not reinterpreted; F1); pre-existing < 12 px Home eyebrows.
+Next slice: S2 encryption + document foundation (roadmap).

@@ -37,6 +37,23 @@ reverse edges are the lazy imports inside `analytics/rules/__init__.py::_registr
 | AA history retention (policy, preview, apply, horizon; Slice 8) | facade `services/aa_retention.py` + `routes/aa_retention.py` + `schemas/aa_retention.py` |
 | vocabulary / enums | `analytics/enums.py` (fan-in 30 — a flat vocabulary is the right shape) |
 
+### Accounts, sessions and access (JENKIN S1)
+
+| I want to change… | Go to |
+|---|---|
+| who the request is for (session → account) and the **account binding** contract (`X-LifeOS-Account`; 401 / 428 `account_binding_required` / 409 `session_user_mismatch`) | `app/dependencies.py` — every protected route depends on `get_current_user` / `get_bound_session`; only `GET /auth/me` uses the unbound `get_current_session`. `tests/test_account_binding.py::test_every_protected_route_is_bound` fails on an unbound new route |
+| login, bootstrap (creates the **owner**), logout, session issue/resolve | `services/auth.py` + `routes/auth.py` |
+| password change / recovery, email verification, sessions list/revoke, owner invitations, recent security events | `services/account_access.py`; anonymous routes in `routes/auth.py`, bound routes in `routes/account_security.py`; schemas in `schemas/auth.py` |
+| throttling limits | `services/throttle.py::POLICIES` (DB table `auth_throttle`, digests only) |
+| audit events: vocabulary, retention, purge | `services/security_audit.py` (`EVENTS`; never secrets) |
+| coarse client network / device label, proxy trust | `security/client_info.py` (`Settings.trusted_proxy_hops`) |
+| outgoing mail (adapter, templates) | `app/mail/` — `delivery.py` (disabled / memory / file / SMTP; `app.state.mail`), `templates.py` |
+| private-response caching | `middleware/private_cache.py` |
+| designate the owner on a multi-user database | `app/cli.py grant-owner <email>` |
+
+A new account-owned table needs: model + migration + export (`services/export.py`) + erasure (FK cascade
+from `users`) + `tests/conftest.py::TRUNCATED_TABLES`.
+
 ### Review / Debrief
 
 Facade: **`app/services/aa_reviews.py`** — import only from here
@@ -202,6 +219,18 @@ Facade: **`context/LocaleContext.jsx`** (50 importers) — exports
 Both dictionaries are loaded synchronously (12 modules read
 `LifeStrings[locale]._intl_locale`). Shape pinned by `locale-shape.test.ts`.
 
+### Account identity in the browser (JENKIN S1)
+
+| I want to change… | Go to |
+|---|---|
+| the tab's expected account, request generation, late-response discard, auth signals | `api/accountBinding.ts` (used only through `api/client.ts::apiFetch` / `requestJson`; export and System Review downloads use `apiFetch`) |
+| identity revalidation, cross-tab notices, switched / expired / signed-out states, honest logout, logout guard | `context/AuthContext.jsx` + `app/authChannel.js` (BroadcastChannel `lifeos-auth`, storage fallback) |
+| the account-scoped tree | `App.jsx::AuthGate` keys `AnalyticsProvider` / `LifeDataProvider` by `user.id:generation`; `AccountSwitchedScreen` |
+| links from security mail (`#/auth/{reset,verify,invite}/<token>`) | `app/authActions.js` (read once, scrubbed) + `pages/auth/AuthActionPage.jsx` |
+| Settings → Security | `components/settings/SecuritySection.jsx` + `api/accountSecurity.ts` |
+| unsaved snapshot edits kept per account / restore prompt | `repositories/pendingSnapshotStore.ts` + `components/PendingRecoveryPrompt.jsx`; logout resolution `components/LogoutPendingDialog.jsx` |
+| the old local-only `lifeOsState` (decision, retire, restore, delete) | `repositories/legacyLocalImport.ts`; prompt `components/StateImportPrompt.jsx`; Settings → Export `components/settings/LegacyDataSection.jsx` |
+
 ### Operational state
 
 **`context/LifeDataContext.jsx`** is the single operational snapshot provider
@@ -209,7 +238,7 @@ Both dictionaries are loaded synchronously (12 modules read
 
 | I want to… | Go to |
 |---|---|
-| change seeds / the initial snapshot | `context/lifeData/initialState.js` |
+| change the initial snapshot of a new account (**empty**) | `context/lifeData/initialState.js` — demo content lives only in the test fixture `context/lifeData/demoState.js`; production code must not import it (`honest-production-state.test.jsx`) |
 | change snapshot migration / validation | `context/lifeData/migrate.js` (snapshot `version` stays 2) |
 | add a domain action | `LifeDataContext.jsx` provider body. Projects/transactions enqueue the durable AA write **before** mutating the snapshot — keep that order |
 | task semantics (Calendar date = `schedule.date`, completion/closure/restore, move, per-day `order`, `created_at`, optional-field validators) | `domain/tasks.ts` (pure; the provider only wires actions). History is derived from `state.tasks`, never `activityLog`. The Tasks «показать» views and their counts are `tasksForView` / `taskViewCounts` (one pipeline for rows and counts); the nested Calendar's tile summaries are `activeTaskCounts` (active dated tasks per day / month / year = the Day details rows) |
@@ -242,6 +271,9 @@ types from `facts.ts` only.
 **Durable analytics queue — do not reorganise in structural work:**
 `repositories/analyticsRepository.ts`, `analyticsWriteQueue.ts`,
 `analyticsSyncCoordinator.ts`, `stateSyncCoordinator.ts`.
+JENKIN S1 invariants: IndexedDB v2 — every record has an owner (`isQueueOwner`), ownerless v1 records are
+`quarantined`; updates are owner-checked; replay is bound to the record's owner; `dispose()` aborts and
+stops the loop; a binding refusal or abort releases the record unchanged; Web Lock `aa-write-queue:<user>`.
 
 ### Pages split into modules
 
