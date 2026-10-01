@@ -370,6 +370,22 @@ layer without reordering them, and no layer may style `.jenkin-*` or
 
 ---
 
+## Local preview launcher (tooling, not app code)
+
+`scripts/preview.sh` → `scripts/preview/launcher.py` (Python 3.11 stdlib) + `scripts/preview/dbtool.py` (runs in
+the launcher venv). Usage and safety rules: `scripts/preview/README.md`. It imports nothing from `apps/`; it
+feature-detects the previewed revision (`app/config.py` names, `app/cli.py` commands) and drives it through
+environment variables, Alembic and the revision's own CLI. Private state lives in `~/.jenkin-preview`.
+
+| I want to change… | Go to |
+|---|---|
+| which databases are allowed, migration plan (forward-only, refuse newer/diverged) | `dbtool.py` (`approve`, `cmd_plan`) and `launcher.py::approved_database` |
+| pre-migration backup (pg_dump + keyring copy, fail closed) | `launcher.py::backup_before_migration` |
+| API environment, S2 detection, keyring generation/refusal | `launcher.py::api_env`, `detect_features`, `ensure_keyring` |
+| process lifecycle (lock, PID identity, Ctrl+C) | `launcher.py` processes/locking block, `cmd_start`, `cmd_stop` |
+
+The L2 engine (`app/services/finance/calc`) has no route or UI; the launcher does not expose it.
+
 ## Do-not-split list
 
 `services/aa_facts.py`, `analytics/enums.py`, `analytics/rules/*`,

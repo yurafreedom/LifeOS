@@ -18,6 +18,10 @@ branch (section 88). Not merged, not deployed; verify live.
 pushed branch feat/jenkin-encryption-documents-20261001, based on the S1 branch
 (section 89). Not merged, not deployed; production activation blocked on key
 custody (E-06); verify live.
+2026-10-01 (later): S2 (section 89), the L2 loan calculation engine (section 90)
+and the local preview launcher (section 91) are merged and verified together on
+the pushed branch integration/jenkin-combined-20261001 — section 92 is the
+current reconciled JENKIN state. Not merged into main, not deployed; verify live.
 
 You are working on a real software project called LifeOS.
 
@@ -3577,3 +3581,59 @@ Not merged. Tooling only: no app code, dependency or migration change.
   keyring_file, keyring-generate). It was verified on the S2 commit 13c9f1f.
 - A PID is signalled only if its ps start time and command still match the
   recorded process; flock is the liveness authority.
+
+====================================================================
+92. JENKIN COMBINED INTEGRATION — S2 + L2 + PREVIEW LAUNCHER (PUSHED BRANCH, 2026-10-01)
+====================================================================
+
+Branch integration/jenkin-combined-20261001 (pushed; not merged into main, no
+PR, no deploy; verify live). Stable worktree /Users/yurasachenko/LifeOS/LifeOS_combined
+(owner-requested; the everyday preview checkout — keep it).
+Report: Outputs/Implementations/jenkin-combined-integration_20261001.md
+
+Inputs (all equal on origin at merge time; base S1 f7a43eb0f8d36342bcb2c8c952900b56edfd123d):
+- S2 feat/jenkin-encryption-documents-20261001 @ 8c54d70f643a4cfd5df6b95f65fff1d6b070b2bd
+  (branch base; its "not on GitHub" report was rechecked: ls-remote finds it)
+- L2 feat/jenkin-loan-engine-l2-20261001 @ daa8f55088f40773e919d91838b59c76f764d885
+  → merge 19f5c35f9f7011cdc38480738bd5014d7d68a930
+- launcher feat/jenkin-preview-launcher-20261001 @ aa488abb7da11aed0f02acf6d1ab716b869e4877
+  → merge 7a632ac723e81cdecab8419fd7069e62cfa1b657
+Ancestors kept: S1, 83cba06 (section 87 design integration), main 5e858bb.
+Only conflict: this file (parallel appended sections). Numbering fixed here:
+S2 = 89, L2 = 90 (was unnumbered), launcher = 91 (its branch/report say 89).
+Migration head 20261001_0012 (single; L2/launcher add none). Locks = S2's
+(cryptography, pypdf); package-lock unchanged.
+
+Integration fix (f525ce2f8b163ffb42a3c6c28335667c1240a83c): before upgrading a
+preview database that already has a schema, the launcher writes a pg_dump
+(custom format) + a copy of that database's keyring + manifest to
+~/.jenkin-preview/backups (0700/0600, never pruned) and refuses to migrate if
+the backup fails.
+
+Everyday command (owner):
+  /Users/yurasachenko/LifeOS/LifeOS_combined/scripts/preview.sh --db-suffix personal
+→ http://127.0.0.1:4710/ ; database lifeos_preview_personal (created at 0012,
+NO account yet — the owner bootstraps it); keyring
+~/.jenkin-preview/secrets/keyring-lifeos_preview_personal.json (generated once,
+never replaced; back it up). Default source is the checkout holding the script.
+
+Verified on the merged tree: backend 1323 passed + 1 skipped under UTC and Kyiv
+(disposable lifeos_combined_test, dropped); L2 411; ruff; alembic head/current
+0012 and 0012→0009→0012 on empty data; web 895, typecheck, lint, build;
+git diff --check. Launcher: create/migrate/keyring, browser open, Ctrl+C
+(process group), restart with same keyring and no migration, backup path on a
+disposable 0009 clone. Real browser on lifeos_preview_combinedqa: login/logout,
+binding 428/409, Tasks (Waiting filter), Calendar (Kyiv day), document upload,
+metadata edit, version 2, downloads byte-equal (SHA-256), no plaintext
+titles/notes in the document tables, delete removes rows + blobs, cross-account
+404, restart persistence, 176-config matrix (RU/UK, both fonts, 4 themes,
+1440–320) with 0 overflow. Not browser-verified: bootstrap submit (token read
+refused by the agent permission policy). Pre-existing: Home empty-state hints
+are 11 px (S1 base, unchanged).
+
+Encryption scope unchanged: server-side at rest for document contents, file
+names, titles, notes only; snapshots, analytics, browser storage and the export
+temp file stay plaintext; not end-to-end. Production blocked on E-06/E-11.
+L2 is a calculation library only — no table, route or UI; NOT wired into the
+product. Next slice: L1/F1 finance persistence and confirmed-term mapping into
+the L2 input schema, then L3 intake (document → extraction → editable review).
