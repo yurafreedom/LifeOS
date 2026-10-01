@@ -10,6 +10,7 @@ import { LIcons } from './icons.jsx';
 import { DangerSection } from './settings/DangerSection.jsx';
 import { ExportSection } from './settings/ExportSection.jsx';
 import { RetentionSection } from './settings/RetentionSection.jsx';
+import { SecuritySection } from './settings/SecuritySection.jsx';
 import { SoundSection } from './settings/SoundSection.jsx';
 import { Row } from './settings/Row.jsx';
 
@@ -22,6 +23,7 @@ function SettingsPage() {
 
   const sections = [
     { id: 'account',       label: t('set_account') },
+    { id: 'security',      label: t('set_security') },
     { id: 'categories',    label: t('set_categories') },
     { id: 'telegram',      label: t('set_telegram') },
     { id: 'monobank',      label: t('set_monobank') },
@@ -47,6 +49,7 @@ function SettingsPage() {
         </nav>
         <div className="set-body">
           {sel === 'account'       && <AccountSection t={t}/>}
+          {sel === 'security'      && <SecuritySection t={t}/>}
           {sel === 'categories'    && <CategoriesSection t={t} locale={locale}/>}
           {sel === 'telegram'      && <TelegramSection t={t}/>}
           {sel === 'monobank'      && <MonobankSection t={t}/>}
@@ -65,6 +68,8 @@ function SettingsPage() {
 function AccountSection({ t }) {
   const auth = useAuth();
   const [error, setError] = useStateSet('');
+  /* Never claims a logout the server did not confirm; unsaved edits are
+     resolved first by the data provider's guard (LogoutPendingDialog). */
   async function logout() {
     setError('');
     try { await auth.logout(); }

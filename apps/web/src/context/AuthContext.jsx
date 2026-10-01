@@ -63,7 +63,7 @@ function AuthProvider({ children }) {
   }, [setState]);
 
   /* Ask the server who is signed in and reconcile the tab with the answer. */
-  const revalidate = React.useCallback(({ force = false } = {}) => {
+  const revalidate = React.useCallback(({ force = false, refreshUser = false, signedOutNotice = null } = {}) => {
     const current = stateRef.current;
     if (current.phase !== 'authenticated' && current.phase !== 'switched' && current.phase !== 'anonymous') {
       return Promise.resolve();
@@ -75,7 +75,11 @@ function AuthProvider({ children }) {
     const task = getCurrentUser()
       .then(user => {
         const latest = stateRef.current;
-        if (latest.phase === 'authenticated' && latest.user?.id === user.id) return;
+        if (latest.phase === 'authenticated' && latest.user?.id === user.id) {
+          // Same account: only refresh its descriptive fields (role, verification).
+          if (refreshUser) setState(prev => (prev.user?.id === user.id ? { ...prev, user } : prev));
+          return;
+        }
         if (latest.phase === 'switched' && latest.next?.id === user.id) return;
         if (latest.phase === 'authenticated' && latest.user) {
           // Another tab signed in as someone else: stop working for the old account first.
@@ -98,7 +102,7 @@ function AuthProvider({ children }) {
         if (error instanceof ApiError && error.status === 401) {
           const latest = stateRef.current;
           if (latest.phase === 'anonymous') return;
-          enterAnonymous({
+          enterAnonymous(signedOutNotice ?? {
             kind: latest.phase === 'authenticated' ? 'expired' : 'signed_out_elsewhere',
             email: latest.user?.email ?? null,
           });
@@ -243,6 +247,10 @@ function AuthProvider({ children }) {
     setState(prev => ({ ...prev, notice: null }));
   }
 
+  function showNotice(notice) {
+    setState(prev => ({ ...prev, notice }));
+  }
+
   const value = React.useMemo(() => ({
     ...state,
     login,
@@ -255,6 +263,7 @@ function AuthProvider({ children }) {
     continueAsNext,
     setLogoutGuard,
     dismissNotice,
+    showNotice,
   }), [state]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

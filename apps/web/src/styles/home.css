@@ -489,6 +489,26 @@
 .set-unavailable-title { margin: 6px 0 4px; color: var(--fg1); font-size: var(--text-md, 15px); font-weight: 600; }
 .set-unavailable-body { margin: 0; color: var(--fg2); font-size: var(--text-sm); line-height: 1.5; }
 .set-legacy-copy { max-width: 560px; line-height: 1.5; }
+/* JENKIN S1 · Settings → security */
+.sec-wrap { display: grid; gap: 6px; max-width: 640px; }
+.sec-inline { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.sec-inline .set-input { flex: 1 1 220px; min-width: 0; }
+.sec-badge { display: inline-block; padding: 2px 8px; border: 1px solid var(--border-s); border-radius: 999px; color: var(--fg2); font-size: 11px; }
+.sec-badge.is-ok { color: var(--success); border-color: color-mix(in srgb, var(--success) 45%, transparent); }
+.sec-form { display: grid; gap: 8px; margin-top: 8px; max-width: 420px; }
+.sec-field { display: grid; gap: 4px; color: var(--fg2); font-size: var(--text-sm); }
+.sec-field .set-input { width: 100%; }
+.sec-block { margin-top: 10px; }
+.sec-copy { max-width: 560px; line-height: 1.5; }
+.sec-list { list-style: none; margin: 6px 0; padding: 0; display: grid; gap: 6px; }
+.sec-item { display: grid; gap: 4px; padding: 10px 12px; border: 1px solid var(--border-s); border-radius: 10px; }
+.sec-item .set-btn-ghost { justify-self: start; }
+.sec-item-main { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.sec-item-title { color: var(--fg1); font-size: var(--text-sm); overflow-wrap: anywhere; }
+.sec-item-meta { color: var(--fg3); font-size: 11px; overflow-wrap: anywhere; }
+.sec-manual { display: grid; gap: 8px; }
+.sec-manual p { margin: 0; }
+.sec-invite-form { margin: 6px 0; }
 
 /* Batch 1 rev · FIX 6 — the segmented "box" is neutralised so each option
    is a standalone unified capsule (cream at rest / orange active). */

@@ -1,5 +1,6 @@
 import React from 'react';
 import { ApiError } from '../api/client.ts';
+import { requestPasswordReset } from '../api/auth.ts';
 import { JenkinWordmark } from '../components/JenkinBrand.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { LifeLocaleContext } from '../context/LocaleContext.jsx';
@@ -11,7 +12,52 @@ function noticeText(notice, t) {
   if (notice.kind === 'expired') return t('auth_notice_expired', notice.email || '');
   if (notice.kind === 'signed_out') return t('auth_notice_signed_out');
   if (notice.kind === 'signed_out_elsewhere') return t('auth_notice_signed_out_elsewhere');
+  if (notice.kind === 'password_reset') return t('auth_notice_password_reset');
   return '';
+}
+
+/* «Забыли пароль?» — the answer is the same for every address (the server
+   never says whether an account exists). When this server cannot send mail
+   at all, that is said plainly instead of pretending a message is on its way. */
+function ForgotPassword({ t, onBack }) {
+  const [email, setEmail] = React.useState('');
+  const [state, setState] = React.useState({ phase: 'form', message: '', error: '' });
+  async function submit(event) {
+    event.preventDefault();
+    if (state.phase === 'busy') return;
+    setState({ phase: 'busy', message: '', error: '' });
+    try {
+      await requestPasswordReset(email);
+      setState({ phase: 'done', message: t('forgot_done'), error: '' });
+    } catch (error) {
+      let text = t('auth_network_error');
+      if (error instanceof ApiError && error.code === 'mail_unavailable') text = t('forgot_unavailable');
+      else if (error instanceof ApiError && error.code === 'too_many_attempts') text = t('auth_too_many');
+      else if (error instanceof ApiError && error.status === 422) text = t('auth_validation_error');
+      setState({ phase: 'form', message: '', error: text });
+    }
+  }
+  return (
+    <>
+      <p className="auth-copy">{t('forgot_copy')}</p>
+      {state.phase === 'done'
+        ? <p className="auth-success" role="status">{state.message}</p>
+        : (
+          <form onSubmit={submit} className="auth-form">
+            <label>
+              <span>{t('auth_email')}</span>
+              <input type="email" autoComplete="email" required value={email}
+                     onChange={event => setEmail(event.target.value)} />
+            </label>
+            {state.error && <div className="auth-error" role="alert">{state.error}</div>}
+            <button type="submit" className="auth-submit" disabled={state.phase === 'busy'}>
+              {state.phase === 'busy' ? t('auth_working') : t('forgot_submit')}
+            </button>
+          </form>
+        )}
+      <button type="button" className="auth-link auth-link-button" onClick={onBack}>{t('forgot_back')}</button>
+    </>
+  );
 }
 
 function LoginPage() {
@@ -24,6 +70,7 @@ function LoginPage() {
   const [confirmPassword, setConfirmPassword] = React.useState('');
   const [bootstrapToken, setBootstrapToken] = React.useState('');
   const [localError, setLocalError] = React.useState('');
+  const [forgot, setForgot] = React.useState(false);
   const submittingRef = React.useRef(false);
   const busy = auth.phase === 'authenticating';
 
@@ -62,6 +109,7 @@ function LoginPage() {
     const error = auth.error;
     if (!(error instanceof ApiError)) return error ? t('auth_network_error') : '';
     if (error.code === 'bootstrap_closed') return t('auth_bootstrap_closed');
+    if (error.code === 'too_many_attempts') return t('auth_too_many');
     if (error.status === 403) return t('auth_bootstrap_invalid');
     if (error.status === 422) return t('auth_validation_error');
     return t('auth_invalid_credentials');
@@ -72,7 +120,8 @@ function LoginPage() {
       <section className="auth-card" aria-labelledby="auth-title">
         <div className="auth-brand" role="img" aria-label="JENKIN"><JenkinWordmark /></div>
         <p className="auth-eyebrow mono">{setupMode ? t('auth_setup_eyebrow') : t('auth_login_eyebrow')}</p>
-        <h1 id="auth-title">{setupMode ? t('auth_setup_title') : t('auth_login_title')}</h1>
+        <h1 id="auth-title">{setupMode ? t('auth_setup_title') : forgot ? t('forgot_title') : t('auth_login_title')}</h1>
+        {forgot && !setupMode ? <ForgotPassword t={t} onBack={() => setForgot(false)} /> : <>
         <p className="auth-copy">{setupMode ? t('auth_setup_copy') : t('auth_login_copy')}</p>
         {noticeText(auth.notice, t) && <p className="auth-notice" role="status">{noticeText(auth.notice, t)}</p>}
         <form onSubmit={submit} className="auth-form">
@@ -103,9 +152,13 @@ function LoginPage() {
             {busy ? t('auth_working') : setupMode ? t('auth_create') : t('auth_login')}
           </button>
         </form>
+        {!setupMode && (
+          <button type="button" className="auth-link auth-link-button" onClick={() => setForgot(true)}>{t('forgot_link')}</button>
+        )}
         {setupMode && auth.error instanceof ApiError && auth.error.code === 'bootstrap_closed' && (
           <a className="auth-link" href="/">{t('auth_to_login')}</a>
         )}
+        </>}
       </section>
     </main>
   );

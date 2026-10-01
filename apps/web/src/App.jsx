@@ -1,4 +1,5 @@
 import React from 'react';
+import { takeAuthAction } from './app/authActions.js';
 import { createClarifyHandlers } from './app/clarifyHandlers.js';
 import {
   CalendarPage,
@@ -37,6 +38,7 @@ import { FinancesPage } from './pages/FinancesPage.jsx';
 import { HealthPage } from './pages/HealthPage.jsx';
 import { HomePage } from './pages/HomePage.jsx';
 import { LoginPage } from './pages/LoginPage.jsx';
+import { AuthActionPage } from './pages/auth/AuthActionPage.jsx';
 import { PlaceholderPage } from './pages/PlaceholderPage.jsx';
 import { ProfilePage } from './pages/ProfilePage.jsx';
 import { ProjectsPage } from './pages/ProjectsPage.jsx';
@@ -381,6 +383,28 @@ function AccountSwitchedScreen({ auth, t }) {
 function AuthGate() {
   const auth = useAuth();
   const { t } = useCtxApp(LifeLocaleContext);
+  /* A link from security mail (#/auth/{reset|verify|invite}/<token>) is taken
+     once, scrubbed from the URL, and handled before anything else. */
+  const [action, setAction] = useStateApp(() => takeAuthAction());
+  useEffectApp(() => {
+    function onHash() {
+      const next = takeAuthAction();
+      if (next) setAction(next);
+    }
+    window.addEventListener('hashchange', onHash);
+    return () => window.removeEventListener('hashchange', onHash);
+  }, []);
+  if (action && auth.phase !== 'booting') {
+    return <AuthActionPage action={action} onDone={(notice) => {
+      setAction(null);
+      if (window.location.hash.startsWith('#/auth/')) window.location.hash = '#/home';
+      if (notice) {
+        auth.showNotice(notice);
+        // A reset revoked every session of that account, possibly this tab's.
+        void auth.revalidate({ force: true, signedOutNotice: notice });
+      }
+    }} />;
+  }
   if (auth.phase === 'booting') {
     return <main className="auth-screen"><div className="boot-status mono">{t('boot_loading')}</div></main>;
   }
