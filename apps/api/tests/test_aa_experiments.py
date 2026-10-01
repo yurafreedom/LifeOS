@@ -468,7 +468,7 @@ def test_t14_export_carries_every_experiment_row_and_registries_agree(
             name: [json.loads(line) for line in archive.read(f"{name}.ndjson").splitlines()]
             for name in (*EXPERIMENT_TABLES, "aa_decisions", "aa_review_factors")
         }
-    assert manifest["alembic_revision"] == "20261001_0011"
+    assert manifest["alembic_revision"] == "20261001_0012"
     assert len(rows["aa_experiments"]) == 1
     assert {r["status"] for r in rows["aa_experiment_adherence"]} == {"active", "superseded"}
     assert len(rows["aa_experiment_observations"]) == 1

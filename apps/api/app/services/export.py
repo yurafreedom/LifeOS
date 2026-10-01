@@ -3,6 +3,13 @@
 One repeatable-read transaction prevents torn correction chains. Rows stream
 from PostgreSQL in batches; the archive is disk-backed, never a history-sized
 BytesIO/list. The file is closed on completion or disconnect. Secrets are excluded.
+
+Plaintext on the server's disk (recorded, not changed in S2): the archive is an
+anonymous ``tempfile.TemporaryFile`` holding the account's snapshot and analytics
+rows in plaintext until the download ends. On POSIX it is unlinked at creation,
+so no path remains, but its blocks stay in the temp filesystem until reused.
+Decrypted documents are therefore *not* added here; they use the streamed,
+file-less export in ``services/documents/export.py``.
 """
 
 import json
@@ -51,6 +58,8 @@ from app.models import (
     AccountInvitation,
     AuthAuditEvent,
     Base,
+    Document,
+    DocumentVersion,
     User,
     UserSession,
     UserSnapshot,
@@ -105,10 +114,25 @@ EXPORT_TABLES = {
 }
 
 
+# JENKIN S2 documents. The account export (a server temporary file) carries only
+# their readable operational metadata; titles, notes, file names and contents
+# are decrypted only by the explicit, streamed GET /api/v1/export/documents.
+DOCUMENT_TABLES = frozenset({"documents", "document_versions", "document_blobs"})
+DOCUMENT_EXPORT_NOTE = (
+    "Readable document metadata only. Titles, notes, original file names and file "
+    "contents are encrypted at rest and are exported, decrypted, only by the explicit "
+    "documents export (GET /api/v1/export/documents → jenkin-documents.zip). Ciphertext, "
+    "wrapped data keys and wrapping-key ids are never exported."
+)
+
+
 def validate_export_registry() -> None:
     mapped = {name for name in Base.metadata.tables if name.startswith("aa_")}
     if mapped != set(EXPORT_TABLES):
         raise RuntimeError("AA export registry does not cover the mapped AA schema")
+    documents = {name for name in Base.metadata.tables if name.startswith("document")}
+    if documents != DOCUMENT_TABLES:
+        raise RuntimeError("document export registry does not cover the mapped document schema")
     for name, table in EXPORT_TABLES.items():
         if table is not Base.metadata.tables[name]:
             raise RuntimeError("AA export registry table mismatch")
@@ -147,6 +171,16 @@ def build_account_export(factory: sessionmaker[Session], *, user_id: UUID) -> Bi
             )
             if actual_tables != set(EXPORT_TABLES):
                 raise RuntimeError("AA export registry does not cover the database AA schema")
+            actual_documents = set(
+                db.scalars(
+                    text(
+                        "SELECT table_name FROM information_schema.tables "
+                        "WHERE table_schema = 'public' AND table_name LIKE 'document%'"
+                    )
+                )
+            )
+            if actual_documents != DOCUMENT_TABLES:
+                raise RuntimeError("document export registry does not cover the database schema")
             statements = {
                 "account": select(
                     User.id, User.email, User.is_active, User.role, User.email_verified_at,
@@ -182,6 +216,24 @@ def build_account_export(factory: sessionmaker[Session], *, user_id: UUID) -> Bi
                 ).where(AccountInvitation.invited_by == user_id).order_by(AccountInvitation.created_at),
                 "user_snapshots": select(UserSnapshot.__table__).where(
                     UserSnapshot.user_id == user_id
+                ),
+                # JENKIN S2: readable columns only (see DOCUMENT_EXPORT_NOTE).
+                "documents": select(
+                    Document.id,
+                    Document.revision,
+                    Document.current_version,
+                    Document.created_at,
+                    Document.updated_at,
+                ).where(Document.user_id == user_id).order_by(Document.created_at, Document.id),
+                "document_versions": select(
+                    DocumentVersion.id,
+                    DocumentVersion.document_id,
+                    DocumentVersion.version_number,
+                    DocumentVersion.content_type,
+                    DocumentVersion.size_bytes,
+                    DocumentVersion.created_at,
+                ).where(DocumentVersion.user_id == user_id).order_by(
+                    DocumentVersion.document_id, DocumentVersion.version_number
                 ),
             }
             for name, table in EXPORT_TABLES.items():
@@ -220,6 +272,7 @@ def build_account_export(factory: sessionmaker[Session], *, user_id: UUID) -> Bi
                         ]
                         for name, table in EXPORT_TABLES.items()
                     },
+                    "documents": DOCUMENT_EXPORT_NOTE,
                     "semantics": {
                         "all_statuses": True,
                         "correction_links": ["supersedes_id", "superseded_by_id"],
@@ -231,6 +284,7 @@ def build_account_export(factory: sessionmaker[Session], *, user_id: UUID) -> Bi
                             "session token/hash",
                             "reset/verification/invitation token digests",
                             "login throttle counters",
+                            "document ciphertext, wrapped data keys and wrapping-key ids",
                         ],
                     },
                 }

@@ -63,11 +63,12 @@ def test_m10_promotes_no_one_when_historical_users_are_ambiguous(engine, test_da
     assert set(_roles(engine).values()) == {"member"}
 
 
-def test_m11_is_the_head_on_m10_on_m9(test_database_url):
+def test_m11_sits_on_m10_on_m9_under_the_m12_head(test_database_url):
     from alembic.script import ScriptDirectory
 
     script = ScriptDirectory.from_config(_config(test_database_url))
-    assert script.get_heads() == [M11]
+    assert script.get_heads() == ["20261001_0012"]
+    assert script.get_revision("20261001_0012").down_revision == M11
     assert script.get_revision(M11).down_revision == M10
     assert script.get_revision(M10).down_revision == M9
 

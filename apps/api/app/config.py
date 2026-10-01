@@ -8,6 +8,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 _POSTGRESQL_DIALECT = "postgresql+psycopg"
 _URL_SEPARATOR = "://"
 _POSTGRESQL_DRIVER = _POSTGRESQL_DIALECT + _URL_SEPARATOR
+# Safe upper bound for one document version (see document_max_bytes).
+MAX_DOCUMENT_BYTES = 50 * 1024 * 1024
 
 
 class Settings(BaseSettings):
@@ -62,6 +64,25 @@ class Settings(BaseSettings):
     # Security audit events older than this are purged opportunistically.
     audit_retention_days: int = Field(default=365, gt=0)
 
+    # ── JENKIN S2 · encrypted documents ──────────────────────────────────
+    # Off by default. When on, the API refuses to start unless the keyring
+    # file loads and validates (app/crypto/keyring.py): there is no plaintext
+    # fallback and no implicit key generation.
+    documents_enabled: bool = False
+    # Restricted JSON keyring (0600/0400, owned by the service user or root).
+    # Keep it outside the repository and outside database backups.
+    keyring_file: str | None = None
+    # Permit 0440 for secret mounts that grant read through a dedicated group.
+    keyring_allow_group_read: bool = False
+    # Upload limit per content version. 15 MiB by default; never above 50 MiB
+    # (whole-object AES-GCM keeps one version in memory at a time).
+    document_max_bytes: int = Field(default=15 * 1024 * 1024, gt=0, le=MAX_DOCUMENT_BYTES)
+    # Per-account bounds (documents, and plaintext bytes across all versions).
+    document_max_per_account: int = Field(default=1000, gt=0, le=100_000)
+    document_max_account_bytes: int = Field(default=512 * 1024 * 1024, gt=0, le=8 * 1024**3)
+    # Uploads, downloads and document exports held in memory at once per process.
+    document_max_concurrent_transfers: int = Field(default=4, gt=0, le=32)
+
     @field_validator("database_url")
     @classmethod
     def validate_database_url(cls, value: str) -> str:
@@ -114,6 +135,8 @@ class Settings(BaseSettings):
                     raise ValueError("smtp_security none is not allowed in production")
             if self.public_app_url and not self.public_app_url.startswith("https://"):
                 raise ValueError("public_app_url must be https in production")
+        if self.documents_enabled and not self.keyring_file:
+            raise ValueError("documents_enabled requires keyring_file (no plaintext fallback)")
         if self.mail_backend == "file" and not self.mail_file_dir:
             raise ValueError("the file mail backend requires mail_file_dir")
         return self

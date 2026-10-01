@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session, sessionmaker
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from app.config import Settings, get_settings
+from app.crypto import Keyring, load_keyring
 from app.db import create_engine_from_settings, create_session_factory
 from app.mail import MailDelivery, build_mail_delivery
 from app.middleware.body_limit import SnapshotBodyLimitMiddleware
@@ -25,16 +26,20 @@ from app.routes import (
     account,
     account_security,
     auth,
+    documents,
     export,
     health,
     state,
 )
+from app.routes.documents import TransferSlots
+from app.services.documents.service import DocumentRuntime
 
 
 def create_app(
     settings: Settings | None = None,
     session_factory: sessionmaker[Session] | None = None,
     mail: MailDelivery | None = None,
+    keyring: Keyring | None = None,
 ) -> FastAPI:
     resolved_settings = settings or get_settings()
     resolved_factory = session_factory
@@ -51,6 +56,20 @@ def create_app(
     app.state.settings = resolved_settings
     app.state.session_factory = resolved_factory
     app.state.mail = mail or build_mail_delivery(resolved_settings)
+    # JENKIN S2: with documents enabled, a missing or unsafe keyring stops the
+    # API from starting (KeyringError) — never a plaintext fallback, never a
+    # generated replacement key.
+    resolved_keyring = keyring
+    if resolved_keyring is None and resolved_settings.documents_enabled:
+        resolved_keyring = load_keyring(
+            resolved_settings.keyring_file or "",
+            allow_group_read=resolved_settings.keyring_allow_group_read,
+        )
+    app.state.documents = DocumentRuntime(
+        settings=resolved_settings,
+        keyring=resolved_keyring if resolved_settings.documents_enabled else None,
+    )
+    app.state.document_slots = TransferSlots(resolved_settings.document_max_concurrent_transfers)
 
     app.add_middleware(
         SnapshotBodyLimitMiddleware,
@@ -62,8 +81,12 @@ def create_app(
     @app.exception_handler(HTTPException)
     async def stable_http_error(_request: Request, error: HTTPException) -> JSONResponse:
         if isinstance(error.detail, dict) and {"code", "message"} <= error.detail.keys():
-            return JSONResponse(status_code=error.status_code, content=error.detail)
-        return JSONResponse(status_code=error.status_code, content={"detail": error.detail})
+            return JSONResponse(
+                status_code=error.status_code, content=error.detail, headers=error.headers
+            )
+        return JSONResponse(
+            status_code=error.status_code, content={"detail": error.detail}, headers=error.headers
+        )
 
     app.include_router(health.router)
     app.include_router(auth.router)
@@ -71,6 +94,7 @@ def create_app(
     app.include_router(aa_measurements.router)
     app.include_router(aa_history.router)
     app.include_router(export.router)
+    app.include_router(documents.router)
     app.include_router(account.router)
     app.include_router(account_security.router)
     app.include_router(aa_facts.router)

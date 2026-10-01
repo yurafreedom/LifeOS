@@ -127,7 +127,7 @@ def _revision(engine, user_id, **overrides) -> str:
 def test_m7_is_the_single_head_on_m6(test_database_url):
     script = ScriptDirectory.from_config(_config(test_database_url))
     # M8 (Slice 8 retention) is the head and sits directly on M7.
-    assert script.get_heads() == ["20261001_0011"]
+    assert script.get_heads() == ["20261001_0012"]
     assert script.get_revision("20260930_0009").down_revision == M7
     assert script.get_revision(M7).down_revision == M6
 
