@@ -584,3 +584,77 @@ def test_security_events_list_is_the_accounts_own(client, settings, account_fact
     authenticate(client, settings, first)
     events = client.get("/api/v1/account/security-events").json()["events"]
     assert events == []
+
+
+# ── S1 hardening: invitation authorization is not email verification ──────
+
+
+def _accept(app, token: str, email: str):
+    invitee = TestClient(app, headers={"Origin": "http://testserver"})
+    return invitee, invitee.post(
+        "/api/v1/auth/invitations/accept",
+        json={"token": token, "email": email, "password": NEW_PASSWORD},
+    )
+
+
+def test_emailed_invitation_verifies_the_address(client, settings, account_factory, mail, session_factory):
+    """Policy: a link handed only to the mail adapter for that address is a verification link."""
+    owner = account_factory("policy-sent@example.com")
+    _make_owner(session_factory, owner)
+    authenticate(client, settings, owner)
+    assert client.post("/api/v1/account/invitations", json={"email": "sent-friend@example.com"}).json()["delivery"] == "sent"
+    _a, token = _link_token(mail.outbox[-1])
+    _invitee, accepted = _accept(client.app, token, "sent-friend@example.com")
+    assert accepted.json()["email_verified_at"] is not None
+
+
+def test_failed_delivery_invitation_creates_an_unverified_member_who_can_verify(
+    client, settings, account_factory, mail, session_factory
+):
+    owner = account_factory("policy-failed@example.com")
+    _make_owner(session_factory, owner)
+    authenticate(client, settings, owner)
+    mail.fail_next = True
+    created = client.post("/api/v1/account/invitations", json={"email": "failed-friend@example.com"}).json()
+    assert created["delivery"] == "failed" and created["invite_url"]
+    token = created["invite_url"].rsplit("/", 1)[1]
+    invitee, accepted = _accept(client.app, token, "failed-friend@example.com")
+    assert accepted.status_code == 201
+    assert accepted.json()["email_verified_at"] is None
+    # The independent verification flow works for this member.
+    invitee.headers["X-LifeOS-Account"] = accepted.json()["id"]
+    assert invitee.post("/api/v1/account/email-verification", json={}).json() == {"status": "sent"}
+    _a, verify_token = _link_token(mail.outbox[-1])
+    assert invitee.post("/api/v1/auth/email-verification/confirm", json={"token": verify_token}).status_code == 204
+    assert invitee.get("/api/v1/auth/me").json()["email_verified_at"] is not None
+
+
+def test_manual_invitation_creates_an_unverified_member(settings, session_factory, account_factory):
+    owner = account_factory("policy-manual@example.com")
+    _make_owner(session_factory, owner)
+    app = create_app(settings=settings, session_factory=session_factory, mail=DisabledMailDelivery())
+    with TestClient(app, headers={"Origin": "http://testserver"}) as client:
+        authenticate(client, settings, owner)
+        created = client.post("/api/v1/account/invitations", json={"email": "manual-member@example.com"}).json()
+        assert created["delivery"] == "manual"
+        invitee, accepted = _accept(app, created["invite_url"].rsplit("/", 1)[1], "manual-member@example.com")
+        assert accepted.json()["email_verified_at"] is None
+        # Without a mail backend the verification flow says so honestly; nothing is faked.
+        invitee.headers["X-LifeOS-Account"] = accepted.json()["id"]
+        refused = invitee.post("/api/v1/account/email-verification", json={})
+    assert refused.status_code == 503 and refused.json()["code"] == "mail_unavailable"
+
+
+def test_pending_delivery_invitation_creates_an_unverified_member(
+    client, settings, account_factory, mail, session_factory
+):
+    """A crash between commit and send leaves 'pending': never treated as delivered."""
+    owner = account_factory("policy-pending@example.com")
+    _make_owner(session_factory, owner)
+    authenticate(client, settings, owner)
+    client.post("/api/v1/account/invitations", json={"email": "pending-friend@example.com"})
+    _a, token = _link_token(mail.outbox[-1])
+    with session_factory.begin() as db:
+        db.execute(update(AccountInvitation).values(delivery="pending"))
+    _invitee, accepted = _accept(client.app, token, "pending-friend@example.com")
+    assert accepted.json()["email_verified_at"] is None

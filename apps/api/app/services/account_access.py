@@ -379,6 +379,19 @@ def invitation_status(invitation: AccountInvitation, now: datetime | None = None
     return "pending"
 
 
+def invitation_verifies_email(invitation: AccountInvitation) -> bool:
+    """Invitation authorization is not email verification.
+
+    Policy: only an invitation whose link was handed to the mail adapter for
+    that address and never shown to anyone else (delivery ``sent``) proves
+    control of the mailbox — the same standard as a verification link. A link
+    delivered manually, exposed after a failed delivery, or still ``pending``
+    proves only that its holder was invited: the new member starts
+    **unverified** and verifies through the independent email-verification flow.
+    """
+    return invitation.delivery == "sent"
+
+
 def _require_owner(user: User) -> None:
     if user.role != "owner":
         raise AuthServiceError("owner_required", "Only the owner can manage invitations.", 403)
@@ -529,7 +542,8 @@ def accept_invitation(
     now = datetime.now(UTC)
     user = User(
         email=canonical, password_hash=hash_password(password), role="member",
-        email_verified_at=now, password_changed_at=now,
+        email_verified_at=now if invitation_verifies_email(invitation) else None,
+        password_changed_at=now,
     )
     db.add(user)
     try:
