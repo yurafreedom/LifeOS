@@ -58,7 +58,10 @@
   color: var(--fg2);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.stat-context.is-empty { color: var(--fg4); font-size: var(--text-xs); }
+/* Empty hints keep the 12 px --text-sm of .stat-context (readable floor) and
+   mute only the colour. They wrap instead of ellipsizing, so the action word
+   ("задать" / "задати") is never cut off in the narrow 4-column hero. */
+.stat-context.is-empty { color: var(--fg4); white-space: normal; overflow-wrap: anywhere; }
 .stat-card.is-empty .stat-value { color: var(--fg4); }
 
 @media (max-width: 720px) {

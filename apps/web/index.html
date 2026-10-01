@@ -19,6 +19,12 @@
           }
         } catch (error) {}
 
+        /* Interface language (app/useLocalePreference.js): only ru | uk. */
+        try {
+          var locale = localStorage.getItem('lifeOsLocale');
+          if (locale === 'ru' || locale === 'uk') document.documentElement.setAttribute('lang', locale);
+        } catch (error) {}
+
         var theme = null;
         try { theme = localStorage.getItem('lifeOsTheme'); } catch (error) {}
         if (theme !== 'dark' && theme !== 'light' && theme !== 'paradise') {

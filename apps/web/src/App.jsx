@@ -19,6 +19,7 @@ import { useParadisePress } from './app/paradisePress.js';
 import { saveTaskDetail } from './app/taskDetailSave.js';
 import { useUiSound } from './app/useUiSound.js';
 import { ANALYTICS_ROUTE_ENABLED, normalizeRoute, readRouteFromHash } from './app/routeRegistry.js';
+import { useLocalePreference } from './app/useLocalePreference.js';
 import { useSidebarCollapsed } from './app/useSidebarCollapsed.js';
 import { useTheme } from './app/useTheme.js';
 import { ClarifyPanel } from './components/ClarifyPanel.jsx';
@@ -438,7 +439,7 @@ function AuthGate() {
 }
 
 function App() {
-  const [locale, setLocale] = useStateApp('ru');
+  const [locale, setLocale] = useLocalePreference();
   const [themeMode, themeEff, setTheme, scenePref, setScenePref] = useTheme();
   const t = useMemoApp(() => LifeMakeT(locale), [locale]);
   const localeValue = useMemoApp(() => ({
