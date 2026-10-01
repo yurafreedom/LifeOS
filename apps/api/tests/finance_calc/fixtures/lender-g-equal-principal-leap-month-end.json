@@ -1,0 +1,64 @@
+{
+  "id": "lender-g-equal-principal-leap-month-end",
+  "description": "Synthetic lender G: equal principal, disbursed on 31 Jan of a leap year, due dates anchored on the 31st (29 Feb, 31 Mar, 30 Apr).",
+  "derivation": [
+    "principal part 300 000 / 3 = 100 000; interest 1 % of 300 000, 200 000, 100 000 = 3 000, 2 000, 1 000",
+    "payments 103 000, 102 000, 101 000"
+  ],
+  "input": {
+    "schema_version": 1,
+    "model": "amortizing",
+    "currency": "UAH",
+    "interest": {
+      "source_metric": "contractual_rate",
+      "kind": "fixed",
+      "value": "12",
+      "unit": "percent",
+      "per": "year",
+      "period_rate_rule": "annual_div_12"
+    },
+    "rounding": {
+      "mode": "half_up",
+      "step_minor": 1
+    },
+    "final_adjustment": "last_payment_settles_balance",
+    "opening": {
+      "date": "2028-01-31",
+      "basis": "contractual_disbursement",
+      "principal_minor": 300000
+    },
+    "horizon": {
+      "end_date": "2028-12-31"
+    },
+    "method": "equal_principal",
+    "term": {
+      "periods": 3,
+      "frequency": "monthly",
+      "first_payment_date": "2028-02-29",
+      "anchor_day": 31
+    }
+  },
+  "expected": {
+    "status": "complete",
+    "totals": {
+      "interest_minor": 6000,
+      "principal_minor": 300000
+    },
+    "rows_of_kind": {
+      "installment": [
+        {
+          "date": "2028-02-29",
+          "payment_minor": 103000
+        },
+        {
+          "date": "2028-03-31",
+          "payment_minor": 102000
+        },
+        {
+          "date": "2028-04-30",
+          "payment_minor": 101000
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,122 @@
+{
+  "id": "lender-j-revolving-grace-kept",
+  "description": "Synthetic lender J: credit line, 0.1 %/day, purchases in grace if the statement is paid in full by the due date, minimum 5 % with a 200.00 floor.",
+  "derivation": [
+    "purchase 100 000 on 10 Feb; statement 28 Feb balance 100 000; minimum max(20 000, 5 000) = 20 000",
+    "paid 100 000 on 15 Mar <= due 20 Mar -> grace kept, grace interest discarded; statement 31 Mar balance 0"
+  ],
+  "input": {
+    "schema_version": 1,
+    "model": "revolving",
+    "currency": "UAH",
+    "opening": {
+      "date": "2026-01-31",
+      "basis": "observed",
+      "purchases_minor": 0,
+      "cash_minor": 0,
+      "interest_due_minor": 0,
+      "fees_due_minor": 0,
+      "purchases_in_grace": false,
+      "previous_statement_paid_in_full": true
+    },
+    "horizon": {
+      "end_date": "2026-03-31"
+    },
+    "interest": {
+      "source_metric": "contractual_rate",
+      "kind": "fixed",
+      "value": "0.1",
+      "unit": "percent",
+      "per": "day"
+    },
+    "accrual": {
+      "payment_effect": "same_day"
+    },
+    "rounding": {
+      "mode": "half_up",
+      "step_minor": 1,
+      "interest_stage": "daily"
+    },
+    "interest_bearing": [
+      "purchases_out_of_grace",
+      "cash"
+    ],
+    "grace": {
+      "kind": "full_statement_payment",
+      "eligible": [
+        "purchase"
+      ],
+      "requires_previous_paid_in_full": true,
+      "loss_policy": "retroactive_from_transaction_date",
+      "loss_charge": "due_date"
+    },
+    "minimum_payment": {
+      "percent": {
+        "value": "5",
+        "unit": "percent"
+      },
+      "of": "statement_balance",
+      "floor_minor": 20000,
+      "plus": []
+    },
+    "allocation": [
+      "fees",
+      "interest",
+      "cash",
+      "purchases"
+    ],
+    "cycles": [
+      {
+        "statement_date": "2026-02-28",
+        "due_date": "2026-03-20"
+      },
+      {
+        "statement_date": "2026-03-31",
+        "due_date": "2026-04-20"
+      }
+    ],
+    "transactions": [
+      {
+        "date": "2026-02-10",
+        "amount_minor": 100000,
+        "kind": "purchase"
+      }
+    ],
+    "payments": [
+      {
+        "date": "2026-03-15",
+        "amount_minor": 100000,
+        "basis": "planned"
+      }
+    ]
+  },
+  "expected": {
+    "status": "complete",
+    "closing": {
+      "total_minor": 0,
+      "interest_due_minor": 0
+    },
+    "totals": {
+      "interest_charged_minor": 0,
+      "grace_interest_charged_minor": 0
+    },
+    "rows_of_kind": {
+      "statement": [
+        {
+          "statement_balance_minor": 100000,
+          "minimum_due_minor": 20000
+        },
+        {
+          "statement_balance_minor": 0
+        }
+      ],
+      "due_evaluation": [
+        {
+          "paid_in_full": true,
+          "grace_kept": true,
+          "minimum_met": true
+        }
+      ]
+    }
+  }
+}

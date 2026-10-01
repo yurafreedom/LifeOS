@@ -3495,3 +3495,46 @@ HTTPException handler dropped Retry-After.
 Production activation BLOCKED_EXTERNAL: key custody + escrow + backup
 retention (E-06), capacity (E-11). Next slice: F1 financial obligations and
 document linkage (roadmap).
+
+====================================================================
+90. JENKIN L2 — DETERMINISTIC LOAN CALCULATION ENGINE (PUSHED BRANCH, 2026-10-01)
+(numbered 90 at integration — see section 92; written unnumbered in parallel with S2)
+====================================================================
+
+Branch feat/jenkin-loan-engine-l2-20261001 (pushed; not merged, no PR, no deploy;
+verify live), based on feat/jenkin-account-security-20261001 @ f7a43eb, in the
+owner-authorised worktree /Users/yurasachenko/LifeOS/LifeOS_loan-engine. Records:
+- Discovery (corrected): Outputs/Discoveries/jenkin-loan-document-discovery_20261001-163647.md
+- Decisions (LD/LA/U): Outputs/Plans/jenkin-loan-document-decisions_20261001-163647.md
+- Plan and acceptance: Outputs/Plans/jenkin-loan-document-plan_20261001-163647.md
+- Engine spec + rule catalogue: Outputs/Plans/jenkin-loan-engine-l2-spec_20261001-163647.md
+- Report: Outputs/Implementations/jenkin-loan-engine-l2_20261001-163647.md
+
+Product goal (owner-approved, NOT complete): upload loan agreement / credit
+passport / schedule → automatic extraction → concise editable review →
+confirmed loan → schedules/charts → optional reminders; supported rules for a new
+lender need no code. Manual forms are fallback infrastructure only.
+
+Implemented (L2 only): pure module apps/api/app/services/finance/calc
+(engine 1.0.0, input schema 1): daily_accrual (contractual daily or annual +
+ACT/365F, ACT/360, ACT/ACT ISDA; accrual boundaries; per-day or at-posting
+rounding; fees; allocation; partial/full early repayment; overpayment),
+amortizing (monthly annuity / equal principal, regular first period, anchored
+month-end, final adjustment, prepayments on due dates), limited revolving
+(explicit cycles, stated grace/loss policy, minimum formula), lender-schedule
+reconciliation (both schedules kept, no authority chosen) and daily-accrual
+amendments. Missing rules → missing_inputs; unknown mechanics → named
+unsupported; APR/total-cost metrics refused as accrual inputs; no floats, no
+eval; results labelled calculated, never the lender's balance.
+Not implemented: tables, routes, UI, document processing, AI, workers,
+task/calendar writes, banks. System Review Obligation/simulate_payoff unchanged.
+
+Evidence rules for later extraction: quote located ≠ value parsed ≠ semantic
+association ≠ contractual applicability ≠ user confirmation. Lender schedule,
+calculated schedule and actual observations stay separate. S2 dependency =
+verified interfaces (plan §3), not a merge.
+
+Verified: engine 411 tests (12 hand-derived synthetic contracts, invariants);
+full backend 1233 passed + 1 skipped on an isolated disposable *_test DB (S2
+was using lifeos_test and migrates it to its unmerged 0012); ruff; alembic head
+20261001_0011; web 882 / typecheck / lint / build. Next: L1 finance persistence.

@@ -1,0 +1,74 @@
+{
+  "id": "lender-b-daily-next-day-partial",
+  "description": "Synthetic lender B: as A, but the payment day accrues on the pre-payment balance (next_day effect).",
+  "derivation": [
+    "Jan 2..Jan 5 = 4 days x 123 = 492 (Jan 5 accrues before the payment)",
+    "payment 500 000: interest 492, principal 499 508 -> principal 735 059",
+    "Jan 6..Jan 10 = 5 days at 735 059 x 0.0001 = 73.5059 -> 74 -> 370; charged 862"
+  ],
+  "input": {
+    "schema_version": 1,
+    "model": "daily_accrual",
+    "currency": "UAH",
+    "balance_basis": "outstanding_principal",
+    "allocation": [
+      "fees",
+      "interest",
+      "principal"
+    ],
+    "payments": [
+      {
+        "date": "2026-01-05",
+        "amount_minor": 500000,
+        "kind": "regular",
+        "basis": "planned"
+      }
+    ],
+    "opening": {
+      "date": "2026-01-01",
+      "basis": "contractual_disbursement",
+      "principal_minor": 1234567
+    },
+    "horizon": {
+      "end_date": "2026-01-10"
+    },
+    "interest": {
+      "source_metric": "contractual_rate",
+      "kind": "fixed",
+      "value": "0.01",
+      "unit": "percent",
+      "per": "day"
+    },
+    "accrual": {
+      "first_day": "day_after_opening",
+      "payment_effect": "next_day"
+    },
+    "rounding": {
+      "mode": "half_up",
+      "step_minor": 1,
+      "interest_stage": "daily"
+    }
+  },
+  "expected": {
+    "status": "complete",
+    "closing": {
+      "principal_minor": 735059,
+      "interest_due_minor": 370
+    },
+    "totals": {
+      "interest_charged_minor": 862,
+      "allocated_minor": {
+        "fees": 0,
+        "interest": 492,
+        "principal": 499508
+      }
+    },
+    "rows_of_kind": {
+      "payment": [
+        {
+          "label": "planned_payment"
+        }
+      ]
+    }
+  }
+}

@@ -8,6 +8,9 @@ Columns: **Kind** — OWNER (approved by the owner on 2026-10-01), ARCH (routine
 under that approval; recorded so it can be reviewed), EXTERNAL (a prerequisite only the owner or a third
 party can supply). Approval never supplies credentials, keys, deployment facts or partner access.
 
+Loan-document workflow decisions (LD-xx, LA-xx, U-xx; 2026-10-01, later) are kept in
+`Outputs/Plans/jenkin-loan-document-decisions_20261001-163647.md`.
+
 ## 1. Owner-approved decisions
 
 | ID | Decision | Kind | Where it lives |

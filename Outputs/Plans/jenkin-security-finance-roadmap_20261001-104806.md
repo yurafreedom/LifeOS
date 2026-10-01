@@ -111,6 +111,11 @@ obligations with provenance; duplicate submissions are idempotent; nothing perso
 Acceptance: golden tests per model from synthetic contracts; explanation ledger reproduces totals; changing
 a term creates a new version and recomputes only from its effective date; unsupported inputs reported verbatim.
 
+**Status (2026-10-01, later):** the pure engine part of F2 is implemented as loan-document slice **L2** on
+`feat/jenkin-loan-engine-l2-20261001` (not merged): `apps/api/app/services/finance/calc/`, spec
+`Outputs/Plans/jenkin-loan-engine-l2-spec_20261001-163647.md`. Persistence (F1/L1) and every product surface
+remain open; plan: `Outputs/Plans/jenkin-loan-document-plan_20261001-163647.md`.
+
 ## F3 — task/calendar links and funding needs — APPROVED (after F2)
 
 - Durable **desired link state** plus recoverable, idempotent **reconciliation** with existing snapshots

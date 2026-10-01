@@ -1,0 +1,93 @@
+{
+  "id": "lender-l-annuity-prepayment-reduce-payment",
+  "description": "Synthetic lender L: lender F's annuity with a 50 000 prepayment on the first due date, fixed early-repayment fee 1 000, payment recalculated over the remaining term.",
+  "derivation": [
+    "P1 as lender F -> 200 993; prepayment 50 000 = fee 1 000 + principal 49 000 -> 151 993",
+    "A' = 151 993 x 0.01 x 1.0201 / 0.0201 = 77 138.34 -> 77 138",
+    "P2: interest 1 519.93 -> 1 520, principal 75 618 -> 76 375; P3: interest 763.75 -> 764, principal 76 375, payment 77 139",
+    "interest 3 000 + 1 520 + 764 = 5 284; payments 102 007 + 50 000 + 77 138 + 77 139 = 306 284"
+  ],
+  "input": {
+    "schema_version": 1,
+    "model": "amortizing",
+    "currency": "UAH",
+    "interest": {
+      "source_metric": "contractual_rate",
+      "kind": "fixed",
+      "value": "12",
+      "unit": "percent",
+      "per": "year",
+      "period_rate_rule": "annual_div_12"
+    },
+    "rounding": {
+      "mode": "half_up",
+      "step_minor": 1
+    },
+    "final_adjustment": "last_payment_settles_balance",
+    "opening": {
+      "date": "2026-01-15",
+      "basis": "contractual_disbursement",
+      "principal_minor": 300000
+    },
+    "horizon": {
+      "end_date": "2026-12-31"
+    },
+    "method": "annuity",
+    "term": {
+      "periods": 3,
+      "frequency": "monthly",
+      "first_payment_date": "2026-02-15",
+      "anchor_day": 15
+    },
+    "prepayments": [
+      {
+        "date": "2026-02-15",
+        "amount_minor": 50000,
+        "kind": "early_partial",
+        "basis": "planned"
+      }
+    ],
+    "early_repayment": {
+      "allowed": true,
+      "fee": {
+        "kind": "fixed",
+        "amount_minor": 1000
+      },
+      "recalculation": "reduce_payment"
+    }
+  },
+  "expected": {
+    "status": "complete",
+    "closing": {
+      "principal_minor": 0
+    },
+    "totals": {
+      "interest_minor": 5284,
+      "principal_minor": 300000,
+      "fees_minor": 1000,
+      "payments_minor": 306284
+    },
+    "rows_of_kind": {
+      "installment": [
+        {
+          "payment_minor": 102007
+        },
+        {
+          "interest_minor": 1520,
+          "payment_minor": 77138
+        },
+        {
+          "interest_minor": 764,
+          "payment_minor": 77139
+        }
+      ],
+      "prepayment": [
+        {
+          "fee_minor": 1000,
+          "principal_minor": 49000,
+          "closing_principal_minor": 151993
+        }
+      ]
+    }
+  }
+}
