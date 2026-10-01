@@ -139,7 +139,17 @@ function AuthProvider({ children }) {
 
   /* Cross-tab notices, server refusals and foreground/resume all revalidate. */
   React.useEffect(() => {
-    const channel = createAuthChannel(() => { void revalidate({ force: true }); });
+    const channel = createAuthChannel(({ type }) => {
+      const latest = stateRef.current;
+      void revalidate({
+        force: true,
+        // The other tab said it signed out: if this tab's session is gone too,
+        // say so (not "expired").
+        signedOutNotice: type === 'signed_out'
+          ? { kind: 'signed_out_elsewhere', email: latest.user?.email ?? null }
+          : null,
+      });
+    });
     channelRef.current = channel;
     const unsubscribe = onAuthSignal(() => { void revalidate({ force: true }); });
     const onForeground = () => {

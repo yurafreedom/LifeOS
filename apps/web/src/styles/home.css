@@ -493,7 +493,7 @@
 .sec-wrap { display: grid; gap: 6px; max-width: 640px; }
 .sec-inline { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .sec-inline .set-input { flex: 1 1 220px; min-width: 0; }
-.sec-badge { display: inline-block; padding: 2px 8px; border: 1px solid var(--border-s); border-radius: 999px; color: var(--fg2); font-size: 11px; }
+.sec-badge { display: inline-block; padding: 2px 8px; border: 1px solid var(--border-s); border-radius: 999px; color: var(--fg2); font-size: 12px; }
 .sec-badge.is-ok { color: var(--success); border-color: color-mix(in srgb, var(--success) 45%, transparent); }
 .sec-form { display: grid; gap: 8px; margin-top: 8px; max-width: 420px; }
 .sec-field { display: grid; gap: 4px; color: var(--fg2); font-size: var(--text-sm); }
@@ -505,7 +505,7 @@
 .sec-item .set-btn-ghost { justify-self: start; }
 .sec-item-main { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .sec-item-title { color: var(--fg1); font-size: var(--text-sm); overflow-wrap: anywhere; }
-.sec-item-meta { color: var(--fg3); font-size: 11px; overflow-wrap: anywhere; }
+.sec-item-meta { color: var(--fg3); font-size: 12px; overflow-wrap: anywhere; }
 .sec-manual { display: grid; gap: 8px; }
 .sec-manual p { margin: 0; }
 .sec-invite-form { margin: 6px 0; }

@@ -11,7 +11,7 @@ function noticeText(notice, t) {
   if (!notice) return '';
   if (notice.kind === 'expired') return t('auth_notice_expired', notice.email || '');
   if (notice.kind === 'signed_out') return t('auth_notice_signed_out');
-  if (notice.kind === 'signed_out_elsewhere') return t('auth_notice_signed_out_elsewhere');
+  if (notice.kind === 'signed_out_elsewhere') return t('auth_notice_signed_out_elsewhere', notice.email || '');
   if (notice.kind === 'password_reset') return t('auth_notice_password_reset');
   return '';
 }

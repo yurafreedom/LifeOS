@@ -82,6 +82,15 @@ export function completesTask(tasks, id) {
   return !!current && !current.done;
 }
 const initialStateRequests = new Map();
+/* A save that has not settled within this bound is treated as "not saved" for
+   logout purposes: the user gets the resolution dialog instead of a dead button. */
+const LOGOUT_SAVE_WAIT_MS = 5000;
+function settledWithin(promise, ms) {
+  return Promise.race([
+    Promise.resolve(promise).then(() => true, () => true),
+    new Promise(resolve => setTimeout(() => resolve(false), ms)),
+  ]);
+}
 
 /* ── Provider ─────────────────────────────────────────── */
 /* One provider instance serves exactly one account for one auth generation
@@ -169,6 +178,15 @@ function LifeDataProvider({ user, onSessionExpired, onLogout, children }) {
           if (!request) {
             const fresh = migrateStateCopy(buildInitialState());
             request = repositoryRef.current.replace(fresh, 0)
+              .catch(async error => {
+                /* Another tab of the same account created the first snapshot
+                   between our read and our write: use theirs, never overwrite. */
+                if (error instanceof ApiError && error.status === 409 && error.code === 'revision_conflict') {
+                  const existing = await repositoryRef.current.load(controller.signal);
+                  if (existing) return existing;
+                }
+                throw error;
+              })
               .finally(() => initialStateRequests.delete(user.id));
             initialStateRequests.set(user.id, request);
           }
@@ -224,7 +242,7 @@ function LifeDataProvider({ user, onSessionExpired, onLogout, children }) {
     return auth.setLogoutGuard(async () => {
       const coordinator = coordinatorRef.current;
       if (!coordinator || !coordinator.getUnsavedPayload()) return true;
-      await coordinator.retry();
+      await settledWithin(coordinator.retry(), LOGOUT_SAVE_WAIT_MS);
       if (coordinatorRef.current === coordinator && !coordinator.getUnsavedPayload()) return true;
       setLogoutDialog({ open: true, busy: false, error: '' });
       return false;
@@ -243,7 +261,7 @@ function LifeDataProvider({ user, onSessionExpired, onLogout, children }) {
   }
   async function retryLogoutSave() {
     setLogoutDialog(prev => ({ ...prev, busy: true, error: '' }));
-    await coordinatorRef.current?.retry();
+    await settledWithin(coordinatorRef.current?.retry(), LOGOUT_SAVE_WAIT_MS);
     if (coordinatorRef.current && !coordinatorRef.current.getUnsavedPayload()) {
       setLogoutDialog({ open: false, busy: false, error: '' });
       try {
