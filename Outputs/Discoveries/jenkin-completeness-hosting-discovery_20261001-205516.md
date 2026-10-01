@@ -4,6 +4,16 @@ Date: 2026-10-01 20:55 (Europe/Kyiv). Read-only discovery: no application code, 
 database, DNS, registrar, hosting or SMTP change was made. No deployment was made.
 Companion plan: `Outputs/Plans/jenkin-completeness-hosting-backlog_20261001-205516.md`.
 
+**Revised 2026-10-01 21:34 (Europe/Kyiv)** at the owner's request, as a documentation correction only. Changed:
+- concurrent-work facts (§0);
+- evidence levels: runtime-confirmed defects vs static findings awaiting reproduction (§1.0, §1.6);
+- the launcher's existing automatic backup, and historical-key recovery (§2.5);
+- the split between mandatory security gates and product recommendations (§2.7, §3);
+- the split between single-owner local/private use and a public multi-user service (§3);
+- which facts may be discussed, and which values must never be shared (§2.8).
+
+No application code was changed by this revision.
+
 ## 0. Baseline and method
 
 - **Inspected commit:** `69477c9365f06d6ac2831f124aa03b7a23fb5214` — tip of
@@ -14,9 +24,25 @@ Companion plan: `Outputs/Plans/jenkin-completeness-hosting-backlog_20261001-2055
 - **Concurrent work, preserved and not touched:**
   - The canonical checkout is on `handoff/jenkin-cloud-20260930`, with another session's staged branding files and the
     owner's untracked inputs.
-  - `feat/jenkin-usability-followup-20261001` is a worktree at `69477c9` with no commits yet; its scope is unknown.
   - The S1, S2, L2, launcher and combined worktrees hold only untracked QA ZIPs.
-  - No L1 branch exists on `origin` or locally, so L1 is **not started** as far as Git shows.
+- **Concurrent work, rechecked 2026-10-01 21:34 +0300** (after `git fetch --prune`; replaces the 20:55 observation):
+  - `feat/jenkin-usability-followup-20261001` (worktree `LifeOS_usability-followup`) now has two pushed commits on
+    `69477c9`:
+    - `03c00b8`: persisted RU/UK locale (`lifeOsLocale`, device-local, pre-paint), a sync chip that no longer
+      overlaps content, and 12 px Home hints;
+    - `eec7aeb`: report `Outputs/Implementations/jenkin-usability-followup_20261001.md` and master context §94.
+    - It is not merged into the integration branch or `main`.
+  - **L1 observation:** at 21:34 +0300, no local or `origin` branch name matched `l1`, `obligation` or a
+    loan slice other than `feat/jenkin-loan-engine-l2-20261001` (`daa8f55`, which is L2). No worktree is on an L1
+    branch either. This shows only that no L1 branch was **visible in Git** at that moment. It does not prove that no
+    L1 work exists elsewhere (an unpushed session, another machine).
+  - **L1 recheck at 21:38 +0300 (before committing this revision):**
+    - a new local branch `feat/jenkin-finance-l1-20261001` now exists, checked out in the worktree
+      `/Users/yurasachenko/LifeOS/LifeOS_finance-l1`;
+    - it is at `69477c9` with no commits and a clean tree, and it is not on `origin`.
+    - Treat L1 as **started by another session**. Its scope is the approved L1 plan until its report says otherwise.
+  - **Rule:** recheck branches, worktrees and the latest master-context section immediately before scheduling any
+    slice that could overlap active work.
 - **Records read:**
   - `AGENTS.md`;
   - `LIFEOS_MASTER_CONTEXT.md` §78–§93;
@@ -42,6 +68,11 @@ Companion plan: `Outputs/Plans/jenkin-completeness-hosting-backlog_20261001-2055
   - **partial** — a usable core exists with named gaps.
   - **missing** — no working path; a page may still render.
   - **externally blocked** — needs facts, credentials or a third party only the owner can supply.
+- **Evidence levels** (§1.0; the summary is in §1.6):
+  - **runtime-confirmed** — reproduced in a running build and recorded in a report;
+  - **static** — read from code (including the "verified" spot-checks above, which were also static reads). A static
+    finding is a hypothesis about behaviour until it is reproduced. A slice that fixes one must reproduce it first,
+    and drop it if it does not reproduce.
 
 Persistence fact used throughout: every LifeDataContext mutator persists through
 `StateSyncCoordinator.enqueue` → `PUT /api/v1/state` (`apps/web/src/context/LifeDataContext.jsx:222-226`,
@@ -49,6 +80,11 @@ Persistence fact used throughout: every LifeDataContext mutator persists through
 New accounts start empty (`apps/web/src/context/lifeData/initialState.js:11-44`); demo data is test-only.
 
 ## 1. Current-state matrix
+
+### 1.0 Evidence level of this matrix
+
+Every row is **static** unless it says otherwise. This discovery ran no build, browser or API (§0). The only row with
+runtime evidence is locale persistence. It was reproduced and fixed on the usability-followup branch (§1.2).
 
 ### 1.1 GTD: capture → clarify → organise → review → engage
 
@@ -80,7 +116,7 @@ New accounts start empty (`apps/web/src/context/lifeData/initialState.js:11-44`)
 | Onboarding / first run | **missing** | no first-run code; bootstrap lands on Home | Modules with add paths are usable. Habits, medications, dog and health have no first step. |
 | Placeholder routes | **missing** | `monthly`, `annual`, `investments` → `PlaceholderPage` (`App.jsx:254-259`), still in the sidebar (`Sidebar.jsx:55-57`) | Copy says "Sprint 4 построит этот раздел". |
 | Mobile navigation | **partial** | 5 fixed slots; "more" → Settings (`MobileBottomNav.jsx:26`, verified) | Habits, goals, projects, profile, health, dog, finances and medications are unreachable on a phone except by typing a hash. |
-| Locale persistence | **missing** | `useStateApp('ru')` (`App.jsx:441`, verified) | UK resets to RU on every reload. |
+| Locale persistence | **missing on `69477c9`; fixed on an unmerged branch** — **runtime-confirmed** | `useStateApp('ru')` (`App.jsx:441`); reproduced on `69477c9` in a real build (usability-followup report §1) | Fixed by `03c00b8` on `feat/jenkin-usability-followup-20261001` (device-local `lifeOsLocale`, pre-paint `<html lang>`). It is not merged. **Do not start a second locale implementation.** |
 
 ### 1.3 Authentication and account
 
@@ -126,10 +162,37 @@ New accounts start empty (`apps/web/src/context/lifeData/initialState.js:11-44`)
 - **Partial:** references; projects; Waiting creation; Tasks edge cases; goals; profile; Home; medications for
   existing records; finance operations; mobile navigation; account deletion.
 - **Missing:** next actions and Weekly Review and Engage (decisions pending); habits, medication creation, pet creation,
-  Health, onboarding, placeholder routes, locale persistence, email change, passkeys/recovery codes, income/budgets,
-  obligations and loans.
+  Health, onboarding, placeholder routes, email change, passkeys/recovery codes, income/budgets, obligations and
+  loans. Locale persistence is fixed on an unmerged branch (§1.2).
 - **Externally blocked:** production mail delivery (E-01/E-02/E-03), document activation (E-06/E-11), assisted
   extraction (L5, provider), banks (E-07/E-08), Diia (E-09), real-document accuracy claims (E-12).
+
+### 1.6 Confirmed runtime defects vs static findings awaiting reproduction
+
+**Runtime-confirmed** (reproduced in a running build; see the cited report):
+
+| Defect | Evidence | State |
+|---|---|---|
+| Locale resets to RU on reload | usability-followup report §1 (baseline `69477c9`) | fixed by `03c00b8`, unmerged |
+| Sync chip covers content at 390 and 768 px | same report §1 | fixed by `03c00b8`, unmerged (found there, not by this discovery) |
+| Home empty hints below 12 px | same report §1 | fixed by `03c00b8`, unmerged (found there, not by this discovery) |
+
+**Static findings awaiting reproduction.** These are likely defects read from code, but they have not been observed
+at runtime:
+- the Tasks category sort uses `tag` while Quick Add stores the category in `tagLabel`;
+- the finance «в итогах» total sums every transaction under a monthly label;
+- undated tasks have no close or archive action;
+- the empty-state `+ добавить привычку` button has no handler;
+- the dog page's "feed now", meal-history link, fixed 7000 g restock and `'буква'` placeholder;
+- `snoozeDose` / `skipDose` only log an activity;
+- the mobile "more" slot leads to Settings;
+- the Home budget card CTA leads to a Settings page with no budget setting;
+- weight edits do not feed the sparkline history;
+- account deletion has no UI and no re-authentication;
+- the stale «недельный обзор задач» copy.
+
+**Static observations that are not defects** (a capability is absent by plan or by decision): next actions, Weekly
+Review, Engage, Health, income, budgets, obligations, recovery codes and email change.
 
 ## 2. Hosting readiness
 
@@ -174,6 +237,8 @@ New accounts start empty (`apps/web/src/context/lifeData/initialState.js:11-44`)
   - The default web build has analytics off. The backend refuses `aa_write_enabled` in production.
   - A hosted JENKIN therefore has **no Adaptive Analytics, no System Review obligations and no finance mirror**, unless
     a separate slice re-verifies the guard and the owner lifts it.
+  - **The guard stays in place** until that separate verification (H5) is done. This discovery's observation that
+    its stated reason looks outdated is static and unverified, and it is not a reason to relax the guard.
   - The owner should decide this explicitly.
 
 ### 2.3 HTTPS, cookies, origin, proxy
@@ -231,16 +296,56 @@ Missing for public exposure:
 - **Runbook:** `Outputs/Runbooks/jenkin-document-keys-runbook.md` prescribes generation, escrow, permissions,
   rotation and lost-key handling, and a restore check (`documents-verify --deep` on a restored disposable DB). The
   roadmap still needs **the owner's review of the runbook**.
-- **Backups: no production tooling exists.**
-  - The only backup code is the launcher's pre-migration `pg_dump -Fc` and keyring copy (`launcher.py:640-662`).
-    It is local and never pruned.
-  - There is no scheduled backup, off-host copy, encryption of dumps, retention policy or practised restore.
+- **What already exists — the preview launcher's automatic pre-migration backup** (`scripts/preview/launcher.py`
+  `backup_before_migration`, introduced by `f525ce2` and present on `69477c9`):
+  - It runs **automatically** whenever `scripts/preview.sh` is about to migrate a database that already has a schema.
+    This includes `lifeos_preview_personal`.
+  - It takes a `pg_dump --format=custom`, plus a 0600 copy of that database's **existing** keyring
+    (`~/.jenkin-preview/secrets/keyring-<db>.json`) when one exists. A manifest is written with a restore command.
+  - It **fails closed:** without a complete dump, the migration does not run.
+  - Backups go to `~/.jenkin-preview/backups/` (0700) and are never pruned.
+  - A restore of one such backup into a fresh database and its decryption with the copied keyring were
+    **runtime-verified**. All 40 tables matched, the documents were SHA-256-equal, and a different keyring was
+    refused (usability-followup report §4.6). That backup was produced by calling the function directly, not through
+    a real upgrade, because no newer migration exists.
+- **The remaining gap is therefore narrower than "no backup":**
+  - **No scheduled backup.** A backup happens only when a migration happens, so data written between migrations has
+    no copy. The recovery point is "the last migration", which can be arbitrarily old.
+  - **No separation and no off-host copy.** The launcher puts the dump and the keyring copy **in the same directory
+    on the same disk** as the live database. One lost or stolen disk loses both, or exposes both. That contradicts key
+    runbook §3, which says keys and database backups belong in different places with different access.
+  - **Dumps are not encrypted** (0600 only).
+  - **No retention** that is coordinated with key retirement (below).
+  - **No backup-success signal** and **no practised, scheduled restore drill** for the owner's real database.
+  - **No production backup tooling** of any kind.
 - **What a database dump exposes** (plaintext-data plan): it holds S2 documents as ciphertext, but the snapshots
   (health, medications, notes, profile, tasks, transactions), the AA facts and the audit events are **plaintext**.
-- **Requirement:** every backup must therefore be encrypted at rest (for example with age or GPG, to a recipient key
-  held off-host), and the keyring must be stored separately from dumps.
-- **The same gap applies locally today:** the owner's `lifeos_preview_personal` has no scheduled backup. Only a
-  pre-migration dump exists, and the keyring copy is manual. This is a local-use risk, not only a hosting one.
+- **Requirement:**
+  - every backup stored off the machine must be encrypted at rest, for example with age or GPG, to a recipient
+    **public** key whose private key is held off-host;
+  - the keyring backup must be stored separately from database dumps.
+
+**Historical key recovery.** A database backup is recoverable only with **every KEK that its records use**. The
+currently active key is not enough:
+- Each `documents` / `document_versions` record names its `kek_id`. After a rotation (key runbook §5), backups made
+  before it still hold records wrapped by the previous KEK.
+- A KEK must therefore stay escrowed until the **last retained backup that uses it** has expired. Backup retention
+  and key retirement are one policy: retiring or destroying a KEK while a retained backup needs it makes that backup
+  partly unreadable, and the runbook says this cannot be recovered.
+- Each backup's manifest should record the set of KEK ids its records use. This needs only the `kek_id` column,
+  never key material. Ideally the set is read from the same snapshot as the dump. The key-escrow copy should be
+  checked against that set by id and check value (`keyring-check`).
+- **Data recoverability and rotation completion are separate checks:**
+  - **Recoverable:** every record in the restored backup authenticates with the supplied keyring (no `FAILED:`
+    lines).
+  - **Rotation complete:** every record in the **live** database uses the **active** key. This is the exit-0
+    condition of `documents-verify`.
+  - An older backup that restores cleanly but uses a previous KEK is **recoverable and correct**. It is not a
+    failure, and it must not be "fixed" by rotating the restored copy.
+  - Note that `documents-verify` exits 1 in both cases ("NOT complete … on other keys" and "FAILED"). It also advises
+    "Re-run documents-rotate", which is live-database advice. A restore drill must judge the failure list, not the
+    exit code (backlog H2).
+
 
 ### 2.6 Capacity, monitoring, rollout and rollback
 
@@ -284,6 +389,8 @@ Rollout and rollback:
   - the reverse-proxy, TLS and header configuration;
   - dependency CVEs (`pip-audit`, `npm audit` read-only — never `npm audit fix`);
   - backup encryption and the restore drill.
+- **When this review is mandatory:** before a **public multi-user** service. For a single-owner private deployment,
+  it is a strong recommendation, not a gate (§3).
 - **Open findings that should be on the audit's list:**
   - H-04 (plaintext browser storage);
   - plaintext snapshots and AA at rest;
@@ -293,52 +400,78 @@ Rollout and rollback:
   - account deletion with no re-authentication and the orphaned-owner case;
   - synchronous mail with no retry.
 
-## 3. Local-use vs public-hosting blockers
+### 2.8 What may be discussed, and what must never be shared
 
-**Local use** (owner on the Mac via `scripts/preview.sh --db-suffix personal`):
-1. **Owner action:** bootstrap the personal database. Whether to bring the old `lifeos_dev` data
-   (`20260721_0001`) forward is decision E-04; agents must not migrate it.
-2. **No regular backup** of the personal database and keyring (§2.5).
-3. **Empty account cannot start** habits, medications, a pet profile or Health (§1.2).
-4. **Daily friction:**
-   - UK locale resets on reload;
-   - undated tasks cannot be closed or archived;
-   - category sort is broken;
-   - finance totals are labelled monthly but are all-time;
-   - a transaction cannot be deleted.
-5. **Phone use is impossible** locally anyway (loopback only), so mobile navigation matters only once hosted.
+- **May be discussed in chat, plans and reports:**
+  - non-secret infrastructure facts: the hosting provider and region, the DNS provider, which record types exist,
+    the public hostname, the public IP once it is provisioned, ports, the proxy topology, and the PostgreSQL version;
+  - **public** keys: an age or GPG recipient key, DKIM **public** records, and KEK **ids** and check values (never key
+    bytes).
+- **Must never enter chat, Git, reports or logs:**
+  - private keys: the backup identity, the keyring file and KEK bytes, the TLS private key, the DKIM private key;
+  - credentials: database and SMTP passwords;
+  - tokens: the bootstrap token, session cookies, and invitation, reset or verification tokens;
+  - any personal data from a real account, including the owner's.
 
-**Public hosting** (in addition to the above):
-1. **External:**
-   - hosting choice and region;
-   - DNS records;
-   - TLS;
-   - SMTP and sender plus SPF/DKIM/DMARC (E-01, E-02);
-   - proxy topology (E-03);
-   - key custody (E-06);
-   - capacity limits (E-11);
-   - backup storage location and retention.
-2. **In-repo, no external facts needed:**
-   - production packaging (proxy config, process unit or container, complete `.env` template, logging, security
-     headers, source-map decision);
-   - an encrypted backup and restore drill;
-   - monitoring hooks;
-   - scheduled housekeeping;
-   - merge to `main` and a first release entry.
-3. **Before inviting anyone other than the owner:**
-   - account-deletion UI and the owner-deletion rule;
-   - email change;
-   - recovery codes (so that recovery does not depend only on mail);
-   - mobile navigation;
-   - an owner decision on the plaintext-data plan (snapshot field encryption).
-4. **Independent security review** (§2.7).
-5. **Owner decision** whether the hosted build includes analytics (AA production guard).
+  These go directly from the owner into a secret store or a 0600 / 0400 file on the host.
+
+## 3. Blockers by deployment mode
+
+The blockers differ by who can reach the app and who has an account. Three modes:
+- **Local:** the owner alone, on the Mac, loopback only, through `scripts/preview.sh --db-suffix personal`.
+- **Private hosted:** the owner alone, reachable over the internet; no other accounts are invited.
+- **Public multi-user:** other people hold accounts.
+
+A convenience feature is **not** a universal hosting blocker. In the table below:
+- **Gate** = mandatory before that mode;
+- **Rec.** = product recommendation;
+- **—** = not relevant.
+
+| Item | Local | Private hosted | Public multi-user |
+|---|---|---|---|
+| Owner bootstraps the personal DB. Bringing old `lifeos_dev` data forward is decision E-04, and agents must not migrate it. | owner action | owner action | owner action |
+| Scheduled, encrypted, separated backups, with a success check and a practised restore (H2) | **Gate** for relying on it as the only copy of real data | **Gate** | **Gate** |
+| Production packaging: TLS, `__Host-` cookie, production config, security headers (CSP/HSTS/frame-ancestors), logging (H1) | — | **Gate** | **Gate** |
+| Key custody and escrow (E-06), with retention coordinated with KEK retirement (§2.5) | **Gate** once real documents are stored | **Gate** if documents are enabled | **Gate** if documents are enabled |
+| Monitoring: uptime, certificate expiry, disk, backup staleness (H3) | Rec. (backup-staleness warning) | **Gate** | **Gate** |
+| Source maps not publicly served, or a deliberate decision to serve them (Q-H1-2) | — | owner decision | owner decision |
+| Dependency audit, read-only (`pip-audit`, `npm audit`) | Rec. | **Gate** | **Gate** |
+| Independent security review (§2.7) | — | Rec. (strong) | **Gate** |
+| AA production guard kept until H5 verifies it | stays as is (preview is not production) | **Gate** (keep) | **Gate** (keep) |
+| A working erasure path for other users' data, and the owner-deletion rule (A1). The API exists; it needs a re-auth decision and a UI or an owner-run procedure. | — | — | **Gate** |
+| Owner decision on the plaintext-data plan for other people's health and finance data | — | Rec. | **Gate** (a decision to accept or mitigate) |
+| Production mail (E-01/E-02), for invitations, verification and recovery | — | Rec. (manual links work) | **Gate** for self-service recovery |
+| Recovery codes (I1a) | — | Rec. | Rec. (strong) |
+| Email change (A2) | — | Rec. | Rec. |
+| Mobile navigation (U2 drawer) | — (loopback) | Rec. | Rec. |
+| Empty-account creation for habits, medications, pet and Health (U1/U3) | Rec. | Rec. | Rec. |
+| Daily-friction fixes (U0, Tasks lifecycle) | Rec. | Rec. | Rec. |
+| Merge to `main` and a first release entry (H6) | — | **Gate** (deploy from a tag) | **Gate** |
+
+**External facts for any hosted mode:**
+- hosting choice and region;
+- DNS records;
+- TLS;
+- proxy topology (E-03);
+- key custody (E-06);
+- capacity limits (E-11);
+- backup storage location and retention.
+
+SMTP (E-01/E-02) is needed only where the table says so.
+
+**Local daily friction** (static findings awaiting reproduction, §1.6, unless marked otherwise):
+- undated tasks cannot be closed or archived;
+- category sort;
+- finance totals labelled monthly but summed over all time;
+- no transaction delete.
+
+The UK-locale reset is runtime-confirmed and already fixed on an unmerged branch.
 
 ## 4. Inconsistencies found in the records (not fixed here)
 
 - **ID collision:** `E-11` means "memory/backup headroom for documents" in the security register, and "AI provider
   account/key" in the loan register. Renaming the loan one (for example to `E-13`) would remove the ambiguity.
 - **AA production guard:** the guard's reason ("until account export and erasure exist") appears outdated (§1.4).
-  Verify before relying on either reading.
+  Verify before relying on either reading, and keep the guard until that verification (H5) is done.
 - **Stale comments:** `App.jsx:343` and `TaskDetailModal.jsx:80` still describe Home seed rows.
 - **Stale copy:** the weekly task review copy in System Review (§1.1).
