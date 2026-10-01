@@ -77,7 +77,7 @@ def test_s7_38_44_account_export_carries_every_slice_7_row(
     _owner(client, settings, account_factory)
     _populate(client)
     manifest, tables = _read_zip(client.get("/api/v1/export"))
-    assert manifest["alembic_revision"] == "20260930_0009"
+    assert manifest["alembic_revision"] == "20261001_0010"
     assert set(M7_TABLES) <= set(manifest["aa_columns"])
     assert {row["status"] for row in tables["aa_importance_ratings"]} == {"active", "superseded"}
     assert {row["status"] for row in tables["aa_finance_contexts"]} == {"active", "superseded"}

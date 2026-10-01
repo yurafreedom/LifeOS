@@ -7,6 +7,12 @@ from sqlalchemy import inspect, text
 
 from alembic import command
 
+# M10 (JENKIN S1 account security, the head) adds these to users / sessions.
+# AA round trips run below M10, so they compare the pre-M10 account schema;
+# M10's own round trip is tests/test_account_security_migration.py.
+M10_ACCOUNT_COLUMNS = frozenset({"role", "email_verified_at", "password_changed_at", "device_label"})
+M10_ACCOUNT_CHECKS = frozenset({"ck_users_role"})
+
 
 def protected_schema(engine):
     inspector = inspect(engine)
@@ -15,8 +21,12 @@ def protected_schema(engine):
             "columns": [
                 (c["name"], str(c["type"]), c["nullable"], c["default"])
                 for c in inspector.get_columns(name)
+                if c["name"] not in M10_ACCOUNT_COLUMNS
             ],
-            "checks": inspector.get_check_constraints(name),
+            "checks": [
+                check for check in inspector.get_check_constraints(name)
+                if check["name"] not in M10_ACCOUNT_CHECKS
+            ],
             "fks": inspector.get_foreign_keys(name),
             "pk": inspector.get_pk_constraint(name),
             "indexes": inspector.get_indexes(name),

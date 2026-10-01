@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import CHAR, DateTime, ForeignKey, Index, func
+from sqlalchemy import CHAR, DateTime, ForeignKey, Index, String, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -27,3 +27,6 @@ class UserSession(Base):
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    # Coarse device description for the session list ("Chrome · macOS"): never
+    # the raw User-Agent, never an IP address.
+    device_label: Mapped[str | None] = mapped_column(String(80))

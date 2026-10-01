@@ -33,6 +33,35 @@ class Settings(BaseSettings):
     # Tests enable it deliberately; production may not enable it at all yet.
     aa_write_enabled: bool = False
 
+    # ── JENKIN S1 · account security ─────────────────────────────────────
+    # Public address of the web app, used only to build links in mail
+    # (password reset, email verification, invitations). Required in
+    # production (https); development falls back to the first allowed origin.
+    public_app_url: str | None = None
+    # Mail delivery behind one interface (app/mail):
+    #   disabled — nothing can be sent; flows that need mail say so honestly;
+    #   memory   — tests only (in-process outbox);
+    #   file     — development only: one .eml file per message in mail_file_dir;
+    #   smtp     — production SMTP (STARTTLS or implicit TLS).
+    mail_backend: Literal["disabled", "memory", "file", "smtp"] = "disabled"
+    mail_from: str | None = None
+    mail_file_dir: str | None = None
+    smtp_host: str | None = None
+    smtp_port: int = Field(default=587, gt=0, lt=65536)
+    smtp_username: str | None = None
+    smtp_password: SecretStr | None = None
+    smtp_security: Literal["starttls", "ssl", "none"] = "starttls"
+    smtp_timeout_seconds: float = Field(default=10.0, gt=0)
+    # Token lifetimes (seconds). Invitations: 7 days (owner decision).
+    invitation_ttl_seconds: int = Field(default=7 * 24 * 3600, gt=0)
+    password_reset_ttl_seconds: int = Field(default=3600, gt=0)
+    email_verification_ttl_seconds: int = Field(default=24 * 3600, gt=0)
+    # Reverse proxies whose X-Forwarded-For entries are trusted for the client
+    # network used by throttling and audit. 0 = use the socket peer address.
+    trusted_proxy_hops: int = Field(default=0, ge=0, le=5)
+    # Security audit events older than this are purged opportunistically.
+    audit_retention_days: int = Field(default=365, gt=0)
+
     @field_validator("database_url")
     @classmethod
     def validate_database_url(cls, value: str) -> str:
@@ -74,7 +103,25 @@ class Settings(BaseSettings):
                     "aa_write_enabled must stay false in production until account export "
                     "and erasure exist"
                 )
+            if self.mail_backend in {"memory", "file"}:
+                raise ValueError("memory and file mail backends are not allowed in production")
+            if self.mail_backend == "smtp":
+                if not self.smtp_host or not self.mail_from or not self.public_app_url:
+                    raise ValueError(
+                        "smtp mail requires smtp_host, mail_from and public_app_url"
+                    )
+                if self.smtp_security == "none":
+                    raise ValueError("smtp_security none is not allowed in production")
+            if self.public_app_url and not self.public_app_url.startswith("https://"):
+                raise ValueError("public_app_url must be https in production")
+        if self.mail_backend == "file" and not self.mail_file_dir:
+            raise ValueError("the file mail backend requires mail_file_dir")
         return self
+
+    @property
+    def app_url(self) -> str:
+        """Base URL for links in mail (no trailing slash)."""
+        return (self.public_app_url or self.allowed_origins[0]).rstrip("/")
 
     @property
     def cookie_name(self) -> str:

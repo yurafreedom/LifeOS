@@ -15,6 +15,7 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from alembic import command
 from app.config import Settings
+from app.mail import MemoryMailDelivery
 from app.main import create_app
 from app.models import User, UserSession
 from app.security.passwords import hash_password
@@ -93,6 +94,10 @@ TRUNCATED_TABLES: tuple[str, ...] = (
     "aa_signal_episodes",
     "aa_source_coverage",
     "aa_measurements",
+    "auth_audit_events",
+    "auth_throttle",
+    "account_invitations",
+    "auth_tokens",
     "user_snapshots",
     "sessions",
     "users",
@@ -129,8 +134,16 @@ def settings(test_database_url: str) -> Settings:
 
 
 @pytest.fixture
-def app(settings: Settings, session_factory: sessionmaker[Session]) -> FastAPI:
-    return create_app(settings=settings, session_factory=session_factory)
+def mail() -> MemoryMailDelivery:
+    """In-process outbox: no test ever sends real mail."""
+    return MemoryMailDelivery()
+
+
+@pytest.fixture
+def app(
+    settings: Settings, session_factory: sessionmaker[Session], mail: MemoryMailDelivery
+) -> FastAPI:
+    return create_app(settings=settings, session_factory=session_factory, mail=mail)
 
 
 @pytest.fixture

@@ -27,12 +27,22 @@ from app.models.aa_signal_episode import AASignalEpisode
 from app.models.aa_source_coverage import AASourceCoverage
 from app.models.aa_system_review_revision import AASystemReviewRevision
 from app.models.aa_target import AATarget
+from app.models.account_security import (
+    AccountInvitation,
+    AuthAuditEvent,
+    AuthThrottle,
+    AuthToken,
+)
 from app.models.base import Base
 from app.models.session import UserSession
 from app.models.user import User
 from app.models.user_snapshot import UserSnapshot
 
 __all__ = [
+    "AccountInvitation",
+    "AuthAuditEvent",
+    "AuthThrottle",
+    "AuthToken",
     "AAExpectationVersion",
     "AAForecastVersion",
     "AABaseline",

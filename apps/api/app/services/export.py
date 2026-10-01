@@ -48,6 +48,8 @@ from app.models import (
     AASourceCoverage,
     AASystemReviewRevision,
     AATarget,
+    AccountInvitation,
+    AuthAuditEvent,
     Base,
     User,
     UserSession,
@@ -147,7 +149,8 @@ def build_account_export(factory: sessionmaker[Session], *, user_id: UUID) -> Bi
                 raise RuntimeError("AA export registry does not cover the database AA schema")
             statements = {
                 "account": select(
-                    User.id, User.email, User.is_active, User.created_at, User.updated_at
+                    User.id, User.email, User.is_active, User.role, User.email_verified_at,
+                    User.password_changed_at, User.created_at, User.updated_at,
                 ).where(User.id == user_id),
                 "sessions": select(
                     UserSession.id,
@@ -155,7 +158,28 @@ def build_account_export(factory: sessionmaker[Session], *, user_id: UUID) -> Bi
                     UserSession.created_at,
                     UserSession.last_seen_at,
                     UserSession.expires_at,
+                    UserSession.device_label,
                 ).where(UserSession.user_id == user_id),
+                # JENKIN S1: the account's own security history and the
+                # invitations it issued — never token digests.
+                "auth_audit_events": select(
+                    AuthAuditEvent.id,
+                    AuthAuditEvent.occurred_at,
+                    AuthAuditEvent.event,
+                    AuthAuditEvent.session_id,
+                    AuthAuditEvent.network,
+                    AuthAuditEvent.device_label,
+                    AuthAuditEvent.details,
+                ).where(AuthAuditEvent.user_id == user_id).order_by(AuthAuditEvent.id),
+                "account_invitations": select(
+                    AccountInvitation.id,
+                    AccountInvitation.email,
+                    AccountInvitation.created_at,
+                    AccountInvitation.expires_at,
+                    AccountInvitation.accepted_at,
+                    AccountInvitation.revoked_at,
+                    AccountInvitation.delivery,
+                ).where(AccountInvitation.invited_by == user_id).order_by(AccountInvitation.created_at),
                 "user_snapshots": select(UserSnapshot.__table__).where(
                     UserSnapshot.user_id == user_id
                 ),
@@ -202,7 +226,12 @@ def build_account_export(factory: sessionmaker[Session], *, user_id: UUID) -> Bi
                         "numeric_encoding": "decimal string",
                         "missing_measurement": "no row",
                         "coverage": "explicit source evidence, not transaction presence",
-                        "excluded_secrets": ["password_hash", "session token/hash"],
+                        "excluded_secrets": [
+                            "password_hash",
+                            "session token/hash",
+                            "reset/verification/invitation token digests",
+                            "login throttle counters",
+                        ],
                     },
                 }
                 zipped.writestr("manifest.json", encode_json(manifest))

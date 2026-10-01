@@ -638,7 +638,7 @@ def test_no_project_table_no_migration_and_an_unchanged_export_registry(engine):
     assert script.get_revision("20260929_0007").down_revision == "20260928_0006"
     # M7 (Slice 7) sits on M6; still no project table anywhere in the chain.
     assert script.get_revision("20260930_0008").down_revision == "20260929_0007"
-    assert script.get_heads() == ["20260930_0009"]
+    assert script.get_heads() == ["20261001_0010"]
     assert not any("project" in name for name in EXPORT_TABLES)
     mapped_aa = {name for name in Base.metadata.tables if name.startswith("aa_")}
     assert mapped_aa <= set(EXPORT_TABLES) | {"aa_metric_definitions"}

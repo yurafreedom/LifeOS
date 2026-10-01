@@ -279,7 +279,7 @@ def test_r8_53_57_56_isolation_export_and_account_deletion(
         manifest = json.loads(archive.read("manifest.json"))
         policies = archive.read("aa_retention_policies.ndjson").decode().splitlines()
         runs = archive.read("aa_retention_runs.ndjson").decode().splitlines()
-    assert manifest["alembic_revision"] == "20260930_0009"
+    assert manifest["alembic_revision"] == "20261001_0010"
     assert manifest["snapshot_schema_version"] == 2
     assert len(policies) == 1 and len(runs) == 1
     assert json.loads(runs[0])["status"] == "completed"

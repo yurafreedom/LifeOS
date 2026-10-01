@@ -5,6 +5,7 @@ from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from app.config import Settings, get_settings
 from app.db import create_engine_from_settings, create_session_factory
+from app.mail import MailDelivery, build_mail_delivery
 from app.middleware.body_limit import SnapshotBodyLimitMiddleware
 from app.middleware.private_cache import PrivateNoStoreMiddleware
 from app.routes import (
@@ -22,6 +23,7 @@ from app.routes import (
     aa_subjects,
     aa_system_review,
     account,
+    account_security,
     auth,
     export,
     health,
@@ -32,6 +34,7 @@ from app.routes import (
 def create_app(
     settings: Settings | None = None,
     session_factory: sessionmaker[Session] | None = None,
+    mail: MailDelivery | None = None,
 ) -> FastAPI:
     resolved_settings = settings or get_settings()
     resolved_factory = session_factory
@@ -47,6 +50,7 @@ def create_app(
     )
     app.state.settings = resolved_settings
     app.state.session_factory = resolved_factory
+    app.state.mail = mail or build_mail_delivery(resolved_settings)
 
     app.add_middleware(
         SnapshotBodyLimitMiddleware,
@@ -68,6 +72,7 @@ def create_app(
     app.include_router(aa_history.router)
     app.include_router(export.router)
     app.include_router(account.router)
+    app.include_router(account_security.router)
     app.include_router(aa_facts.router)
     app.include_router(aa_finance.router)
     app.include_router(aa_import.router)

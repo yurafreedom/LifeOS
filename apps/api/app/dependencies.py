@@ -27,6 +27,7 @@ from sqlalchemy.orm import Session
 
 from app.config import Settings
 from app.db import get_db
+from app.mail import MailDelivery
 from app.models import User
 from app.services.auth import AuthenticatedSession, resolve_session
 
@@ -35,6 +36,10 @@ ACCOUNT_HEADER = "X-LifeOS-Account"
 
 def get_request_settings(request: Request) -> Settings:
     return request.app.state.settings
+
+
+def get_mail(request: Request) -> MailDelivery:
+    return request.app.state.mail
 
 
 def get_current_session(

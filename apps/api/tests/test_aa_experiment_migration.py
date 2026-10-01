@@ -111,8 +111,8 @@ def insert_experiment(engine, user_id, **columns) -> str:
 
 def test_m6_chain_is_linear_on_m5(test_database_url):
     script = ScriptDirectory.from_config(_config(test_database_url))
-    # M7 (Slice 7) sits directly on M6; M8 (Slice 8) is the head.
-    assert script.get_heads() == ["20260930_0009"]
+    # M7 (Slice 7) sits directly on M6; M10 (JENKIN S1 account security) is the head.
+    assert script.get_heads() == ["20261001_0010"]
     assert script.get_revision("20260930_0008").down_revision == M6
     assert script.get_revision(M6).down_revision == M5
 

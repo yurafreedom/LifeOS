@@ -95,9 +95,10 @@ def _rejects(callable_, *args, **kwargs):
 # ───────────────────── chain, roundtrip, registries ─────────────────────
 
 
-def test_m8_is_the_single_head_on_m7(test_database_url):
+def test_m8_sits_on_m7_under_the_m10_head(test_database_url):
     script = ScriptDirectory.from_config(_config(test_database_url))
-    assert script.get_heads() == [M8]
+    assert script.get_heads() == ["20261001_0010"]
+    assert script.get_revision("20261001_0010").down_revision == M8
     assert script.get_revision(M8).down_revision == M7
 
 
