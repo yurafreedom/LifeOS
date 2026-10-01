@@ -1,4 +1,10 @@
 # Life OS — Architecture Reference
+
+> **Historical document (prototype era, June 2026).** It describes the original
+> browser-only `ui_kits/life-os` prototype (Babel in the browser, `localStorage`
+> persistence, single user). It is **not** the current architecture. Current
+> product and architecture: [`docs/product/JENKIN_PRODUCT_OVERVIEW.md`](docs/product/JENKIN_PRODUCT_OVERVIEW.md);
+> where code lives: [`Outputs/architecture/module-boundaries.md`](Outputs/architecture/module-boundaries.md).
 _Last updated: end of Sprint 3.6 (CLOSED — June 11, 2026)_
 
 ## What this is
@@ -16,7 +22,7 @@ Personal life-management dashboard. Single user, dogfooded. Combines tasks, fina
 
 ```
 /
-├── README.md                       — design system overview, brand spec, content rules
+├── README.md                       — design system overview, brand spec, content rules (now docs/design-system/README.md)
 ├── SKILL.md                        — cross-compatible Agent Skill manifest
 ├── ARCHITECTURE.md                 — this file
 ├── colors_and_type.css             — root tokens (color, type, radii, spacing, motion)

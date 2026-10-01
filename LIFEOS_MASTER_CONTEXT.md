@@ -22,6 +22,10 @@ custody (E-06); verify live.
 and the local preview launcher (section 91) are merged and verified together on
 the pushed branch integration/jenkin-combined-20261001 — section 92 is the
 current reconciled JENKIN state. Not merged into main, not deployed; verify live.
+2026-10-01 (later): the product/architecture overview
+(docs/product/JENKIN_PRODUCT_OVERVIEW.md) and the in-app update history
+(#/updates, canonical apps/web/src/data/releaseNotes.json) are on the same
+integration branch — section 93. L1 is still not started.
 
 You are working on a real software project called LifeOS.
 
@@ -3637,3 +3641,42 @@ temp file stay plaintext; not end-to-end. Production blocked on E-06/E-11.
 L2 is a calculation library only — no table, route or UI; NOT wired into the
 product. Next slice: L1/F1 finance persistence and confirmed-term mapping into
 the L2 input schema, then L3 intake (document → extraction → editable review).
+
+====================================================================
+93. JENKIN PRODUCT OVERVIEW + UPDATE HISTORY PAGE (PUSHED BRANCH, 2026-10-01)
+====================================================================
+
+Branch integration/jenkin-combined-20261001 (same integration branch, worktree
+LifeOS_combined; not merged into main, no PR, no deploy; verify live). Start
+4514e80 (section 92). Report:
+Outputs/Implementations/jenkin-product-overview-release-notes_20261001.md
+
+- Readable product + architecture overview (Russian):
+  docs/product/JENKIN_PRODUCT_OVERVIEW.md — the place for "what is JENKIN,
+  what is implemented vs planned"; this file stays the operational context and
+  links to it instead of duplicating it. The root README is now the JENKIN
+  introduction; the original design-system README moved to
+  docs/design-system/README.md (SKILL.md updated); ARCHITECTURE.md is marked
+  historical (prototype era).
+- Version policy: build version = apps/web/package.json version (0.1.0, not a
+  release); a release = a 'released' entry with semver + real date; at most one
+  'unreleased' entry, first, no version/date. NO formal release exists; do not
+  invent versions or dates; commit dates are not release dates.
+- Canonical release data: apps/web/src/data/releaseNotes.json (schema v1,
+  validated by src/domain/releaseNotes.js). It renders #/updates (Settings →
+  о JENKIN, #/settings/about) and generates the root CHANGELOG.md via
+  `npm run release-notes` (apps/web; `-- --check` + a test fail on drift).
+  Process: docs/product/RELEASE_NOTES_PROCESS.md. Describe only what the target
+  build contains; never auto-convert commits into entries.
+- Proposed future address https://jenkin.sachenkolabs.tech (owner owns
+  sachenkolabs.tech) — PROPOSED ONLY: no DNS, hosting, TLS, SMTP or mail
+  address configured or chosen.
+- Verified: web 943 tests / 60 files, typecheck, lint, build, release-notes
+  check, git diff --check; browser 80/80 matrix (5 widths × RU/UK × 4 theme
+  states × 2 fonts) + paradise re-check 20/20, keyboard disclosure, long titles,
+  no console errors, on lifeos_preview_combinedqa (synthetic user
+  updates-qa@example.com). Backend unchanged (not re-run). Locale pins
+  ru 2089 / uk 2088; LIFE_ROUTES 23.
+- Next (unchanged): L1/F1 finance persistence and confirmed-term mapping into
+  the L2 input schema, then L3 intake. When a user-facing slice lands, add its
+  notes to the 'unreleased' entry.

@@ -6,7 +6,7 @@ user-invocable: true
 
 # Life OS — design skill
 
-Read the `README.md` file within this skill first — it contains the brand context, content fundamentals, visual foundations, and iconography rules in detail. Then explore:
+Read `docs/design-system/README.md` first — it contains the brand context, content fundamentals, visual foundations, and iconography rules in detail. Then explore:
 
 - `colors_and_type.css` — every token (color, type, radii, spacing, motion). Import this into any artifact you make.
 - `assets/` — logo SVGs (`logo.svg`, `logomark.svg`).
@@ -23,7 +23,7 @@ Stakes = goals, money moments, "today", high-priority, irreversible commits, tel
 
 If creating visual artifacts (slides, mocks, throwaway prototypes, etc), copy assets out and create static HTML files for the user to view. Always import `colors_and_type.css` first.
 
-If working on production code, copy the relevant `ui_kits/life-os/*.jsx` components and `styles.css`, and read the rules in `README.md` to become an expert.
+If working on production code, copy the relevant `ui_kits/life-os/*.jsx` components and `styles.css`, and read the rules in `docs/design-system/README.md` to become an expert.
 
 The UI kit at `ui_kits/life-os/` ships with full i18n: `i18n.jsx` is RU primary, UA secondary. An EN slot is reserved in the data model but deliberately not rendered (no toggle UI for it yet) — when EN strings are written, add `en` to the `LIFE_LOCALES` list and the toggle picks it up. Categories live in `categories.jsx` (16 expense + 6 income), each with a Lucide icon ref and a tint class (`routine` / `stakes` / `income` / `neutral`).
 

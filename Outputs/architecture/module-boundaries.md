@@ -282,6 +282,20 @@ Both dictionaries are loaded synchronously (12 modules read
 | the decrypted-documents export row | `components/settings/ExportSection.jsx::DocumentsExportRow` |
 | layout | `styles/finance-calendar.css` (`.doc-*`) |
 
+### Release notes and build version (JENKIN update history)
+
+One canonical source; nothing else holds release content. Process:
+`docs/product/RELEASE_NOTES_PROCESS.md`.
+
+| I want to… | Go to |
+|---|---|
+| add or edit a user-facing update entry | `data/releaseNotes.json` (RU + UK), then `npm run release-notes` in `apps/web` to regenerate the root `CHANGELOG.md` (never edit it by hand; `release-notes.test.jsx` fails on drift) |
+| change the schema / validation (statuses, ordering, forbidden content) | `domain/releaseNotes.js` (pure, no imports — also used by the Node generator) |
+| change the CHANGELOG.md format | `domain/releaseNotesChangelog.js` + `scripts/release-notes.mjs` (labels come from the `upd_*` locale keys) |
+| the build version shown in the app | `apps/web/package.json` `version`, read by `app/releaseInfo.js` (`APP_BUILD_VERSION`); a build version is not a release |
+| the Updates page (`#/updates`, lazy) | `pages/updates/UpdatesPage.jsx` + `pages/updates/updates.css` (loaded with the page chunk, outside the layer manifest, tokens only) |
+| Settings → About (`#/settings/about`) | `components/SettingsPage.jsx::AboutSection` (styles `.set-about-*` in `styles/home.css`) |
+
 ### Operational state
 
 **`context/LifeDataContext.jsx`** is the single operational snapshot provider
