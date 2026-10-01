@@ -435,14 +435,15 @@ def test_quotas_are_exact(doc_settings, session_factory, mail, keyring, account_
 @pytest.mark.parametrize(
     "mutation",
     [
-        "UPDATE document_blobs SET content_ciphertext = overlay(content_ciphertext placing "
-        "'\\x00'::bytea from 20 for 1)",
+        # XOR flips a bit unconditionally (writing a fixed byte is a no-op 1 time in 256).
+        "UPDATE document_blobs SET content_ciphertext = set_byte(content_ciphertext, 19, "
+        "get_byte(content_ciphertext, 19) # 1)",
         "UPDATE document_blobs SET content_ciphertext = substring(content_ciphertext from 1 "
         "for octet_length(content_ciphertext) - 1)",
         "UPDATE document_versions SET size_bytes = size_bytes - 1",
         "UPDATE document_versions SET content_type = 'image/jpeg'",
-        "UPDATE document_versions SET wrapped_dek = overlay(wrapped_dek placing '\\x01'::bytea "
-        "from 30 for 1)",
+        "UPDATE document_versions SET wrapped_dek = set_byte(wrapped_dek, 29, "
+        "get_byte(wrapped_dek, 29) # 1)",
     ],
 )
 def test_tampered_records_are_detected_and_never_returned(doc_client, owner, session_factory,
@@ -652,7 +653,7 @@ def test_documents_export_marks_unreadable_versions_honestly(doc_client, owner, 
     doc_id = _created(upload(doc_client, make_png()))["id"]
     with session_factory.begin() as db:
         db.execute(text("UPDATE document_blobs SET content_ciphertext = "
-                        "overlay(content_ciphertext placing '\\x00'::bytea from 20 for 1)"))
+                        "set_byte(content_ciphertext, 19, get_byte(content_ciphertext, 19) # 1)"))
     archive = zipfile.ZipFile(io.BytesIO(doc_client.get("/api/v1/export/documents").content))
     entry = json.loads(archive.read("documents.json"))["documents"][0]
     assert entry["id"] == doc_id
