@@ -6,15 +6,17 @@ from sqlalchemy.orm import Session
 
 from app.config import Settings
 from app.db import get_db
-from app.dependencies import get_current_user, get_request_settings
+from app.dependencies import check_account_binding, get_current_session, get_request_settings
 from app.models import User
 from app.schemas.auth import BootstrapRequest, LoginRequest, SessionUser
 from app.security.origin import enforce_same_origin, require_json_content_type
 from app.security.sessions import clear_session_cookie, set_session_cookie
 from app.services.auth import (
+    AuthenticatedSession,
     AuthServiceError,
     authenticate_user,
     bootstrap_first_user,
+    resolve_session,
     revoke_session,
 )
 
@@ -80,6 +82,11 @@ def logout(
     enforce_same_origin(request, settings)
     raw_token = request.cookies.get(settings.cookie_name)
     if raw_token:
+        # A stale tab that still believes it is account A must not sign out the
+        # account B that another tab signed in: an explicit binding must match.
+        authenticated = resolve_session(db, raw_token, settings, touch=False)
+        if authenticated is not None:
+            check_account_binding(request, authenticated, required=False)
         revoke_session(db, raw_token)
     response = Response(status_code=status.HTTP_204_NO_CONTENT)
     clear_session_cookie(response, settings)
@@ -87,5 +94,6 @@ def logout(
 
 
 @router.get("/me", response_model=SessionUser)
-def me(user: Annotated[User, Depends(get_current_user)]) -> User:
-    return user
+def me(authenticated: Annotated[AuthenticatedSession, Depends(get_current_session)]) -> User:
+    """Identity discovery: deliberately unbound, so a tab can learn who is signed in."""
+    return authenticated.user

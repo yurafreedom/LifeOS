@@ -6,6 +6,7 @@ from starlette.middleware.trustedhost import TrustedHostMiddleware
 from app.config import Settings, get_settings
 from app.db import create_engine_from_settings, create_session_factory
 from app.middleware.body_limit import SnapshotBodyLimitMiddleware
+from app.middleware.private_cache import PrivateNoStoreMiddleware
 from app.routes import (
     aa_comparison,
     aa_experiments,
@@ -51,6 +52,7 @@ def create_app(
         SnapshotBodyLimitMiddleware,
         max_bytes=resolved_settings.max_snapshot_bytes,
     )
+    app.add_middleware(PrivateNoStoreMiddleware)
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=resolved_settings.allowed_hosts)
 
     @app.exception_handler(HTTPException)

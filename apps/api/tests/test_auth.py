@@ -20,7 +20,8 @@ def test_bootstrap_creates_only_first_account_and_session(
     assert response.status_code == 201
     assert response.json()["email"] == "owner@example.com"
     assert settings.cookie_name in response.cookies
-    assert client.get("/api/v1/state").status_code == 404
+    bound = {"X-LifeOS-Account": response.json()["id"]}
+    assert client.get("/api/v1/state", headers=bound).status_code == 404
 
     second_response = client.post(
         "/api/v1/auth/bootstrap",

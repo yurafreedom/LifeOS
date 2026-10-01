@@ -46,4 +46,7 @@ def correction_payload(**overrides: Any) -> dict[str, Any]:
 
 
 def authenticate(client: Any, settings: Any, account: Any) -> None:
+    """Sign the client in as ``account`` the way the web client does: the session
+    cookie plus the account binding header that every protected route requires."""
     client.cookies.set(settings.cookie_name, account.raw_token)
+    client.headers["X-LifeOS-Account"] = str(account.user_id)

@@ -1,13 +1,14 @@
 from fastapi.testclient import TestClient
 
 from app.config import Settings
+from tests.aa_helpers import authenticate
 
 
 def test_state_replace_uses_compare_and_swap(
     client: TestClient, account_factory, settings: Settings
 ) -> None:
     account = account_factory("person@example.com")
-    client.cookies.set(settings.cookie_name, account.raw_token)
+    authenticate(client, settings, account)
 
     created = client.put(
         "/api/v1/state",

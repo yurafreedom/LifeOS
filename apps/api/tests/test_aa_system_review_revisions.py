@@ -101,6 +101,7 @@ def test_s7_49_concurrency_is_deterministic(client, settings, account_factory, a
     def attempt() -> None:
         with TestClient(app, headers={"Origin": "http://testserver"}) as other:
             other.cookies.update(cookies)
+            other.headers["X-LifeOS-Account"] = client.headers["X-LifeOS-Account"]
             results.append(save(other, base=1, reflection="параллельно").status_code)
 
     threads = [threading.Thread(target=attempt) for _ in range(4)]
