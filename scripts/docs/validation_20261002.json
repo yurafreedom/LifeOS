@@ -1,0 +1,20 @@
+{
+  "collector_fixture_tests": 7,
+  "unchanged_input_repeatability": "all navigation/manifest/link-map and objects byte-identical",
+  "after_copy_eligible_filesystem_checks": 1820,
+  "distinct_eligible_objects_hash_checked": 205,
+  "all_candidate_dispositions": 1994,
+  "source_branch_head_and_index_unchanged": 13,
+  "external_source_status_changes": [
+    {
+      "source_id": "LifeOS_security-audit-20261001-215642",
+      "observed_status_change": "?? Outputs/Audits/jenkin-security-20261001-215642/repro.zip; "
+    }
+  ],
+  "local_and_remote_tracking_main_integration_refs_unchanged": true,
+  "recovery_stash_object_present_and_untouched": true,
+  "manifest_sha256": "7a327be7a58b7a5acdd1e7d65541346c94916a3b4f417d5135d0e0cf734ad0f9",
+  "link_map_sha256": "a6bfb9eb833f1a5a8930083268aa13ca8a76eb36926fcff4a6c6cc6cdc39a392",
+  "exact_object_whitespace_exception": "Inherited technical-discovery trailing space preserved under scoped blank-at-eol attribute",
+  "staged_imported_objects_sha256_verified": 205
+}

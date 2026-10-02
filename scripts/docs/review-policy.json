@@ -1,0 +1,186 @@
+{
+  "reviewed_sha256": {
+    "bb4519cd53b6afc6ff94c143d52de49a052ac6508393f40740bdea7d6e336f9f": "Reviewed: schema type annotation, descriptive generated token, or historical verification-only/example command; no actual live credential identified.",
+    "46ad8e37e66cd19787b018aa277eebb4b8fe44f7d64695998c446bfcf8b3cdc7": "Reviewed: explicitly synthetic/disposable QA email, fabricated long email fixture or proposed project sender address; no real account/financial/medical records.",
+    "99c73c0bc77ae7fcb6c64ba43abf3ab4d1c8b1360cd118e2c8314b4fa1598b4c": "Reviewed: explicitly synthetic/disposable QA email, fabricated long email fixture or proposed project sender address; no real account/financial/medical records.",
+    "42f956da8bfbb1b7dddf49e4a1f504ab212772f8ebbf3f4daabc5c3a03ad2fb0": "Reviewed: explicitly synthetic/disposable QA email, fabricated long email fixture or proposed project sender address; no real account/financial/medical records.",
+    "c11d126e6a5dea5e73aa57b8580485d22f6fe34eb19b7fec20e5c0c73d015ff0": "Reviewed: explicitly synthetic/disposable QA email, fabricated long email fixture or proposed project sender address; no real account/financial/medical records.",
+    "3783fa87393441ea53e4d5c8aa8ade79d2266b3319b0cfa739c67111bfe89e36": "Reviewed: explicitly synthetic/disposable QA email, fabricated long email fixture or proposed project sender address; no real account/financial/medical records.",
+    "c51de51c7a2ebb2f7b2704455064099181f3f0cb097698969c801bce9c38eda8": "Reviewed: explicitly synthetic/disposable QA email, fabricated long email fixture or proposed project sender address; no real account/financial/medical records.",
+    "620b6748f377822a738f74b0e9976f07190d32f0eb1f41d60d797b7090760598": "Reviewed: explicitly synthetic/disposable QA email, fabricated long email fixture or proposed project sender address; no real account/financial/medical records.",
+    "3e7f6bece3cfcee025347d500b34bf6f8a9390e2ff384e7179f658b3d14b88b0": "Reviewed: explicitly synthetic/disposable QA email, fabricated long email fixture or proposed project sender address; no real account/financial/medical records.",
+    "618100b7adad3aeaa5de36832ac7daa9f8fc752e5fc68fb301f664213b79b54e": "Reviewed: explicitly synthetic/disposable QA email, fabricated long email fixture or proposed project sender address; no real account/financial/medical records.",
+    "7ae3c4347055345cb4dbdd8d62f33b05c3b6e75801fa59dc7a3b7d367b6d77b1": "Reviewed: schema type annotation, descriptive generated token, or historical verification-only/example command; no actual live credential identified.",
+    "8ccc50e6b2884a2f213f9b91b46ea78a411bf467af5bb4b33d514cdc0390b5a6": "Reviewed: schema type annotation, descriptive generated token, or historical verification-only/example command; no actual live credential identified.",
+    "d1ab87d6ef8eb62919fafb7a9e985d20e69de356df7a708640f820295170949b": "Reviewed: explicitly synthetic/disposable QA email, fabricated long email fixture or proposed project sender address; no real account/financial/medical records.",
+    "80f100370eb8cfb04b567a582c59b6941728e3fbacd45a77232802617f80efec": "Reviewed: explicitly synthetic/disposable QA email, fabricated long email fixture or proposed project sender address; no real account/financial/medical records.",
+    "e07cc40ae3f9ddda18ac8a37c3bda45ef5d02f72f1bda364d8f13c121c1df5e2": "Reviewed: explicitly synthetic/disposable QA email, fabricated long email fixture or proposed project sender address; no real account/financial/medical records.",
+    "a84329f632352557c86ee2aad7c684a3adf14605f14b602d3fe5afe97d9bb61b": "Reviewed: explicitly synthetic/disposable QA email, fabricated long email fixture or proposed project sender address; no real account/financial/medical records.",
+    "ce3222880f57473f3d9e2ccda401c102950b925e1e76d344d739b46f6108de16": "Reviewed: explicitly synthetic/disposable QA email, fabricated long email fixture or proposed project sender address; no real account/financial/medical records.",
+    "9e04cd8f01d74ecea9c7001aaa008a262c2c952f961cccbd11179158de312b80": "Reviewed: explicitly synthetic/disposable QA email, fabricated long email fixture or proposed project sender address; no real account/financial/medical records.",
+    "c0a78ea58a0c6a8c45498f7ecabd0986e0a8ab44e2f2eeea0eb7d5cf5005895c": "Reviewed: explicitly synthetic/disposable QA email, fabricated long email fixture or proposed project sender address; no real account/financial/medical records.",
+    "eb012a11f9085a64337b14e555b7009255069073b2cc896713237348e1a75614": "Reviewed: explicitly synthetic/disposable QA email, fabricated long email fixture or proposed project sender address; no real account/financial/medical records.",
+    "f31f9b05775a34b6177d4d7bd60e497a2ee19dc8fe73dab096b27269d07e7ec4": "Reviewed: schema type annotation, descriptive generated token, or historical verification-only/example command; no actual live credential identified.",
+    "2b1396d6f90bf51f059766b7d908c1e4d194f42e64e06f3a1344854fe9a25504": "Reviewed: historical revision drift, public upstream advisory applicability or test-harness correction; no actionable unpublished application exploit detail or secret values.",
+    "7d967dc8b9666651bc4bb87f0e2d631ddfb37102206236116528bf719c3ea116": "Reviewed: historical revision drift, public upstream advisory applicability or test-harness correction; no actionable unpublished application exploit detail or secret values.",
+    "44dd6ad65e9798022220906a235bde4a7ef3b2a22d5bba361145976e32be2c4e": "Reviewed: historical revision drift, public upstream advisory applicability or test-harness correction; no actionable unpublished application exploit detail or secret values."
+  },
+  "withheld": [
+    {
+      "source_id": "LifeOS_security-audit-20261001-215642",
+      "path": "Outputs/Audits/jenkin-security-20261001-215642/README.md",
+      "reason": "Unpublished actionable security-audit details against the pinned baseline; withheld pending owner public-disclosure decision."
+    },
+    {
+      "source_id": "LifeOS_security-audit-20261001-215642",
+      "path": "Outputs/Audits/jenkin-security-20261001-215642/findings.md",
+      "reason": "Unpublished actionable security-audit details against the pinned baseline; withheld pending owner public-disclosure decision."
+    },
+    {
+      "source_id": "LifeOS_security-audit-20261001-215642",
+      "path": "Outputs/Audits/jenkin-security-20261001-215642/report.md",
+      "reason": "Unpublished actionable security-audit details against the pinned baseline; withheld pending owner public-disclosure decision."
+    },
+    {
+      "source_id": "LifeOS_security-audit-20261001-215642",
+      "path": "Outputs/Audits/jenkin-security-20261001-215642/remediation-plan.md",
+      "reason": "Unpublished actionable security-audit details against the pinned baseline; withheld pending owner public-disclosure decision."
+    },
+    {
+      "source_id": "LifeOS_security-audit-20261001-215642",
+      "path": "Outputs/Audits/jenkin-security-20261001-215642/threat-model.md",
+      "reason": "Unpublished actionable security-audit details against the pinned baseline; withheld pending owner public-disclosure decision."
+    },
+    {
+      "source_id": "LifeOS_security-audit-20261001-215642",
+      "path": "Outputs/Audits/jenkin-security-20261001-215642/evidence/source-review.md",
+      "reason": "Unpublished actionable security-audit details against the pinned baseline; withheld pending owner public-disclosure decision."
+    },
+    {
+      "source_id": "13c9f1f",
+      "path": "Outputs/Implementations/jenkin-integration-calendar-branding_20261001-031603.md",
+      "reason": "Historical test-database connection includes a literal user/password; live validity versus example status is unresolved. Withheld pending owner credential classification."
+    },
+    {
+      "source_id": "13c9f1f",
+      "path": "Outputs/Plans/lifeos-adaptive-analytics-phase-b-implementation-plan_20260908-045036.md",
+      "reason": "Historical test-database connection includes a literal user/password; live validity versus example status is unresolved. Withheld pending owner credential classification."
+    },
+    {
+      "source_id": "feat-jenkin-account-security-20261001",
+      "path": "Outputs/Implementations/jenkin-integration-calendar-branding_20261001-031603.md",
+      "reason": "Historical test-database connection includes a literal user/password; live validity versus example status is unresolved. Withheld pending owner credential classification."
+    },
+    {
+      "source_id": "feat-jenkin-account-security-20261001",
+      "path": "Outputs/Plans/lifeos-adaptive-analytics-phase-b-implementation-plan_20260908-045036.md",
+      "reason": "Historical test-database connection includes a literal user/password; live validity versus example status is unresolved. Withheld pending owner credential classification."
+    },
+    {
+      "source_id": "main",
+      "path": "Outputs/Plans/lifeos-adaptive-analytics-phase-b-implementation-plan_20260908-045036.md",
+      "reason": "Historical test-database connection includes a literal user/password; live validity versus example status is unresolved. Withheld pending owner credential classification."
+    },
+    {
+      "source_id": "LifeOS_DesignSystem",
+      "path": "Outputs/Plans/lifeos-adaptive-analytics-phase-b-implementation-plan_20260908-045036.md",
+      "reason": "Historical test-database connection includes a literal user/password; live validity versus example status is unresolved. Withheld pending owner credential classification."
+    },
+    {
+      "source_id": "LifeOS_account-security",
+      "path": "Outputs/Implementations/jenkin-integration-calendar-branding_20261001-031603.md",
+      "reason": "Historical test-database connection includes a literal user/password; live validity versus example status is unresolved. Withheld pending owner credential classification."
+    },
+    {
+      "source_id": "LifeOS_account-security",
+      "path": "Outputs/Plans/lifeos-adaptive-analytics-phase-b-implementation-plan_20260908-045036.md",
+      "reason": "Historical test-database connection includes a literal user/password; live validity versus example status is unresolved. Withheld pending owner credential classification."
+    },
+    {
+      "source_id": "LifeOS_combined",
+      "path": "Outputs/Implementations/jenkin-integration-calendar-branding_20261001-031603.md",
+      "reason": "Historical test-database connection includes a literal user/password; live validity versus example status is unresolved. Withheld pending owner credential classification."
+    },
+    {
+      "source_id": "LifeOS_combined",
+      "path": "Outputs/Plans/lifeos-adaptive-analytics-phase-b-implementation-plan_20260908-045036.md",
+      "reason": "Historical test-database connection includes a literal user/password; live validity versus example status is unresolved. Withheld pending owner credential classification."
+    },
+    {
+      "source_id": "LifeOS_completeness-discovery",
+      "path": "Outputs/Implementations/jenkin-integration-calendar-branding_20261001-031603.md",
+      "reason": "Historical test-database connection includes a literal user/password; live validity versus example status is unresolved. Withheld pending owner credential classification."
+    },
+    {
+      "source_id": "LifeOS_completeness-discovery",
+      "path": "Outputs/Plans/lifeos-adaptive-analytics-phase-b-implementation-plan_20260908-045036.md",
+      "reason": "Historical test-database connection includes a literal user/password; live validity versus example status is unresolved. Withheld pending owner credential classification."
+    },
+    {
+      "source_id": "LifeOS_encryption-documents",
+      "path": "Outputs/Implementations/jenkin-integration-calendar-branding_20261001-031603.md",
+      "reason": "Historical test-database connection includes a literal user/password; live validity versus example status is unresolved. Withheld pending owner credential classification."
+    },
+    {
+      "source_id": "LifeOS_encryption-documents",
+      "path": "Outputs/Plans/lifeos-adaptive-analytics-phase-b-implementation-plan_20260908-045036.md",
+      "reason": "Historical test-database connection includes a literal user/password; live validity versus example status is unresolved. Withheld pending owner credential classification."
+    },
+    {
+      "source_id": "LifeOS_finance-l1",
+      "path": "Outputs/Implementations/jenkin-integration-calendar-branding_20261001-031603.md",
+      "reason": "Historical test-database connection includes a literal user/password; live validity versus example status is unresolved. Withheld pending owner credential classification."
+    },
+    {
+      "source_id": "LifeOS_finance-l1",
+      "path": "Outputs/Plans/lifeos-adaptive-analytics-phase-b-implementation-plan_20260908-045036.md",
+      "reason": "Historical test-database connection includes a literal user/password; live validity versus example status is unresolved. Withheld pending owner credential classification."
+    },
+    {
+      "source_id": "LifeOS_loan-engine",
+      "path": "Outputs/Implementations/jenkin-integration-calendar-branding_20261001-031603.md",
+      "reason": "Historical test-database connection includes a literal user/password; live validity versus example status is unresolved. Withheld pending owner credential classification."
+    },
+    {
+      "source_id": "LifeOS_loan-engine",
+      "path": "Outputs/Plans/lifeos-adaptive-analytics-phase-b-implementation-plan_20260908-045036.md",
+      "reason": "Historical test-database connection includes a literal user/password; live validity versus example status is unresolved. Withheld pending owner credential classification."
+    },
+    {
+      "source_id": "LifeOS_preview-launcher",
+      "path": "Outputs/Implementations/jenkin-integration-calendar-branding_20261001-031603.md",
+      "reason": "Historical test-database connection includes a literal user/password; live validity versus example status is unresolved. Withheld pending owner credential classification."
+    },
+    {
+      "source_id": "LifeOS_preview-launcher",
+      "path": "Outputs/Plans/lifeos-adaptive-analytics-phase-b-implementation-plan_20260908-045036.md",
+      "reason": "Historical test-database connection includes a literal user/password; live validity versus example status is unresolved. Withheld pending owner credential classification."
+    },
+    {
+      "source_id": "LifeOS_security-audit-20261001-215642",
+      "path": "Outputs/Implementations/jenkin-integration-calendar-branding_20261001-031603.md",
+      "reason": "Historical test-database connection includes a literal user/password; live validity versus example status is unresolved. Withheld pending owner credential classification."
+    },
+    {
+      "source_id": "LifeOS_security-audit-20261001-215642",
+      "path": "Outputs/Plans/lifeos-adaptive-analytics-phase-b-implementation-plan_20260908-045036.md",
+      "reason": "Historical test-database connection includes a literal user/password; live validity versus example status is unresolved. Withheld pending owner credential classification."
+    },
+    {
+      "source_id": "LifeOS_usability-followup",
+      "path": "Outputs/Implementations/jenkin-integration-calendar-branding_20261001-031603.md",
+      "reason": "Historical test-database connection includes a literal user/password; live validity versus example status is unresolved. Withheld pending owner credential classification."
+    },
+    {
+      "source_id": "LifeOS_usability-followup",
+      "path": "Outputs/Plans/lifeos-adaptive-analytics-phase-b-implementation-plan_20260908-045036.md",
+      "reason": "Historical test-database connection includes a literal user/password; live validity versus example status is unresolved. Withheld pending owner credential classification."
+    },
+    {
+      "source_id": "historical-outputs-export-20260928",
+      "path": "outputs/plans/lifeos-adaptive-analytics-phase-b-implementation-plan_20260908-045036.md",
+      "reason": "Historical test-database connection includes a literal user/password; live validity versus example status is unresolved. Withheld pending owner credential classification."
+    }
+  ],
+  "notes": "Hash-bound manual review: no values retained. Explicit withheld paths override hash approvals. Newly flagged changed bytes remain pending review."
+}

@@ -1,0 +1,106 @@
+{
+  "repository": "yurafreedom/LifeOS",
+  "visibility": "PUBLIC",
+  "branch": "docs/jenkin-records-20261002",
+  "initial_collection_utc": "2026-10-02T09:03:44.310668Z",
+  "origin_main_sha": "5e858bb0322be0cc729d3d7e73ce359597aada84",
+  "baseline": {
+    "sha": "69477c9365f06d6ac2831f124aa03b7a23fb5214",
+    "branch": "integration/jenkin-combined-20261001",
+    "repository_path": "/Users/yurasachenko/LifeOS/LifeOS_DesignSystem",
+    "selection_reason": "Fetched integration tip unchanged; integration report plus subsequent overview/release-notes commits identify completed checkpoint. Parallel descendant feature/report branches retained separately."
+  },
+  "sources": [
+    {
+      "id": "13c9f1f",
+      "path": "/Users/yurasachenko/.jenkin-preview/worktrees/13c9f1f",
+      "type": "checkout"
+    },
+    {
+      "id": "feat-jenkin-account-security-20261001",
+      "path": "/Users/yurasachenko/.jenkin-preview/worktrees/feat-jenkin-account-security-20261001",
+      "type": "checkout"
+    },
+    {
+      "id": "main",
+      "path": "/Users/yurasachenko/.jenkin-preview/worktrees/main",
+      "type": "checkout"
+    },
+    {
+      "id": "LifeOS_DesignSystem",
+      "path": "/Users/yurasachenko/LifeOS/LifeOS_DesignSystem",
+      "type": "checkout"
+    },
+    {
+      "id": "LifeOS_account-security",
+      "path": "/Users/yurasachenko/LifeOS/LifeOS_account-security",
+      "type": "checkout"
+    },
+    {
+      "id": "LifeOS_combined",
+      "path": "/Users/yurasachenko/LifeOS/LifeOS_combined",
+      "type": "checkout"
+    },
+    {
+      "id": "LifeOS_completeness-discovery",
+      "path": "/Users/yurasachenko/LifeOS/LifeOS_completeness-discovery",
+      "type": "checkout"
+    },
+    {
+      "id": "LifeOS_encryption-documents",
+      "path": "/Users/yurasachenko/LifeOS/LifeOS_encryption-documents",
+      "type": "checkout"
+    },
+    {
+      "id": "LifeOS_finance-l1",
+      "path": "/Users/yurasachenko/LifeOS/LifeOS_finance-l1",
+      "type": "checkout"
+    },
+    {
+      "id": "LifeOS_loan-engine",
+      "path": "/Users/yurasachenko/LifeOS/LifeOS_loan-engine",
+      "type": "checkout"
+    },
+    {
+      "id": "LifeOS_preview-launcher",
+      "path": "/Users/yurasachenko/LifeOS/LifeOS_preview-launcher",
+      "type": "checkout"
+    },
+    {
+      "id": "LifeOS_security-audit-20261001-215642",
+      "path": "/Users/yurasachenko/LifeOS/LifeOS_security-audit-20261001-215642",
+      "type": "checkout"
+    },
+    {
+      "id": "LifeOS_usability-followup",
+      "path": "/Users/yurasachenko/LifeOS/LifeOS_usability-followup",
+      "type": "checkout"
+    },
+    {
+      "id": "_parallel_planning",
+      "path": "/Users/yurasachenko/LifeOS/_parallel_planning",
+      "type": "parallel"
+    },
+    {
+      "id": "_parallel_discovery",
+      "path": "/Users/yurasachenko/LifeOS/_parallel_discovery",
+      "type": "parallel"
+    },
+    {
+      "id": "design_handoff_hero_vignette",
+      "path": "/Users/yurasachenko/LifeOS/design_handoff_hero_vignette",
+      "type": "design"
+    },
+    {
+      "id": "design_handoff_clarify_panel",
+      "path": "/Users/yurasachenko/LifeOS/design_handoff_clarify_panel",
+      "type": "design"
+    },
+    {
+      "id": "historical-outputs-export-20260928",
+      "path": "/Users/yurasachenko/LifeOS/_archive/outputs_export_20260928-1129.zip",
+      "type": "archive",
+      "relative_path": "_archive/outputs_export_20260928-1129.zip"
+    }
+  ]
+}
