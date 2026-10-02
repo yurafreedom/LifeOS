@@ -33,3 +33,17 @@ Archive central-directory inspection rejects absolute/traversal/control/backslas
 Collection is local and does not push. After review, stage only `docs/published-records`, `scripts/docs` and the task-owned publication report, inspect the staged diff, commit and push normally to the dedicated branch. Never merge or deploy as part of refresh. `PUBLICATION.md` records immutable links to the verified snapshot commit after publication. A commit cannot contain its own SHA; final remote verification and the owner's delivered links identify the final branch tip separately.
 
 The collection-local `.gitattributes` exempts `blank-at-eol` for the exact SHA-addressed historical technical-discovery object that contains an inherited trailing space. Imported bytes remain original; generated docs and every other object remain subject to normal whitespace checks. Do not normalize historical bytes to silence Git warnings.
+
+## Navigation-only refresh
+
+For a focused navigation correction, preserve the published snapshots and refresh from their manifest:
+
+```sh
+PYTHONDONTWRITEBYTECODE=1 python3 scripts/docs/collect-records.py --regenerate-navigation --destination docs/published-records
+```
+
+Append `--dry-run` to inspect which navigation files would change. This mode reads the existing manifest, source/reference map and published objects; it does not recollect source roots or modify their metadata, document objects, manifest, link map or collection runs. Repeating it after regeneration should report no changed navigation files. The full collection command above uses the same generator.
+
+Primary overview and S2 report selections use exact original paths and byte hashes from `manifest.json`'s pinned-baseline reading set, never hardcoded object hashes or newer-looking feature variants. README is an introduction; baseline ARCHITECTURE.md is a June 2026 prototype-era reference; the S2 QA README supports the primary S2 implementation report.
+
+Withholding removes no pre-existing exposure outside the collection, on other branches or in Git history. [existing-exposure.json](../../docs/published-records/existing-exposure.json) records read-only path-existence checks at the confirmed publication and baseline commits without credential values. Documentation collection does not test credentials, edit source reports, rotate secrets, change visibility or rewrite history.

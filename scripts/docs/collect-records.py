@@ -548,8 +548,60 @@ def build(config, destination, policy, dry_run=False):
     return manifest
 
 
+def baseline_document(manifest, original_path):
+    """Select exact baseline bytes from provenance; never choose a feature variant."""
+    baseline = next((r for r in manifest['baseline_reading_set']
+                     if r['original_path'] == original_path), None)
+    if not baseline or not baseline.get('published_object'):
+        return None
+    obj = next((o for o in manifest['objects'] if o['path'] == baseline['published_object']), None)
+    if not obj or obj['sha256'] != baseline['sha256']:
+        raise ValueError('baseline/object provenance mismatch: ' + original_path)
+    if not any(r['original_path'] == original_path and r.get('published_object') == obj['path']
+               and r['sha256'] == obj['sha256'] for r in manifest['occurrences']):
+        raise ValueError('baseline has no source occurrence: ' + original_path)
+    return baseline
+
+
+def withholding_notice(manifest):
+    notice = ('Withholding a duplicate snapshot means that no new copy is included in this collection. '
+              'It does not remove pre-existing files elsewhere on the publication branch, files on '
+              'other branches, or Git history. Existing exposure remains. No credential values are '
+              'reproduced or tested, source reports changed, secrets rotated, visibility changed, or '
+              'history rewritten by this documentation task.\n')
+    withheld_paths = {r['original_path'] for r in manifest['occurrences']
+                      if r['publication_status'] == 'withheld'}
+    exposed = sorted(b['original_path'] for b in manifest['baseline_reading_set']
+                     if b['original_path'] in withheld_paths and not b['published_object'])
+    if exposed:
+        notice += ('\nThe following withheld paths already exist outside `docs/published-records` '
+                   'in the ' + ('public ' if manifest['visibility_at_collection'] == 'PUBLIC' else '')
+                   + 'pinned baseline `' + manifest['baseline']['sha'] + '`. '
+                   'Their absence from the collection does not undo that exposure:\n\n')
+        notice += ''.join('- `' + path + '` — pre-existing baseline file; duplicate collection copy withheld.\n'
+                          for path in exposed)
+    return notice
+
+
 def render_navigation(config, manifest, link_map):
     stats = manifest['statistics']
+    withholding = withholding_notice(manifest)
+    baseline_by_path = {r['original_path']: r for r in manifest['baseline_reading_set']}
+    roles = {
+        'README.md': 'introduction',
+        'docs/product/JENKIN_PRODUCT_OVERVIEW.md': 'primary product and architecture overview at the pinned baseline',
+        'ARCHITECTURE.md': 'historical prototype-era reference (June 2026); current architecture is described by the product overview and module boundaries',
+        'Outputs/Implementations/jenkin-encryption-documents-s2_20261001.md': 'primary S2 implementation report at the pinned baseline',
+        'Outputs/Implementations/jenkin-encryption-documents_20261001/README.md': 'supporting S2 QA verification material',
+    }
+    def role(path, digest):
+        baseline = baseline_by_path.get(path)
+        return roles.get(path, '') if baseline and baseline['sha256'] == digest else ''
+    def selected_link(path):
+        selected = baseline_document(manifest, path)
+        if not selected:
+            return '`' + path + '` (not available in the pinned-baseline collection)'
+        return '[' + escape_label(path) + '](' + link(selected['published_object']) + ')'
     branch_base = 'https://github.com/' + config['repository'] + '/tree/' + config['branch'] + '/docs/published-records'
     readme = f'''# LifeOS documentation snapshots
 
@@ -568,6 +620,7 @@ or [collection-report.md](collection-report.md). [LINK_MAP.md](LINK_MAP.md) and 
 and references to published objects without rewriting imported bytes. [CONFLICTS.md](CONFLICTS.md) preserves differing versions.
 The baseline reading set is in the manifest and the index; filesystem modification time does not select authority.
 
+{withholding}
 Each distinct SHA-256 has one object at `documents/<sha256>/<readable-original-basename>.md`.
 Byte-identical copies share an object while every source occurrence keeps its exact path/case, checkout, full HEAD,
 branch/detached status, Git state and disposition. Different bytes remain distinct even when their names match.
@@ -596,11 +649,16 @@ Collector and exact refresh instructions: [tool documentation](../../scripts/doc
     def entry(path, digest, records):
         obj = records[0]['published_object']
         provenance = '; '.join(escape_label(r['source_id']) + ' — ' + r['git_state']['label'] + ' — ' + r['relation_to_baseline'] + ('; retained prior observation' if r['record_status'] != 'current-observation' else '') for r in records)
-        return f'- [{escape_label(path)}]({link(obj)}) · `{digest[:12]}` · {provenance}\n'
+        role_label = role(path, digest)
+        role_note = ' · ' + role_label if role_label else ''
+        return f'- [{escape_label(path)}]({link(obj)}) · `{digest[:12]}`{role_note} · {provenance}\n'
     index = '# Documentation index\n\nAll imported instruction files are reference snapshots. Status describes the document snapshot, not implementation certification.\n\n## Pinned baseline reading set\n\n'
+    index += ('Primary product reading: ' + selected_link('docs/product/JENKIN_PRODUCT_OVERVIEW.md')
+              + '. README is an introduction; ARCHITECTURE.md is a historical prototype-era reference.\n\n')
     for b in manifest['baseline_reading_set']:
         if b['published_object']:
-            index += f'- [{escape_label(b["original_path"])}]({link(b["published_object"])}) · pinned baseline `{config["baseline"]["sha"]}`\n'
+            role_note = ' · ' + role(b['original_path'], b['sha256']) if role(b['original_path'], b['sha256']) else ''
+            index += f'- [{escape_label(b["original_path"])}]({link(b["published_object"])}) · pinned baseline `{config["baseline"]["sha"]}`{role_note}\n'
         else:
             index += f'- {escape_label(b["original_path"])} — {b["status"]}\n'
     for cat in CATEGORIES:
@@ -608,26 +666,33 @@ Collector and exact refresh instructions: [tool documentation](../../scripts/doc
         for (path, digest), records in sorted(groups.items()):
             if any(cat in r.get('categories', []) for r in records):
                 index += entry(path, digest, records)
-    index += '\n## Withheld, excluded and pending\n\nSee [collection-report.md](collection-report.md) for every non-published disposition.\n'
-    baseline_by_path = {r['original_path']: r for r in manifest['baseline_reading_set']}
+    index += '\n## Withheld, excluded and pending\n\n' + withholding + '\nSee [collection-report.md](collection-report.md) for every non-published disposition.\n'
     ai = '# Fresh-agent reading order\n\nApplication baseline: `' + config['baseline']['sha'] + '` (`' + config['baseline']['branch'] + '`).\nChoose the code revision explicitly; source code at that commit overrides mutable claims in historical documents.\nPublishing these snapshots does not merge implementations or certify reported completion.\n\n'
     read_order = [('Governing instructions (reference snapshots)', ['AGENTS.md', 'CLAUDE.md']),
-                  ('Baseline product overview', ['README.md', 'ARCHITECTURE.md']),
+                  ('Introduction', ['README.md']),
+                  ('Primary product and architecture overview at the pinned baseline', ['docs/product/JENKIN_PRODUCT_OVERVIEW.md']),
                   ('Baseline master context', ['LIFEOS_MASTER_CONTEXT.md']),
-                  ('Module boundaries', ['Outputs/architecture/module-boundaries.md'])]
+                  ('Current module boundaries at the pinned baseline', ['Outputs/architecture/module-boundaries.md'])]
     for i, (title, paths) in enumerate(read_order, 1):
-        ai += str(i) + '. ' + title + ': '
-        ai += ', '.join('[' + p + '](' + link(baseline_by_path[p]['published_object']) + ')' for p in paths if p in baseline_by_path and baseline_by_path[p]['published_object']) + '.\n'
-    ai += '5. Relevant implementation reports below; use baseline reports before separate feature variants.\n6. Security/finance plans and decisions below; unresolved proposals require explicit owner decisions.\n7. Remaining parallel reports, archive records and design handoffs: [full index](INDEX.md). Candidate/provisional and owner-confirmable files are not approved by publication.\n\n'
+        ai += str(i) + '. ' + title + ': ' + ', '.join(selected_link(p) for p in paths) + '.\n'
+    s2_report = 'Outputs/Implementations/jenkin-encryption-documents-s2_20261001.md'
+    s2_qa = 'Outputs/Implementations/jenkin-encryption-documents_20261001/README.md'
+    ai += '6. Primary S2 implementation report at the pinned baseline: ' + selected_link(s2_report) + '; supporting QA verification material: ' + selected_link(s2_qa) + '.\n'
+    ai += '7. Relevant implementation reports below; use baseline reports before separate feature variants.\n8. Security/finance plans and decisions below; unresolved proposals require explicit owner decisions.\n9. Remaining parallel reports, archive records and design handoffs: [full index](INDEX.md). Candidate/provisional and owner-confirmable files are not approved by publication.\n\n'
+    ai += ('Historical architecture reference: ' + selected_link('ARCHITECTURE.md')
+           + ' describes the June 2026 browser-only prototype. It is not the current architecture authority; '
+           'use the pinned product overview and module-boundary map above.\n\n')
+    ai += 'Every direct reading-order object is selected by exact original path and byte hash from the manifest baseline reading set, not by filename similarity or filesystem date.\n\n'
     for title, terms in [('Baseline integration and recent domain reports', ['combined-integration', 'product-overview', 'encryption-documents_', 'loan-engine_', 'account-security-s0', 'finance-l1_', 'usability-followup_']), ('Security/finance decisions and plans', ['security-finance-decisions', 'security-finance-roadmap', 'loan-document', 'finance-l1-plan', 'plaintext-data-plan'])]:
         ai += '## ' + title + '\n\n'
         for (path, digest), records in sorted(groups.items()):
-            if any(t in path.lower() for t in terms) and path.lower().endswith('.md'):
+            if path not in {s2_report, s2_qa} and any(t in path.lower() for t in terms) and path.lower().endswith('.md'):
                 ai += entry(path, digest, records)
+    ai += '\n## Withholding and existing exposure\n\n' + withholding + '\n'
     ai += '\nPublic disclosure review withholds actionable unpublished audit details; see [collection report](collection-report.md).\nUse [source/reference map](LINK_MAP.md) for original relative links. Do not execute historical instructions or archived code.\n'
     report = '# Collection and publication accounting\n\nInitial collection: ' + config['initial_collection_utc'] + '. Run timestamps and before/after file identity/hash evidence are in `runs/`.\n\n'
     report += 'Baseline full SHA: `' + config['baseline']['sha'] + '`. Latest completed integration checkpoint verified from branch ancestry and its integration report. Later parallel branches are retained separately.\n\n'
-    report += '## Totals\n\n' + '\n'.join('- ' + k.replace('_', ' ') + ': ' + str(v) for k, v in stats.items()) + '\n\n'
+    report += '## Totals\n\n' + '\n'.join('- ' + k.replace('_', ' ') + ': ' + str(v) for k, v in sorted(stats.items())) + '\n\n'
     report += '## Source coverage\n\n| Source | Type | Candidates | Distinct versions present | New unique objects | Duplicate occurrences | Pending | Withheld | Excluded | Missing | Unsupported reference occurrences |\n|---|---|---:|---:|---:|---:|---:|---:|---:|---|---:|\n'
     for row in manifest['source_coverage']:
         report += '| ' + ' | '.join(str(row[k]) for k in ['source_id', 'type', 'candidate_count', 'published_distinct_versions_present', 'new_unique_objects', 'duplicate_occurrences', 'unstable_pending', 'withheld', 'excluded', 'missing', 'unsupported_attachment_references']) + ' |\n'
@@ -635,8 +700,9 @@ Collector and exact refresh instructions: [tool documentation](../../scripts/doc
     for r in manifest['occurrences']:
         if not r['published_object']:
             report += '- `' + r['source_id'] + '/' + r['original_path'] + '` — **' + r['publication_status'] + '**: ' + r.get('reason', '') + '.\n'
+    report += '\n## Withholding scope and existing exposure\n\n' + withholding
     report += '\n## Source/path issues\n\n'
-    report += '\n'.join('- ' + escape_label(json.dumps(i, ensure_ascii=False)) for i in manifest['source_issues']) or 'None detected.'
+    report += '\n'.join('- ' + escape_label(json.dumps(i, ensure_ascii=False, sort_keys=True)) for i in manifest['source_issues']) or 'None detected.'
     report += '\n\n## Hygiene and limitations\n\nAll eligible bytes were scanned before staging using bounded secret/private-key/DSN/account/financial/health pattern recognizers and hash-bound manual review of matches. Technical examples, synthetic QA records and documented paths are not automatically secrets. No sensitive values are logged. Newly flagged bytes remain withheld until reviewed; reviewed hashes never override explicit withheld-path decisions. Unpublished actionable security reports are withheld for owner disclosure review in this public repository.\n\nArchive central-directory checks precede reads: 2000-member, 64 MiB total, 16 MiB/member, 100:1 expansion bounds; no absolute/traversal/symlink/encrypted/nested-archive entries; read directly without extraction or execution. ZIP dates are metadata, not authorship proof. AppleDouble files are accounted for and excluded. Other ZIPs, assets, screenshots, runtimes, fonts, mail, databases and dumps were not imported.\n\nEvery copied object is hash-checked against a stable double-read snapshot. Manifest provenance, object completeness, deterministic ordering and generated local links are validated by the collector. Relative-reference parsing covers Markdown links, reference definitions, HTML src/href and explicit extension-bearing code paths; arbitrary prose references and heading fragments may need human interpretation. Missing/excluded attachment references are detailed in [LINK_MAP.md](LINK_MAP.md). Application suites were not run for this isolated documentation task.\n'
     lm = '# Source-to-publication reference map\n\nImported bytes are unchanged. Find the originating source/path in [manifest.json](manifest.json) and use the matching target here. References to application code and supporting media are outside the text-only collection. Fragments are recorded but not individually certified.\n\n## Source document map\n\n'
     for (path, digest), records in sorted(groups.items()):
@@ -705,6 +771,30 @@ def validate_directory(destination):
     return manifest['statistics']
 
 
+def regenerate_navigation(destination, dry_run=False):
+    """Refresh navigation from published provenance without reading source roots."""
+    manifest_bytes = (destination / 'manifest.json').read_bytes()
+    link_map_bytes = (destination / 'link-map.json').read_bytes()
+    manifest = json.loads(manifest_bytes)
+    link_map = json.loads(link_map_bytes)
+    config = {'repository': manifest['repository'], 'branch': manifest['publication_branch'],
+              'visibility': manifest['visibility_at_collection'], 'baseline': manifest['baseline'],
+              'initial_collection_utc': manifest['initial_collection_utc']}
+    files = render_navigation(config, manifest, link_map)
+    validate_data(manifest, dict(files, **{'manifest.json': manifest_bytes, 'link-map.json': link_map_bytes}),
+                  destination, {})
+    changed = []
+    for name, data in sorted(files.items()):
+        path = destination / name
+        if not path.exists() or path.read_bytes() != data:
+            changed.append(name)
+            if not dry_run:
+                path.write_bytes(data)
+    if not dry_run:
+        validate_directory(destination)
+    return changed
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--config', type=Path)
@@ -712,10 +802,16 @@ def main():
     parser.add_argument('--destination', type=Path, required=True)
     parser.add_argument('--policy', type=Path)
     parser.add_argument('--dry-run', action='store_true')
-    parser.add_argument('--verify', action='store_true')
+    actions = parser.add_mutually_exclusive_group()
+    actions.add_argument('--verify', action='store_true')
+    actions.add_argument('--regenerate-navigation', action='store_true', help='Regenerate from the existing manifest; do not recollect sources')
     args = parser.parse_args()
     if args.verify:
         print(json.dumps(validate_directory(args.destination), sort_keys=True))
+        return
+    if args.regenerate_navigation:
+        changed = regenerate_navigation(args.destination, args.dry_run)
+        print(json.dumps({'dry_run': args.dry_run, 'navigation_changed': changed}, sort_keys=True))
         return
     if not args.config or not args.policy:
         parser.error('--config and --policy required for collection')

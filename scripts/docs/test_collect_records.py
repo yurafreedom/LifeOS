@@ -128,6 +128,98 @@ class CollectorTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             c.validate_directory(self.dest)
 
+    def test_primary_reading_uses_pinned_provenance_and_labels_support(self):
+        paths = {
+            'docs/product/JENKIN_PRODUCT_OVERVIEW.md': b'# Baseline product overview\n',
+            'ARCHITECTURE.md': b'# Architecture\nHistorical prototype era, June 2026.\n',
+            'Outputs/Implementations/jenkin-encryption-documents-s2_20261001.md': b'# Primary S2 report\n',
+            'Outputs/Implementations/jenkin-encryption-documents_20261001/README.md': b'# S2 QA supporting material\n',
+        }
+        for path, data in paths.items():
+            p = self.repo / path
+            p.parent.mkdir(parents=True, exist_ok=True)
+            p.write_bytes(data)
+        self.g('add', '.')
+        self.g('commit', '-qm', 'baseline reading documents')
+        self.head = self.g('rev-parse', 'HEAD').decode().strip()
+        self.config['baseline']['sha'] = self.head
+        self.config['origin_main_sha'] = self.head
+        parallel = self.root / 'parallel'
+        for path in paths:
+            p = parallel / path
+            p.parent.mkdir(parents=True, exist_ok=True)
+            p.write_bytes(b'# Different feature variant\n')
+        self.config['sources'].append({'id': 'parallel', 'path': str(parallel), 'type': 'parallel'})
+        m = self.build()
+        ai = (self.dest / 'AI_ENTRYPOINT.md').read_text()
+        for path, data in paths.items():
+            selected = c.baseline_document(m, path)
+            self.assertEqual(selected['sha256'], c.sha(data))
+            self.assertIn('](' + selected['published_object'] + ')', ai)
+        overview = c.baseline_document(m, 'docs/product/JENKIN_PRODUCT_OVERVIEW.md')
+        s2 = c.baseline_document(m, 'Outputs/Implementations/jenkin-encryption-documents-s2_20261001.md')
+        self.assertIn('3. Primary product and architecture overview at the pinned baseline:', ai)
+        self.assertIn('6. Primary S2 implementation report at the pinned baseline:', ai)
+        self.assertIn('2. Introduction: [README.md]', ai)
+        self.assertIn('supporting QA verification material:', ai)
+        self.assertIn('June 2026 browser-only prototype. It is not the current architecture authority', ai)
+        self.assertIn('Historical architecture reference:', ai)
+        index = (self.dest / 'INDEX.md').read_text()
+        self.assertIn('historical prototype-era reference (June 2026)', index)
+        # If baseline provenance becomes unavailable, never silently select a feature copy.
+        unavailable = json.loads(json.dumps(m))
+        for b in unavailable['baseline_reading_set']:
+            if b['original_path'] == 'docs/product/JENKIN_PRODUCT_OVERVIEW.md':
+                b['published_object'] = None
+        self.assertIsNone(c.baseline_document(unavailable, 'docs/product/JENKIN_PRODUCT_OVERVIEW.md'))
+        # A manifest pointer to unrelated bytes must be rejected before rendering.
+        corrupt = json.loads(json.dumps(m))
+        for b in corrupt['baseline_reading_set']:
+            if b['original_path'] == 'docs/product/JENKIN_PRODUCT_OVERVIEW.md':
+                b['published_object'] = s2['published_object']
+        with self.assertRaises(ValueError):
+            c.render_navigation(self.config, corrupt, json.loads((self.dest / 'link-map.json').read_text()))
+
+    def test_withholding_notice_records_existing_exposure_without_values(self):
+        path = 'Outputs/Plans/existing.md'
+        p = self.repo / path
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text('# Withheld record\n')
+        self.g('add', path)
+        self.g('commit', '-qm', 'pre-existing record')
+        self.head = self.g('rev-parse', 'HEAD').decode().strip()
+        self.config['baseline']['sha'] = self.head
+        self.config['origin_main_sha'] = self.head
+        self.policy['withheld'].append({'source_id': 'repo', 'path': path,
+                                      'reason': 'pending owner credential classification'})
+        self.build()
+        for name in ['README.md', 'AI_ENTRYPOINT.md', 'INDEX.md', 'collection-report.md']:
+            text = (self.dest / name).read_text()
+            self.assertIn('It does not remove pre-existing files elsewhere on the publication branch', text)
+            self.assertIn('other branches, or Git history', text)
+            self.assertIn('`' + path + '` — pre-existing baseline file', text)
+        self.assertTrue(p.exists())
+        self.assertEqual(p.read_text(), '# Withheld record\n')
+
+    def test_navigation_regeneration_is_repeatable_without_recollecting_sources(self):
+        m = self.build()
+        manifest_bytes = (self.dest / 'manifest.json').read_bytes()
+        link_bytes = (self.dest / 'link-map.json').read_bytes()
+        object_bytes = {o['path']: (self.dest / o['path']).read_bytes() for o in m['objects']}
+        runs = sorted(p.name for p in (self.dest / 'runs').iterdir())
+        (self.dest / 'AI_ENTRYPOINT.md').write_text('# Outdated navigation\n')
+        with mock.patch.object(c, 'git', side_effect=AssertionError('must not inspect source Git state')):
+            changed = c.regenerate_navigation(self.dest, dry_run=True)
+            self.assertEqual(changed, ['AI_ENTRYPOINT.md'])
+            self.assertEqual((self.dest / 'AI_ENTRYPOINT.md').read_text(), '# Outdated navigation\n')
+            self.assertEqual(c.regenerate_navigation(self.dest), ['AI_ENTRYPOINT.md'])
+            self.assertEqual(c.regenerate_navigation(self.dest), [])
+        self.assertEqual(manifest_bytes, (self.dest / 'manifest.json').read_bytes())
+        self.assertEqual(link_bytes, (self.dest / 'link-map.json').read_bytes())
+        self.assertEqual(runs, sorted(p.name for p in (self.dest / 'runs').iterdir()))
+        for path, data in object_bytes.items():
+            self.assertEqual(data, (self.dest / path).read_bytes())
+
     def archive(self, members):
         path = self.root / 'test.zip'
         with zipfile.ZipFile(path, 'w') as z:

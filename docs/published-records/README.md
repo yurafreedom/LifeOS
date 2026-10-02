@@ -15,6 +15,13 @@ or [collection-report.md](collection-report.md). [LINK_MAP.md](LINK_MAP.md) and 
 and references to published objects without rewriting imported bytes. [CONFLICTS.md](CONFLICTS.md) preserves differing versions.
 The baseline reading set is in the manifest and the index; filesystem modification time does not select authority.
 
+Withholding a duplicate snapshot means that no new copy is included in this collection. It does not remove pre-existing files elsewhere on the publication branch, files on other branches, or Git history. Existing exposure remains. No credential values are reproduced or tested, source reports changed, secrets rotated, visibility changed, or history rewritten by this documentation task.
+
+The following withheld paths already exist outside `docs/published-records` in the public pinned baseline `69477c9365f06d6ac2831f124aa03b7a23fb5214`. Their absence from the collection does not undo that exposure:
+
+- `Outputs/Implementations/jenkin-integration-calendar-branding_20261001-031603.md` — pre-existing baseline file; duplicate collection copy withheld.
+- `Outputs/Plans/lifeos-adaptive-analytics-phase-b-implementation-plan_20260908-045036.md` — pre-existing baseline file; duplicate collection copy withheld.
+
 Each distinct SHA-256 has one object at `documents/<sha256>/<readable-original-basename>.md`.
 Byte-identical copies share an object while every source occurrence keeps its exact path/case, checkout, full HEAD,
 branch/detached status, Git state and disposition. Different bytes remain distinct even when their names match.

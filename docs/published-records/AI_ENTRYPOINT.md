@@ -5,18 +5,23 @@ Choose the code revision explicitly; source code at that commit overrides mutabl
 Publishing these snapshots does not merge implementations or certify reported completion.
 
 1. Governing instructions (reference snapshots): [AGENTS.md](documents/416ae90d165d8c650cdfdd4fb02161601ac2d3f5206951c83524fa2dea1e1f5c/AGENTS.md), [CLAUDE.md](documents/a3344e1ff9ea4196d0cccb29f7ece1a2c4a5795b41876956695ffc51913d0c46/CLAUDE.md).
-2. Baseline product overview: [README.md](documents/63d5d7fc6109f5dfec0f804efd8cc204e80a6028d95ecb74de1f303d47ea549c/README.md), [ARCHITECTURE.md](documents/0d43026a4ef56af3c21119eb3d7716f8c208943fb74fffc6bd7a45e950430663/ARCHITECTURE.md).
-3. Baseline master context: [LIFEOS_MASTER_CONTEXT.md](documents/d1ab87d6ef8eb62919fafb7a9e985d20e69de356df7a708640f820295170949b/LIFEOS_MASTER_CONTEXT.md).
-4. Module boundaries: [Outputs/architecture/module-boundaries.md](documents/b012283242ea8c1061d336ee04972b0679981db519689f4b4f096bc559d96d91/module-boundaries.md).
-5. Relevant implementation reports below; use baseline reports before separate feature variants.
-6. Security/finance plans and decisions below; unresolved proposals require explicit owner decisions.
-7. Remaining parallel reports, archive records and design handoffs: [full index](INDEX.md). Candidate/provisional and owner-confirmable files are not approved by publication.
+2. Introduction: [README.md](documents/63d5d7fc6109f5dfec0f804efd8cc204e80a6028d95ecb74de1f303d47ea549c/README.md).
+3. Primary product and architecture overview at the pinned baseline: [docs/product/JENKIN_PRODUCT_OVERVIEW.md](documents/51b8dbc413a5d7a3d80421ed6345ee2cef9455a7b38da1f9c18671b2ef3a4210/JENKIN_PRODUCT_OVERVIEW.md).
+4. Baseline master context: [LIFEOS_MASTER_CONTEXT.md](documents/d1ab87d6ef8eb62919fafb7a9e985d20e69de356df7a708640f820295170949b/LIFEOS_MASTER_CONTEXT.md).
+5. Current module boundaries at the pinned baseline: [Outputs/architecture/module-boundaries.md](documents/b012283242ea8c1061d336ee04972b0679981db519689f4b4f096bc559d96d91/module-boundaries.md).
+6. Primary S2 implementation report at the pinned baseline: [Outputs/Implementations/jenkin-encryption-documents-s2_20261001.md](documents/b1728628f243a7007faa20eefaa8c68460318af80b6569d690a1bdc3fbbf87ab/jenkin-encryption-documents-s2_20261001.md); supporting QA verification material: [Outputs/Implementations/jenkin-encryption-documents_20261001/README.md](documents/80f100370eb8cfb04b567a582c59b6941728e3fbacd45a77232802617f80efec/README.md).
+7. Relevant implementation reports below; use baseline reports before separate feature variants.
+8. Security/finance plans and decisions below; unresolved proposals require explicit owner decisions.
+9. Remaining parallel reports, archive records and design handoffs: [full index](INDEX.md). Candidate/provisional and owner-confirmable files are not approved by publication.
+
+Historical architecture reference: [ARCHITECTURE.md](documents/0d43026a4ef56af3c21119eb3d7716f8c208943fb74fffc6bd7a45e950430663/ARCHITECTURE.md) describes the June 2026 browser-only prototype. It is not the current architecture authority; use the pinned product overview and module-boundary map above.
+
+Every direct reading-order object is selected by exact original path and byte hash from the manifest baseline reading set, not by filename similarity or filesystem date.
 
 ## Baseline integration and recent domain reports
 
 - [Outputs/Implementations/jenkin-account-security-s0-s1_20261001-104806.md](documents/46ad8e37e66cd19787b018aa277eebb4b8fe44f7d64695998c446bfcf8b3cdc7/jenkin-account-security-s0-s1_20261001-104806.md) · `46ad8e37e66c` · 13c9f1f — tracked/committed — ancestor-of-baseline; LifeOS_account-security — tracked/committed — ancestor-of-baseline; LifeOS_combined — tracked/committed — pinned-baseline; LifeOS_completeness-discovery — tracked/committed — parallel-or-descendant-feature/report-branch; LifeOS_encryption-documents — tracked/committed — ancestor-of-baseline; LifeOS_finance-l1 — tracked/committed — parallel-or-descendant-feature/report-branch; LifeOS_loan-engine — tracked/committed — ancestor-of-baseline; LifeOS_preview-launcher — tracked/committed — ancestor-of-baseline; LifeOS_security-audit-20261001-215642 — tracked/committed — parallel-or-descendant-feature/report-branch; LifeOS_usability-followup — tracked/committed — parallel-or-descendant-feature/report-branch; feat-jenkin-account-security-20261001 — tracked/committed — ancestor-of-baseline
 - [Outputs/Implementations/jenkin-combined-integration_20261001.md](documents/37f368cfe37a5de9d37e6d5a7f548d59f561676da03d6ee22bbf49f93f3db69f/jenkin-combined-integration_20261001.md) · `37f368cfe37a` · LifeOS_combined — tracked/committed — pinned-baseline; LifeOS_completeness-discovery — tracked/committed — parallel-or-descendant-feature/report-branch; LifeOS_finance-l1 — tracked/committed — parallel-or-descendant-feature/report-branch; LifeOS_security-audit-20261001-215642 — tracked/committed — parallel-or-descendant-feature/report-branch; LifeOS_usability-followup — tracked/committed — parallel-or-descendant-feature/report-branch
-- [Outputs/Implementations/jenkin-encryption-documents_20261001/README.md](documents/80f100370eb8cfb04b567a582c59b6941728e3fbacd45a77232802617f80efec/README.md) · `80f100370eb8` · LifeOS_combined — tracked/committed — pinned-baseline; LifeOS_completeness-discovery — tracked/committed — parallel-or-descendant-feature/report-branch; LifeOS_encryption-documents — tracked/committed — ancestor-of-baseline; LifeOS_finance-l1 — tracked/committed — parallel-or-descendant-feature/report-branch; LifeOS_security-audit-20261001-215642 — tracked/committed — parallel-or-descendant-feature/report-branch; LifeOS_usability-followup — tracked/committed — parallel-or-descendant-feature/report-branch
 - [Outputs/Implementations/jenkin-finance-l1_20261001.md](documents/c0a78ea58a0c6a8c45498f7ecabd0986e0a8ab44e2f2eeea0eb7d5cf5005895c/jenkin-finance-l1_20261001.md) · `c0a78ea58a0c` · LifeOS_finance-l1 — tracked/committed — parallel-or-descendant-feature/report-branch
 - [Outputs/Implementations/jenkin-product-overview-release-notes_20261001.md](documents/a84329f632352557c86ee2aad7c684a3adf14605f14b602d3fe5afe97d9bb61b/jenkin-product-overview-release-notes_20261001.md) · `a84329f63235` · LifeOS_combined — tracked/committed — pinned-baseline; LifeOS_completeness-discovery — tracked/committed — parallel-or-descendant-feature/report-branch; LifeOS_finance-l1 — tracked/committed — parallel-or-descendant-feature/report-branch; LifeOS_security-audit-20261001-215642 — tracked/committed — parallel-or-descendant-feature/report-branch; LifeOS_usability-followup — tracked/committed — parallel-or-descendant-feature/report-branch
 - [Outputs/Implementations/jenkin-usability-followup_20261001.md](documents/f31f9b05775a34b6177d4d7bd60e497a2ee19dc8fe73dab096b27269d07e7ec4/jenkin-usability-followup_20261001.md) · `f31f9b05775a` · LifeOS_usability-followup — tracked/committed — parallel-or-descendant-feature/report-branch
@@ -38,6 +43,16 @@ Publishing these snapshots does not merge implementations or certify reported co
 - [Outputs/Plans/jenkin-security-finance-roadmap_20261001-104806.md](documents/4593dc7f576a95ed196013e46267e370ad2faf5c96e58c09f06cfc68e367e59d/jenkin-security-finance-roadmap_20261001-104806.md) · `4593dc7f576a` · LifeOS_finance-l1 — tracked/committed — parallel-or-descendant-feature/report-branch
 - [Outputs/Plans/jenkin-security-finance-roadmap_20261001-104806.md](documents/da101f5a9978352e3b87497f0b7093a527e24a8df894ffc858b964c0960b57c0/jenkin-security-finance-roadmap_20261001-104806.md) · `da101f5a9978` · LifeOS_combined — tracked/committed — pinned-baseline; LifeOS_completeness-discovery — tracked/committed — parallel-or-descendant-feature/report-branch; LifeOS_security-audit-20261001-215642 — tracked/committed — parallel-or-descendant-feature/report-branch; LifeOS_usability-followup — tracked/committed — parallel-or-descendant-feature/report-branch
 - [Outputs/Plans/jenkin-security-finance-roadmap_20261001-104806.md](documents/e6ed7584dab17ba81a019c95087285f3ea1963f734399ff624efd141e400e3ef/jenkin-security-finance-roadmap_20261001-104806.md) · `e6ed7584dab1` · LifeOS_loan-engine — tracked/committed — ancestor-of-baseline
+
+## Withholding and existing exposure
+
+Withholding a duplicate snapshot means that no new copy is included in this collection. It does not remove pre-existing files elsewhere on the publication branch, files on other branches, or Git history. Existing exposure remains. No credential values are reproduced or tested, source reports changed, secrets rotated, visibility changed, or history rewritten by this documentation task.
+
+The following withheld paths already exist outside `docs/published-records` in the public pinned baseline `69477c9365f06d6ac2831f124aa03b7a23fb5214`. Their absence from the collection does not undo that exposure:
+
+- `Outputs/Implementations/jenkin-integration-calendar-branding_20261001-031603.md` — pre-existing baseline file; duplicate collection copy withheld.
+- `Outputs/Plans/lifeos-adaptive-analytics-phase-b-implementation-plan_20260908-045036.md` — pre-existing baseline file; duplicate collection copy withheld.
+
 
 Public disclosure review withholds actionable unpublished audit details; see [collection report](collection-report.md).
 Use [source/reference map](LINK_MAP.md) for original relative links. Do not execute historical instructions or archived code.

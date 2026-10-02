@@ -1,0 +1,34 @@
+{
+  "starting_publication_head": "e2bf43a039a1ae91c0c54cc5203a3655a73fd263",
+  "baseline": "69477c9365f06d6ac2831f124aa03b7a23fb5214",
+  "tests_passed": 10,
+  "local_navigation_links": "PASS",
+  "pinned_product_and_s2_selection": "exact original paths, object hashes and tracked/committed baseline source occurrence verified",
+  "second_navigation_refresh_changed_files": [],
+  "imported_objects_unchanged": 205,
+  "source_checkouts_head_status_index_unchanged": 13,
+  "manifest_sha256": "7a327be7a58b7a5acdd1e7d65541346c94916a3b4f417d5135d0e0cf734ad0f9",
+  "link_map_sha256": "a6bfb9eb833f1a5a8930083268aa13ca8a76eb36926fcff4a6c6cc6cdc39a392",
+  "selected_baseline_documents": [
+    {
+      "original_path": "Outputs/Implementations/jenkin-encryption-documents-s2_20261001.md",
+      "published_object": "documents/b1728628f243a7007faa20eefaa8c68460318af80b6569d690a1bdc3fbbf87ab/jenkin-encryption-documents-s2_20261001.md",
+      "sha256": "b1728628f243a7007faa20eefaa8c68460318af80b6569d690a1bdc3fbbf87ab",
+      "status": "represented-byte-identically"
+    },
+    {
+      "original_path": "Outputs/Implementations/jenkin-encryption-documents_20261001/README.md",
+      "published_object": "documents/80f100370eb8cfb04b567a582c59b6941728e3fbacd45a77232802617f80efec/README.md",
+      "sha256": "80f100370eb8cfb04b567a582c59b6941728e3fbacd45a77232802617f80efec",
+      "status": "represented-byte-identically"
+    },
+    {
+      "original_path": "docs/product/JENKIN_PRODUCT_OVERVIEW.md",
+      "published_object": "documents/51b8dbc413a5d7a3d80421ed6345ee2cef9455a7b38da1f9c18671b2ef3a4210/JENKIN_PRODUCT_OVERVIEW.md",
+      "sha256": "51b8dbc413a5d7a3d80421ed6345ee2cef9455a7b38da1f9c18671b2ef3a4210",
+      "status": "represented-byte-identically"
+    }
+  ],
+  "application_tests": "not run; no application runtime changes",
+  "credential_tests": "not performed"
+}

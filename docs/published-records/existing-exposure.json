@@ -1,0 +1,27 @@
+{
+  "verified_utc": "2026-10-02T09:31:39.677758+00:00",
+  "repository": "yurafreedom/LifeOS",
+  "repository_visibility": "PUBLIC",
+  "verified_publication_commit": "e2bf43a039a1ae91c0c54cc5203a3655a73fd263",
+  "baseline_commit": "69477c9365f06d6ac2831f124aa03b7a23fb5214",
+  "verification_method": "Read-only Git tree existence checks; no credential values read, logged or tested.",
+  "semantics": "Withholding a duplicate snapshot from docs/published-records does not remove pre-existing files elsewhere on the publication branch, other branches, or Git history. Existing exposure remains; no reports, secrets, visibility or history were changed.",
+  "files": [
+    {
+      "original_path": "Outputs/Plans/lifeos-adaptive-analytics-phase-b-implementation-plan_20260908-045036.md",
+      "present_outside_collection_at_verified_publication_commit": true,
+      "present_at_pinned_baseline": true,
+      "collection_disposition": "withheld duplicate snapshot",
+      "reason": "Historical test-database connection includes a literal user/password; live validity versus example status is unresolved. Withheld pending owner credential classification.",
+      "new_collection_object": null
+    },
+    {
+      "original_path": "Outputs/Implementations/jenkin-integration-calendar-branding_20261001-031603.md",
+      "present_outside_collection_at_verified_publication_commit": true,
+      "present_at_pinned_baseline": true,
+      "collection_disposition": "withheld duplicate snapshot",
+      "reason": "Historical test-database connection includes a literal user/password; live validity versus example status is unresolved. Withheld pending owner credential classification.",
+      "new_collection_object": null
+    }
+  ]
+}
