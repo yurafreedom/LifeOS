@@ -31,3 +31,9 @@ Normal push, full-SHA fetch-back and GitHub remote content verification are reco
 This publication task did not modify any source file, branch, index, untracked/staged input, active process or database. The external ZIP creation described above was independently observed and was not performed by the collector. The recovery stash object `51184836ace557fbd9492527bd845329b17b2a76`, local/remote main and the integration branch were preserved. Shared repository changes are limited to normal fetch metadata and the authorized publication worktree/branch/commits.
 
 Exact refresh command and tooling checks: `scripts/docs/README.md`. PUBLIC file URLs are available to unauthenticated readers subject to their tools/network; links do not grant every AI access.
+
+## Verified publication snapshot
+
+Snapshot `013afa5eb9b5b86028779da097654dda0afcf03a` was normally pushed and fetched back with matching full SHA. All 205 objects were verified via the remote Git tree/fetched bytes; 10 GitHub API byte checks covered navigation/manifest and six representative document categories. An unauthenticated raw AI entry point returned byte-identical HTTP 200. Remote main and integration remained unchanged. Immutable links and verification evidence are in `docs/published-records/PUBLICATION.md` and `scripts/docs/remote-verification_20261002.json`. A follow-up documentation commit records these results; the final tip is separately fetched and verified.
+
+Withholding applies to new imported collection copies. Two credential-shaped historical reports already exist in inherited public baseline history, which this task did not purge or rewrite. Their collection objects remain absent pending owner classification.
